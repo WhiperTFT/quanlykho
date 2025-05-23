@@ -620,232 +620,244 @@ $(document).ready(function() {
 
 
     // --- Hàm Khởi tạo DataTables (SERVER-SIDE) ---
-        function initializeSalesQuoteDataTable() {
-                console.log("Initializing Server-Side DataTables for Sales Quotes..."); // LOG TEST
+function initializeSalesQuoteDataTable() {
+    console.log("Initializing Server-Side DataTables for Sales Quotes...");
+    const quoteTableElement = $('#sales-quotes-table'); // Đảm bảo selector này đúng
 
-                // === BẮT ĐẦU THÊM SỰ KIỆN CLICK CHO NÚT TẠO ĐĐH ===
-        console.log("Attempting to bind click event for Create Order button..."); // LOG: Chuẩn bị gắn sự kiện
+    // Gỡ bỏ event handler cũ trước khi gắn mới để tránh binding nhiều lần
+    $('#sales-quotes-table tbody').off('click', '.btn-create-order-from-quote').on('click', '.btn-create-order-from-quote', function(e) {
+        console.log('>>> Create Order button clicked!');
+        e.preventDefault();
+        e.stopPropagation();
 
-        // Sử dụng event delegation trên tbody của bảng
-        $('#sales-quotes-table tbody').on('click', '.btn-create-order-from-quote', function(e) {
-            console.log('>>> Create Order button clicked!'); // LOG: Sự kiện click đã được bắt!
-            e.preventDefault(); // Ngăn hành động mặc định của button (nếu có)
-            e.stopPropagation(); // Ngăn sự kiện lan ra các phần tử cha
+        const quoteId = $(this).data('quote-id'); // Đây là ID của báo giá, ví dụ: 5
+        // const clientSideQuoteNumber = $(this).data('quote-number'); // Số báo giá hiển thị, ví dụ: BG-XYZ-001. Sẽ dùng giá trị từ server.
 
-            const quoteId = $(this).data('quote-id');
-            console.log(`>>> Quote ID for Create Order: ${quoteId}`); // LOG: Hiển thị Quote ID
+        console.log(`>>> Quote ID for Create Order: ${quoteId}`);
 
-            // === BẮT ĐẦU THÊM MÃ AJAX TẠI ĐÂY ===
-            showLoadingSpinner(LANG['loading_items'] || 'Đang tải chi tiết sản phẩm...'); // Hiển thị spinner/thông báo chờ
-
-            $.ajax({
-                url: 'process/get_quote_items_for_order.php', // Endpoint PHP đã chuẩn bị
-                method: 'POST',
-                data: { quote_id: quoteId }, // Gửi quoteId đến server
-                dataType: 'json', // Mong đợi dữ liệu trả về là JSON
-                success: function(response) {
-    hideLoadingSpinner(); 
-    console.log('>>> AJAX success response for get_quote_items_for_order (simplified):', response);
-
-    if (response.status === 'success' && response.quote_number && Array.isArray(response.items)) {
-        console.log(">>> Quote Number fetched:", response.quote_number);
-        console.log(">>> Quote items fetched:", response.items);
-
-        // itemsForOrder chỉ chứa 4 cột theo yêu cầu ban đầu của bạn
-        const itemsForOrder = response.items.map(item => ({
-            category_snapshot: item.category_snapshot || '',
-            product_name_snapshot: item.product_name_snapshot || '',
-            unit_snapshot: item.unit_snapshot || '',
-            quantity: parseFloat(item.quantity) || 0
-            // Không có giá ở đây theo yêu cầu ban đầu
-        }));
-
-        localStorage.setItem('itemsFromQuote', JSON.stringify(itemsForOrder));
-        localStorage.setItem('originalQuoteId', quoteId); // quoteId lấy từ $(this).data('quote-id')
-        localStorage.setItem('originalQuoteNumber', response.quote_number); // LƯU SỐ BÁO GIÁ
-
-        // ---- LOGIC XÁC NHẬN CHUYỂN TRANG (giữ nguyên) ----
-        if (confirm(LANG['confirm_navigate_to_order_page'] || 'Lấy dữ liệu báo giá thành công. Bạn có muốn chuyển đến trang tạo đơn hàng không?')) {
-            console.log(">>> User chose YES. Redirecting to sales_orders.php...");
-            const redirectUrl = (typeof PROJECT_BASE_URL !== 'undefined' ? PROJECT_BASE_URL : '/') + 'sales_orders.php?from_quote=1';
-            window.location.href = redirectUrl;
-        } else {
-            console.log(">>> User chose NO. Clearing localStorage and staying on page.");
-            localStorage.removeItem('itemsFromQuote');
-            localStorage.removeItem('originalQuoteId');
-            localStorage.removeItem('originalQuoteNumber'); // Xóa cả số báo giá
-            
+        if (!quoteId) {
             if (typeof showUserMessage === 'function') {
-                showUserMessage(LANG['stay_on_quote_page_items_cleared'] || 'Đã hủy thao tác chuyển trang. Dữ liệu báo giá tạm đã được xóa.', 'info');
+                showUserMessage(LANG['error_missing_quote_id'] || 'Lỗi: Không tìm thấy ID báo giá.', 'error');
             } else {
-                alert(LANG['stay_on_quote_page_items_cleared'] || 'Đã hủy thao tác chuyển trang. Dữ liệu báo giá tạm đã được xóa.');
+                alert(LANG['error_missing_quote_id'] || 'Lỗi: Không tìm thấy ID báo giá.');
             }
+            return;
         }
-        // ---- KẾT THÚC LOGIC MỚI ----  
-    } else {
-        console.error(">>> Error fetching simplified quote data:", response.message || 'Unknown error');
-        showUserMessage(response.message || (LANG['error_fetching_items'] || 'Lỗi khi lấy chi tiết sản phẩm từ báo giá.'), 'error');
-    }
-},
-                error: function(jqXHR, textStatus, errorThrown) {
-                    // Xử lý lỗi khi yêu cầu AJAX thất bại (ví dụ: 404, 500)
-                    hideLoadingSpinner(); // Ẩn spinner/thông báo chờ
-                    console.error(">>> AJAX Error fetching quote items:", textStatus, errorThrown, jqXHR.responseText); // LOG: Lỗi AJAX chi tiết
-                    showUserMessage(LANG['server_error_fetching_items'] || 'Lỗi máy chủ khi lấy chi tiết sản phẩm.', 'error');
-                }
-            });
-            // === KẾT THÚC MÃ AJAX ===
 
+        showLoadingSpinner(LANG['loading_items'] || 'Đang tải chi tiết sản phẩm...');
+
+        $.ajax({
+            url: 'process/get_quote_items_for_order.php', // Endpoint PHP đã chuẩn bị
+            method: 'POST',
+            data: { quote_id: quoteId }, // Gửi quoteId đến server
+            dataType: 'json',
+            success: function(response) {
+                hideLoadingSpinner();
+                console.log('>>> AJAX success response for get_quote_items_for_order:', response);
+
+                // Yêu cầu server trả về response có dạng:
+                // {
+                //   "success": true, // Hoặc "status": "success" như code cũ của bạn
+                //   "quote_details": { "quote_number": "BG-XYZ-001", ... }, // Hoặc response.quote_number trực tiếp
+                //   "items": [
+                //     { "category_snapshot": "Cat A", "product_name_snapshot": "Prod 1", "unit_snapshot": "Cái", "quantity": 10, "product_id": 1, ... },
+                //     { "category_snapshot": "Cat B", "product_name_snapshot": "Prod 2", "unit_snapshot": "Hộp", "quantity": 5, "product_id": 2, ... }
+                //   ],
+                //   "message": "Optional message"
+                // }
+                // Chúng ta sẽ điều chỉnh để phù hợp với cấu trúc `response.status === 'success'` và `response.quote_number` mà bạn đang dùng.
+
+                // Kiểm tra response.status và response.quote_number như trong code gốc của bạn
+                if (response.status === 'success' && response.quote_number && Array.isArray(response.items)) {
+                    console.log(">>> Quote Number fetched from server:", response.quote_number);
+                    console.log(">>> Raw Quote items fetched from server:", response.items);
+
+                    // Chỉ trích xuất 4 trường theo yêu cầu: Danh mục, Tên SP, Đơn vị, Số lượng
+                    const simplifiedItemsForOrder = response.items.map(item => ({
+                        // Đảm bảo các tên thuộc tính (ví dụ: item.category_snapshot) khớp với những gì server trả về
+                        category_snapshot: item.category_snapshot || '',
+                        product_name_snapshot: item.product_name_snapshot || '',
+                        unit_snapshot: item.unit_snapshot || '',
+                        quantity: parseFloat(item.quantity) || 0
+                        // Không lấy product_id, unit_price, hay bất kỳ trường nào khác vào đây
+                    }));
+
+                    console.log(">>> Simplified items for localStorage:", simplifiedItemsForOrder);
+
+                    // Lưu dữ liệu đã được đơn giản hóa vào localStorage
+                    localStorage.setItem('itemsFromQuote', JSON.stringify(simplifiedItemsForOrder));
+                    localStorage.setItem('originalQuoteId', quoteId.toString()); // quoteId lấy từ nút $(this).data('quote-id')
+                    localStorage.setItem('originalQuoteNumber', response.quote_number); // Số báo giá từ server
+
+                    // ---- LOGIC XÁC NHẬN CHUYỂN TRANG (giữ nguyên từ code của bạn) ----
+                    if (confirm(LANG['confirm_navigate_to_order_page'] || 'Lấy dữ liệu báo giá thành công. Bạn có muốn chuyển đến trang tạo đơn hàng không?')) {
+                        console.log(">>> User chose YES. Redirecting to sales_orders.php...");
+                        // Sử dụng from_quote=true (boolean string) thay vì from_quote=1 cho nhất quán
+                        const redirectUrl = (typeof PROJECT_BASE_URL !== 'undefined' ? PROJECT_BASE_URL : '/') + 'sales_orders.php?action=add&from_quote=true';
+                        window.location.href = redirectUrl;
+                    } else {
+                        console.log(">>> User chose NO. Clearing localStorage and staying on page.");
+                        localStorage.removeItem('itemsFromQuote');
+                        localStorage.removeItem('originalQuoteId');
+                        localStorage.removeItem('originalQuoteNumber'); // Xóa cả số báo giá
+
+                        if (typeof showUserMessage === 'function') {
+                            showUserMessage(LANG['stay_on_quote_page_items_cleared'] || 'Đã hủy thao tác chuyển trang. Dữ liệu báo giá tạm đã được xóa.', 'info');
+                        } else {
+                            alert(LANG['stay_on_quote_page_items_cleared'] || 'Đã hủy thao tác chuyển trang. Dữ liệu báo giá tạm đã được xóa.');
+                        }
+                    }
+                    // ---- KẾT THÚC LOGIC XÁC NHẬN ----
+                } else {
+                    let errorMessage = response.message || (LANG['error_fetching_items_or_invalid_data'] || 'Lỗi khi lấy chi tiết sản phẩm từ báo giá hoặc dữ liệu không hợp lệ.');
+                    if (response.status !== 'success') {
+                         errorMessage = response.message || (LANG['server_operation_failed'] || 'Thao tác trên máy chủ không thành công.');
+                    } else if (!response.quote_number) {
+                         errorMessage = LANG['error_missing_quote_number_from_server'] || 'Không nhận được Số báo giá từ máy chủ.';
+                    } else if (!Array.isArray(response.items)) {
+                         errorMessage = LANG['error_invalid_items_format'] || 'Định dạng danh sách sản phẩm không hợp lệ.';
+                    }
+                    console.error(">>> Error fetching or processing quote data:", errorMessage, response);
+                    if (typeof showUserMessage === 'function') {
+                        showUserMessage(errorMessage, 'error');
+                    } else {
+                        alert(errorMessage);
+                    }
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                hideLoadingSpinner();
+                console.error(">>> AJAX Error fetching quote items:", textStatus, errorThrown, jqXHR.responseText);
+                if (typeof showUserMessage === 'function') {
+                    showUserMessage(LANG['server_error_fetching_items'] || 'Lỗi máy chủ khi lấy chi tiết sản phẩm.', 'error');
+                } else {
+                    alert(LANG['server_error_fetching_items'] || 'Lỗi máy chủ khi lấy chi tiết sản phẩm.');
+                }
+            }
         });
+    });
 
         console.log("Click event binding for Create Order button setup complete."); // LOG: Đã gắn sự kiện xong
         // === KẾT THÚC THÊM SỰ KIỆN CLICK ===
 
                 // Destroy instance cũ nếu có để tránh duplicate
                 if ($.fn.dataTable.isDataTable(quoteTableElement)) {
-                    quoteTableElement.DataTable().destroy();
-                     console.log("Existing DataTable instance destroyed."); // LOG TEST
+        quoteTableElement.DataTable().destroy();
+        console.log("Existing DataTable instance destroyed.");
+    }
+
+    try {
+        salesQuoteDataTable = quoteTableElement.DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: 'process/sales_quote_serverside.php',
+                type: 'POST',
+                data: function (d) {
+                    $('.column-filter-input').each(function() {
+                        const colIndex = $(this).data('dt-column-index');
+                        if (colIndex !== undefined && d.columns && d.columns[colIndex]) {
+                            d.columns[colIndex].search.value = $(this).val();
+                        }
+                    });
+                    d.item_details_filter = $('#item-details-filter-input').val();
+                    d.filter_year = $('#filterYear').val();
+                    d.filter_month = $('#filterMonth').val();
+                    return d;
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("DataTables Server-Side AJAX Error:", textStatus, errorThrown, jqXHR.responseText);
+                    let errorMsg = LANG['server_error_loading_list'] || 'Lỗi máy chủ khi tải danh sách.';
+                    try {
+                        const response = JSON.parse(jqXHR.responseText);
+                        if (response && response.message) {
+                            errorMsg = response.message;
+                        }
+                    } catch(e) {}
+                    if (typeof showUserMessage === 'function') showUserMessage(errorMsg, 'error'); else alert(errorMsg);
+                    quoteTableElement.find('tbody').html(`<tr><td colspan="7" class="text-center text-danger">${escapeHtml(errorMsg)}</td></tr>`);
+                    $('.dataTables_processing').hide();
                 }
-        
-                try {
-                    salesQuoteDataTable = quoteTableElement.DataTable({
-                        processing: true, // Hiện thông báo "Processing..."
-                        serverSide: true, // Bật chế độ Server-Side
-                        ajax: { // Bắt đầu cấu hình AJAX
-                            url: 'process/sales_quote_serverside.php', // Endpoint xử lý Server-Side
-                            type: 'POST', // Gửi dữ liệu qua POST
-                            data: function (d) { // Hàm tùy chỉnh thêm data cho request
-                                // Gửi giá trị từ các bộ lọc tùy chỉnh của cột
-                                $('.column-filter-input').each(function() {
-                                    const colIndex = $(this).data('dt-column-index');
-                                    if (colIndex !== undefined && d.columns && d.columns[colIndex]) { // Kiểm tra index cột tồn tại
-                                        d.columns[colIndex].search.value = $(this).val();
-                                    }
-                                });
-                                d.item_details_filter = $('#item-details-filter-input').val(); // Gửi bộ lọc chi tiết sản phẩm
-        
-                               
-                                    // === THÊM CÁC DÒNG BỘ LỌC NĂM VÀ THÁNG VÀO ĐÂY ===
-                                    // Lấy giá trị được chọn từ dropdown #filterYear
-                                    d.filter_year = $('#filterYear').val();
-                                    // Lấy giá trị được chọn từ dropdown #filterMonth
-                                    d.filter_month = $('#filterMonth').val();
-                                    // === KẾT THÚC CÁC DÒNG BỘ LỌC NĂM VÀ THÁNG ===
-
-
-                                    console.log("DataTables AJAX params:", d); // LOG TEST params gửi đi
-                                    return d; // TRẢ VỀ object 'd' đã cập nhật
-                                },
-                            // >>> Đảm bảo thuộc tính 'error' nằm ngay sau 'data' và có dấu phẩy ở trên <<<
-                            error: function(jqXHR, textStatus, errorThrown) {
-                                // Xử lý lỗi AJAX từ Server-Side Script
-                                console.error("DataTables Server-Side AJAX Error:", textStatus, errorThrown, jqXHR.responseText); // LOG ERROR
-                                let errorMsg = LANG['server_error_loading_list'] || 'Lỗi máy chủ khi tải danh sách.';
-                                try { // Cố gắng parse lỗi từ server (nếu backend trả về JSON lỗi)
-                                    const response = JSON.parse(jqXHR.responseText);
-                                    if (response && response.message) {
-                                        errorMsg = response.message;
-                                    }
-                                } catch(e) {}
-                                showUserMessage(errorMsg, 'error'); // Hiển thị thông báo lỗi cho người dùng
-                                // Hiển thị lỗi trong tbody của bảng
-                                quoteTableElement.find('tbody').html(`<tr><td colspan="7" class="text-center text-danger">${escapeHtml(errorMsg)}</td></tr>`);
-                                $('.dataTables_processing').hide(); // Ẩn thông báo processing
-                            }
-                        }, // <-- Đóng đối tượng ajax {}. >>> Đảm bảo DẤU ĐÓNG } này tồn tại. <<<
-                        // >>> PHẢI CÓ DẤU PHẨY , ở đây vì có thuộc tính 'columns' theo sau <<<
-                        columns: [
-                    { // 0: Child Row Control
-                        className: 'details-control dt-body-center', orderable: false, data: null, 
-                        defaultContent: '<i class="bi bi-plus-square text-success"></i>', width: "20px"
-                    },
-                    { data: 'quote_number', name: 'so.quote_number', className: 'dt-body-left' }, // 1: Số BG - name ĐÚNG
-                    { data: 'quote_date_formatted', name: 'so.quote_date', className: 'dt-body-center' }, // 2: Ngày BG - name ĐÚNG
-                    { data: 'customer_name', name: 'p.name', className: 'dt-body-left' }, // 3: Khách hàng (p.name là đúng nếu alias partner là p)
-                    { // 4: Tổng tiền
-                        data: 'grand_total_formatted', name: 'so.grand_total', className: 'dt-body-right', orderable: true, searchable: false, // name ĐÚNG
-                        render: function(data, type, row) { 
-                            return data + ' <small>' + (row.currency || DEFAULT_CURRENCY) + '</small>'; // DEFAULT_CURRENCY từ set_js_vars.php
+            },
+            columns: [
+                {
+                    className: 'details-control dt-body-center', orderable: false, data: null,
+                    defaultContent: '<i class="bi bi-plus-square text-success"></i>', width: "20px"
+                },
+                { data: 'quote_number', name: 'so.quote_number', className: 'dt-body-left' },
+                { data: 'quote_date_formatted', name: 'so.quote_date', className: 'dt-body-center' },
+                { data: 'customer_name', name: 'p.name', className: 'dt-body-left' },
+                {
+                    data: 'grand_total_formatted', name: 'so.grand_total', className: 'dt-body-right', orderable: true, searchable: false,
+                    render: function(data, type, row) {
+                        return data + ' <small>' + (row.currency || DEFAULT_CURRENCY) + '</small>';
+                    }
+                },
+                {
+                    data: 'status', name: 'so.status', className: 'dt-body-center',
+                    render: function(data, type, row) {
+                        let statusText = LANG['status_' + String(data).toLowerCase()] || (data ? String(data).charAt(0).toUpperCase() + String(data).slice(1) : 'N/A');
+                        let badgeClass = 'bg-secondary';
+                        switch (String(data).toLowerCase()) {
+                            case 'draft': badgeClass = 'bg-light text-dark border'; break;
+                            case 'sent': badgeClass = 'bg-info text-dark'; break;
+                            case 'accepted': badgeClass = 'bg-success'; break;
+                            case 'rejected': badgeClass = 'bg-danger'; break;
+                            case 'expired': badgeClass = 'bg-warning text-dark'; break;
+                            case 'invoiced': badgeClass = 'bg-primary'; break;
                         }
-                    },
-                    { // 5: Trạng thái BG (THÊM CỘT NÀY)
-                        data: 'status', name: 'so.status', className: 'dt-body-center', // data là 'status', name cho server-side là 'so.status'
-                        render: function(data, type, row) {
-                            let statusText = LANG['status_' + String(data).toLowerCase()] || (data ? String(data).charAt(0).toUpperCase() + String(data).slice(1) : 'N/A');
-                            let badgeClass = 'bg-secondary'; 
-                            switch (String(data).toLowerCase()) { 
-                                case 'draft': badgeClass = 'bg-light text-dark border'; break;
-                                case 'sent': badgeClass = 'bg-info text-dark'; break;
-                                case 'accepted': badgeClass = 'bg-success'; break;
-                                case 'rejected': badgeClass = 'bg-danger'; break;
-                                case 'expired': badgeClass = 'bg-warning text-dark'; break;
-                                case 'invoiced': badgeClass = 'bg-primary'; break;
-                            }
-                            return `<span class="badge ${badgeClass} p-2">${escapeHtml(statusText)}</span>`;
-                        }
-                    },
-                    { // 6: Các nút hành động (CẬP NHẬT RENDER)
+                        return `<span class="badge ${badgeClass} p-2">${escapeHtml(statusText)}</span>`;
+                    }
+                },
+                {
                     data: null, orderable: false, searchable: false, className: 'text-end action-cell dt-nowrap',
                     render: function(data, type, row) {
-                        const quoteId = row.id; 
-                        const quoteNumber = escapeHtml(row.quote_number || '');
+                        const quoteId = row.id;
+                        const quoteNumberForRow = escapeHtml(row.quote_number || ''); // Dùng cho các nút khác và data-quote-number
                         const currentStatus = row.status;
-                        
-                        // Đường dẫn PDF tĩnh, giống như sales_orders.js
-                        const safeQuoteNumber = sanitizeFilename(row.quote_number); // Đảm bảo không có ký tự đặc biệt
-                        const pdfPath = `pdf/${safeQuoteNumber}.pdf`; // URL tĩnh trong thư mục /pdf
+                        const safeQuoteNumber = typeof sanitizeFilename === 'function' ? sanitizeFilename(row.quote_number) : quoteNumberForRow.replace(/[^a-zA-Z0-9-_\.]/g, '_');
+                        const pdfPath = `pdf/${safeQuoteNumber}.pdf`;
 
                         let actionsHtml = '';
-                        
-                        actionsHtml += `<a href="${escapeHtml(pdfPath)}" target="_blank" class="btn btn-sm btn-outline-secondary btn-view-pdf" data-id="${quoteId}" data-quote-number-raw="${quoteNumber}" title="${LANG['view_pdf']||'Xem PDF'}"><i class="bi bi-file-earmark-pdf"></i></a>`;
-                        actionsHtml += `<button class="btn btn-sm btn-outline-primary btn-send-email ms-1" data-id="${quoteId}" data-quote-number="${quoteNumber}" data-pdf-url="${escapeHtml(pdfPath)}" title="${LANG['send_email'] || 'Gửi Email'}"><i class="bi bi-envelope-fill"></i></button>`;
+                        actionsHtml += `<a href="${escapeHtml(pdfPath)}" target="_blank" class="btn btn-sm btn-outline-secondary btn-view-pdf" data-id="${quoteId}" data-quote-number-raw="${quoteNumberForRow}" title="${LANG['view_pdf']||'Xem PDF'}"><i class="bi bi-file-earmark-pdf"></i></a>`;
+                        actionsHtml += `<button class="btn btn-sm btn-outline-primary btn-send-email ms-1" data-id="${quoteId}" data-quote-number="${quoteNumberForRow}" data-pdf-url="${escapeHtml(pdfPath)}" title="${LANG['send_email'] || 'Gửi Email'}"><i class="bi bi-envelope-fill"></i></button>`;
 
                         if (currentStatus === 'draft') {
                             actionsHtml += `<button class="btn btn-sm btn-outline-warning btn-edit-document ms-1" data-id="${quoteId}" title="${LANG['edit']||'Sửa'}"><i class="bi bi-pencil-square"></i></button>`;
-                            actionsHtml += `<button class="btn btn-sm btn-outline-danger btn-delete-document ms-1" data-id="${quoteId}" data-number="${quoteNumber}" title="${LANG['delete']||'Xóa'}"><i class="bi bi-trash"></i></button>`;
-                            // Nút "Đánh dấu Đã Gửi"
+                            actionsHtml += `<button class="btn btn-sm btn-outline-danger btn-delete-document ms-1" data-id="${quoteId}" data-number="${quoteNumberForRow}" title="${LANG['delete']||'Xóa'}"><i class="bi bi-trash"></i></button>`;
                             actionsHtml += `<button class="btn btn-sm btn-outline-success btn-update-status ms-1" data-id="${quoteId}" data-new-status="sent" title="${LANG['mark_as_sent'] || 'Đánh dấu Đã Gửi'}"><i class="bi bi-send-check"></i> ${LANG['send'] || 'Gửi'}</button>`;
                         } else if (currentStatus === 'sent') {
                             actionsHtml += `<button class="btn btn-sm btn-success btn-update-status ms-1" data-id="${quoteId}" data-new-status="accepted" title="${LANG['mark_as_accepted'] || 'Đánh dấu Đã Chấp Nhận'}"><i class="bi bi-check-circle"></i> ${LANG['accept'] || 'Chấp nhận'}</button>`;
                             actionsHtml += `<button class="btn btn-sm btn-danger btn-update-status ms-1" data-id="${quoteId}" data-new-status="rejected" title="${LANG['mark_as_rejected'] || 'Đánh dấu Đã Từ Chối'}"><i class="bi bi-x-octagon"></i> ${LANG['reject'] || 'Từ chối'}</button>`;
                             actionsHtml += `<button class="btn btn-sm btn-secondary btn-update-status ms-1" data-id="${quoteId}" data-new-status="expired" title="${LANG['mark_as_expired'] || 'Đánh dấu Hết Hạn'}"><i class="bi bi-calendar-x"></i> ${LANG['expire'] || 'Hết hạn'}</button>`;
                         } else if (currentStatus === 'accepted') {
-                            actionsHtml += `<button class="btn btn-sm btn-info btn-create-order-from-quote ms-1" data-quote-id="${quoteId}" title="${LANG['create_order_from_quote'] || 'Tạo Đơn Đặt Hàng'}"><i class="bi bi-receipt"></i> ${LANG['create_order'] || 'Tạo ĐĐH'}</button>`;
+                            // Đảm bảo nút "Tạo ĐĐH" có data-quote-number
+                            actionsHtml += `<button class="btn btn-sm btn-info btn-create-order-from-quote ms-1" data-quote-id="${quoteId}" data-quote-number="${quoteNumberForRow}" title="${LANG['create_order_from_quote'] || 'Tạo Đơn Đặt Hàng'}"><i class="bi bi-receipt"></i> ${LANG['create_order'] || 'Tạo ĐĐH'}</button>`;
                         }
-                        
-                        // Nút xem log email
-                        actionsHtml += `<button class="btn btn-sm btn-outline-info btn-view-quote-logs ms-1" data-quote-id="${quoteId}" data-quote-number="${quoteNumber}" title="${LANG['view_email_logs'] || 'Xem lịch sử Email'}"><i class="bi bi-mailbox"></i></button>`;
-                        
+                        actionsHtml += `<button class="btn btn-sm btn-outline-info btn-view-quote-logs ms-1" data-quote-id="${quoteId}" data-quote-number="${quoteNumberForRow}" title="${LANG['view_email_logs'] || 'Xem lịch sử Email'}"><i class="bi bi-mailbox"></i></button>`;
                         return actionsHtml;
                     }
                 },
-                ], // Đóng columns
-                // SỬA LẠI 'quote' THÀNH 'order'
-                order: [[2, 'desc']], // Mặc định sắp xếp theo cột "quote_number" (index 1) giảm dần
-                        language: { // Cấu hình ngôn ngữ
-                            url: (typeof LANG !== 'undefined' && LANG.language === 'vi') ? 'lang/vi.json' : 'lang/en-GB.json',
-                        },
-                        paging: true, // Bật phân trang
-                        lengthChange: true, // Cho phép thay đổi số dòng trên trang
-                        lengthMenu: [
-                            [25, 50, -1], // Các giá trị số thực tế (dùng -1 cho 'Tất cả')
-                            [25, 50, "Tất cả"] // Các chuỗi hiển thị tương ứng trong dropdown
-                        ],
-                        searching: false, // TẮT SEARCHING CHUNG (vì dùng filter riêng)
-                        info: true, // Hiện thông tin "Showing x to y of z entries"
-                        autoWidth: false, // Tắt tự động tính chiều rộng cột
-                        responsive: true // Bật Responsive Table
-                        // stateSave: true, stateDuration: 3600 // Lưu trạng thái bảng (tùy chọn)
-                    }); // <<< Đảm bảo DẤU ĐÓNG NGOẶC NHỌN } CUỐI CÙNG CHO DataTables({...}) <<<
-                    console.log("Server-Side DataTables initialized successfully."); // LOG TEST
-        
-        
-                } catch (e) { // Bắt lỗi nếu DataTables init thất bại
-                    console.error("Error initializing DataTables:", e); // LOG ERROR
-                    showUserMessage(LANG['error_initializing_datatable'] || 'Lỗi khi khởi tạo bảng.', 'error'); // Thông báo lỗi cho người dùng
-                }
-                 console.log("DataTables initialization finished."); // LOG TEST
-            } // <-- Đóng hàm initializeSalesQuoteDataTable
+            ],
+            order: [[2, 'desc']], // Mặc định sắp xếp theo cột Ngày BG (index 2) giảm dần
+            language: {
+                url: (typeof LANG !== 'undefined' && LANG.language === 'vi') ? 'lang/vi.json' : 'lang/en-GB.json',
+            },
+            paging: true,
+            lengthChange: true,
+            lengthMenu: [[25, 50, -1], [25, 50, "Tất cả"]],
+            searching: false,
+            info: true,
+            autoWidth: false,
+            responsive: true
+        });
+        console.log("Server-Side DataTables initialized successfully.");
+    } catch (e) {
+        console.error("Error initializing DataTables:", e);
+        if (typeof showUserMessage === 'function') showUserMessage(LANG['error_initializing_datatable'] || 'Lỗi khi khởi tạo bảng.', 'error'); else alert(LANG['error_initializing_datatable'] || 'Lỗi khi khởi tạo bảng.');
+    }
+    console.log("DataTables initialization finished.");
+} // <-- Đóng hàm initializeSalesQuoteDataTable
 
 
     // --- Hàm định dạng chi tiết Child Row ---
