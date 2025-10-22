@@ -1,0 +1,15 @@
+{
+    "require": {
+        "luc-nham/lunar-calendar": "dev-main",
+        "dompdf/dompdf": "^3.1",
+        "google/apiclient": "2.9",
+        "guzzlehttp/guzzle": "7.5",
+        "phpmailer/phpmailer": "^6.10",
+        "backpack/crud": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "LucNham\\LunarCalendar\\": "vendor/luc-nham/lunar-calendar/src/"
+        }
+    }
+}

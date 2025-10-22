@@ -1,0 +1,11 @@
+# Chặn tải token.json
+<Files "token.json">
+  Require all denied
+</Files>
+
+# (Khuyến nghị) Chặn luôn file .log khỏi web nếu cần
+<FilesMatch "\.(log|tmp)$">
+  Require all denied
+</FilesMatch>
+# Cho phép tính năng fullscreen cho origin hiện tại
+Header always set Permissions-Policy "fullscreen=(self)"

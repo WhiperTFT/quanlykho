@@ -1,0 +1,266 @@
+.login-container {
+    position: relative;
+    width: 360px;
+    height: 120px;
+    transition: all 0.2s ease;
+}
+
+.login-container:hover,
+.login-container.delayed-hover {
+    width: 372px !important;
+    height: 275px !important;
+}
+
+.login-container.resetting {
+    width: 360px !important;
+    height: 120px !important;
+    transition: all 2s ease;
+}
+
+.login-box {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    z-index: 2;
+    opacity: 1;
+    visibility: visible;
+}
+
+.login-container:hover .login-box,
+.login-container.delayed-hover .login-box {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.9);
+}
+
+.login-container.resetting .login-box {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    transition: all 2s ease;
+}
+
+.login-box h2 {
+    font-size: 1.8em;
+    color: #1e40af;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.login-box p {
+    font-size: 1.08em;
+    color: #6b7280;
+}
+
+.login-form {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.9);
+    transition: all 0.3s ease;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-container:hover .login-form,
+.login-container.delayed-hover .login-form {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+.login-container.resetting .login-form {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.9);
+    transition: all 2s ease;
+}
+
+.login-form .form-floating input {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1.08em;
+    transition: border-color 0.3s ease;
+}
+
+.login-form .form-floating input:focus {
+    border-color: #1e40af;
+    box-shadow: none;
+}
+
+.login-form button {
+    width: 100%;
+    padding: 10px;
+    background: #1e40af;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 1.08em;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.login-form button:hover {
+    background: #1e3a8a;
+}
+
+.rotating-border {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 367px !important;
+    height: 127px !important;
+    transform: translate(-50%, -50%);
+    border-radius: 12px;
+    background: conic-gradient(#60a5fa, #a78bfa, #f472b6, #facc15, #60a5fa);
+    z-index: 0;
+    transition: all 0.1s ease !important;
+}
+
+.login-container:hover .rotating-border,
+.login-container.delayed-hover .rotating-border {
+    width: 386px !important;
+    height: 290px !important;
+}
+
+.login-container.resetting .rotating-border {
+    width: 367px !important;
+    height: 127px !important;
+    transition: all 2s ease !important;
+}
+
+.rotating-border::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    background: linear-gradient(135deg, #e0e7ff, #c3dafe);
+    border-radius: 8px;
+}
+
+.rotating-border::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    background: conic-gradient(#60a5fa, #a78bfa, #f472b6, #facc15, #60a5fa);
+    animation: rotateColors 0.5s linear infinite;
+    z-index: -1;
+}
+
+@keyframes rotateColors {
+    0% {
+        background: conic-gradient(#60a5fa, #a78bfa, #f472b6, #facc15, #60a5fa);
+    }
+    25% {
+        background: conic-gradient(#facc15, #60a5fa, #a78bfa, #f472b6, #facc15);
+    }
+    50% {
+        background: conic-gradient(#f472b6, #facc15, #60a5fa, #a78bfa, #f472b6);
+    }
+    75% {
+        background: conic-gradient(#a78bfa, #f472b6, #facc15, #60a5fa, #a78bfa);
+    }
+    100% {
+        background: conic-gradient(#60a5fa, #a78bfa, #f472b6, #facc15, #60a5fa);
+    }
+}
+/* --- Hiệu ứng và kiểu đồng hồ kỹ thuật số --- */
+.clock-container {
+    background: linear-gradient(135deg, #FFFFFF, #F5F5F5);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    color: #37474F;
+    margin-bottom: 2rem;
+    width: 360px;
+    border: 1px solid #ECEFF1;
+    transition: transform 0.3s ease;
+}
+
+.clock-container:hover {
+    transform: scale(1.02);
+}
+
+.clock {
+    font-size: 2.7rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #60a5fa;
+    text-shadow: 0 0 8px rgba(96, 165, 250, 0.4);
+}
+
+.date {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #37474F;
+    margin: 0.5rem 0;
+    padding: 0.3rem;
+    background: linear-gradient(135deg, #F5F5F5, #ECEFF1);
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    text-shadow: 0 0 3px rgba(55, 71, 79, 0.2);
+}
+
+.lunar-date {
+    font-size: 0.95rem;
+    color: #facc15;
+    background: linear-gradient(135deg, #a78bfa, #60a5fa);
+    padding: 0.3rem;
+    border-radius: 5px;
+}
+
+.glow {
+    animation: glow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 5px rgba(96, 165, 250, 0.5), 0 0 10px rgba(96, 165, 250, 0.3);
+    }
+    to {
+        text-shadow: 0 0 10px rgba(96, 165, 250, 0.7), 0 0 15px rgba(96, 165, 250, 0.5);
+    }
+}
+.login-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 12px 20px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    font-size: 14px;
+    max-width: 320px;
+    text-align: left;
+}

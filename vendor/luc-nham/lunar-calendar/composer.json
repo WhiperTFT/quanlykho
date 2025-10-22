@@ -1,0 +1,33 @@
+{
+    "name": "luc-nham/lunar-calendar",
+    "description": "Thư viện PHP Âm lịch Việt Nam",
+    "type": "library",
+    "require": {
+        "php": ">=8.2"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "LucNham\\LunarCalendar\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "LucNham\\LunarCalendar\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "luc-nham",
+            "email": "admin@lucnham.com"
+        }
+    ],
+    "scripts": {
+        "test": "php ./vendor/bin/phpunit",
+        "test:coverage": "php -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-html coverage"
+
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.3"
+    }
+}

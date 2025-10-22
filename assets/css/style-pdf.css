@@ -1,0 +1,122 @@
+/* ==========================================================================
+   DOMPDF-SAFE — A4 with two A5 slips (no @media, no CSS variables)
+   ========================================================================== */
+
+@page { size: A4 portrait; margin: 9mm; }
+
+/* Reset chỉ cho PDF */
+html, body {
+  margin: 0; padding: 0;
+  font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
+  color: #000; font-size: 11px; line-height: 1.25;
+  background: #fff;
+}
+
+/* Ẩn các phần tử chỉ dùng trên màn hình */
+.hide-on-pdf, .hide-on-pdf-export { display: none; }
+
+/* Khung A4 chứa 2 slip A5 */
+.a4-container {
+  position: relative;
+  height: 279mm;              /* thay var(--print-height) */
+  page-break-inside: avoid;
+}
+.mid-cutline {
+  position: absolute;
+  top: 139.5mm;               /* thay var(--half) */
+  left: 0; right: 0;
+  border-top: 1px dashed #999;
+  height: 0;
+}
+.slip-a5 {
+  position: absolute;
+  left: 0; right: 0;
+  height: 139.5mm;            /* thay var(--half) */
+  padding: 4.5mm 7mm;
+  overflow: hidden;
+  page-break-inside: avoid;
+  border: none;
+}
+.slip-top { top: 0; }
+.slip-bottom { top: 139.5mm; } /* thay var(--half) */
+
+/* Typography cho slip */
+.a4-container .company-name {
+  margin: 0 0 3px 0; font-weight: bold; font-size: 14px;
+  color: #1b3b8a; text-transform: uppercase;
+}
+.a4-container .company-info { margin: 0; font-size: 10.5px; color: #333; line-height: 1.25; }
+.a4-container .company-info + .company-info { margin-top: 1.5px; }
+.a4-container .divider { height: 1px; background: #1b3b8a; margin: 6px 0 8px; }
+.a4-container .title { text-align: center; font-weight: bold; font-size: 15px; text-transform: uppercase; margin: 0 0 3px 0; }
+.a4-container .meta { text-align: center; font-style: italic; line-height: 1.3; margin-bottom: 8px; }
+.a4-container .meta .line { margin: 0; }
+
+.a4-container .info-rows td { padding: 1.5px 0; vertical-align: top; }
+.a4-container .info-rows .lbl { min-width: 150px; display: inline-block; font-weight: bold; }
+
+/* Bảng hàng */
+.a4-container table.items { width: 100%; border-collapse: collapse; margin-top: 8px; page-break-inside: auto; }
+.a4-container table.items th,
+.a4-container table.items td { border: 1px solid #333; padding: 4px 5px; font-size: 10.5px; vertical-align: middle; line-height: 1.2; }
+.a4-container table.items th { text-align: center; font-weight: bold; background: #f0f2f5; white-space: nowrap; }
+.a4-container td.center, .a4-container th.center { text-align: center; }
+.a4-container td.num { text-align: right; }
+.a4-container table.items tr { page-break-inside: avoid; page-break-after: auto; }
+
+/* Chữ ký */
+.a4-container .signatures { margin-top: 10px; }
+.a4-container .signatures td { vertical-align: top; text-align: center; }
+.a4-container .signatures .title { font-weight: bold; font-size: 10.5px; }
+.a4-container .signatures .note { font-style: italic; font-size: 9.5px; }
+.a4-container .signatures .space { height: 36px; }
+
+/* Logo */
+.a4-container .logo-wrap img { display: block; margin-top: 6px; }
+
+/* Preset mật độ (không dùng @media) */
+.density-compact html, .density-compact body { font-size: 10.5px; line-height: 1.2; }
+.density-compact .a4-container table.items th,
+.density-compact .a4-container table.items td { padding: 3.5px 4px; font-size: 10px; line-height: 1.15; }
+.density-compact .a4-container .company-name { font-size: 13.5px; }
+.density-compact .a4-container .title { font-size: 14px; }
+.density-compact .a4-container .meta { margin-bottom: 6px; }
+.density-compact .a4-container .signatures { margin-top: 8px; }
+.density-compact .a4-container .signatures .space { height: 30px; }
+
+.density-tight html, .density-tight body { font-size: 10px; line-height: 1.15; }
+.density-tight .a4-container table.items th,
+.density-tight .a4-container table.items td { padding: 3px 3.5px; font-size: 9.8px; line-height: 1.1; }
+.density-tight .a4-container .company-name { font-size: 13px; }
+.density-tight .a4-container .title { font-size: 13.5px; }
+.density-tight .a4-container .meta { margin-bottom: 5px; }
+.density-tight .a4-container .signatures { margin-top: 6px; }
+.density-tight .a4-container .signatures .space { height: 26px; }
+
+.density-ultra html, .density-ultra body { font-size: 9.6px; line-height: 1.1; }
+.density-ultra .a4-container table.items th,
+.density-ultra .a4-container table.items td { padding: 2.5px 3px; font-size: 9.4px; line-height: 1.05; }
+.density-ultra .a4-container .company-name { font-size: 12.5px; }
+.density-ultra .a4-container .title { font-size: 13px; }
+.density-ultra .a4-container .meta { margin-bottom: 4px; }
+.density-ultra .a4-container .signatures { margin-top: 5px; }
+.density-ultra .a4-container .signatures .space { height: 22px; }
+
+/* SCREEN safeguard */
+.a4-container { height: auto; }
+
+/* Phần phụ trợ UI (không ảnh hưởng PDF nếu không render) */
+.ac-box .ac-item { padding:6px 8px; cursor:pointer; }
+.ac-box .ac-item:hover { background:#f5f5f5; }
+.toolbar .form-label { min-width: 64px; }
+.search-group { min-width: 260px; position: relative; }
+.search-group > i.bi-search { position: absolute; top: 6px; left: 10px; font-size: 14px; opacity:.6; }
+.search-group .form-control { padding-top: .35rem; padding-bottom: .35rem; }
+.search-group .clear-search { position: absolute; right: 4px; top: 2px; display: none; }
+.search-group.has-value .clear-search { display: inline-flex; }
+.badge.bg-primary-subtle {
+  background-color: rgba(13,110,253,.1) !important;
+  border: 1px solid rgba(13,110,253,.25) !important;
+  color: #0d6efd !important;
+}
+#pxkTable th, #pxkTable td { vertical-align: middle; }

@@ -1,0 +1,23 @@
+[QUEUE_PROCESSOR][2025-10-21 14:06:37] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2025-10-21 14:06:37] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2025-10-21 14:06:37] Processing log ID: 120 for type: order
+[QUEUE_PROCESSOR][2025-10-21 14:06:37] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2025-10-21 14:06:37] Found log ID 120 with status: pending
+[QUEUE_PROCESSOR][2025-10-21 14:06:37] Status updated to 'sending' for log ID 120.
+[QUEUE_PROCESSOR][2025-10-21 14:06:39] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2025-10-21 14:06:40] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-21102025-002.pdf
+[QUEUE_PROCESSOR][2025-10-21 14:06:40] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-21102025-002.pdf
+[QUEUE_PROCESSOR][2025-10-21 14:06:42] Email sent successfully for Log ID: 120.
+[QUEUE_PROCESSOR][2025-10-21 14:06:42] Final status updated to 'sent' for log ID 120.
+[QUEUE_PROCESSOR][2025-10-21 14:06:42] Script finished for Log ID: 120
+[QUEUE_PROCESSOR][2025-10-21 14:12:54] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2025-10-21 14:12:54] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2025-10-21 14:12:54] Processing log ID: 121 for type: order
+[QUEUE_PROCESSOR][2025-10-21 14:12:54] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2025-10-21 14:12:54] Found log ID 121 with status: pending
+[QUEUE_PROCESSOR][2025-10-21 14:12:54] Status updated to 'sending' for log ID 121.
+[QUEUE_PROCESSOR][2025-10-21 14:12:54] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-21102025-003.pdf
+[QUEUE_PROCESSOR][2025-10-21 14:12:54] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-21102025-003.pdf
+[QUEUE_PROCESSOR][2025-10-21 14:12:56] Email sent successfully for Log ID: 121.
+[QUEUE_PROCESSOR][2025-10-21 14:12:56] Final status updated to 'sent' for log ID 121.
+[QUEUE_PROCESSOR][2025-10-21 14:12:56] Script finished for Log ID: 121

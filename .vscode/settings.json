@@ -1,0 +1,15 @@
+{
+    "files.exclude": {
+        "**/pdf": true,
+        "**/logs": true,
+        "**/vendor": true,
+        "**/uploads": true
+    },
+    "search.exclude": {
+        "**/pdf": true,
+        "**/logs": true,
+        "**/vendor": true,
+        "**/uploads": true
+    },
+    "git.ignoreLimitWarning": true
+}
