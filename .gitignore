@@ -1,0 +1,11 @@
+# ==== FILE BẢO MẬT KHÔNG CHO PUSH ====
+config/token.json
+config/client_secret.json
+config/*.pem
+config/*.key
+config/*.crt
+config/*.pfx
+certs/
+secrets/
+.env
+apache/conf/ssl.crt/
