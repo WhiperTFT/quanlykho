@@ -1,0 +1,23 @@
+[QUEUE_PROCESSOR][2025-10-29 15:17:31] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2025-10-29 15:17:31] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2025-10-29 15:17:31] Processing log ID: 127 for type: order
+[QUEUE_PROCESSOR][2025-10-29 15:17:31] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2025-10-29 15:17:31] Found log ID 127 with status: pending
+[QUEUE_PROCESSOR][2025-10-29 15:17:31] Status updated to 'sending' for log ID 127.
+[QUEUE_PROCESSOR][2025-10-29 15:17:33] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2025-10-29 15:17:34] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-29102025-002.pdf
+[QUEUE_PROCESSOR][2025-10-29 15:17:34] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-29102025-002.pdf
+[QUEUE_PROCESSOR][2025-10-29 15:17:36] Email sent successfully for Log ID: 127.
+[QUEUE_PROCESSOR][2025-10-29 15:17:36] Final status updated to 'sent' for log ID 127.
+[QUEUE_PROCESSOR][2025-10-29 15:17:36] Script finished for Log ID: 127
+[QUEUE_PROCESSOR][2025-10-29 15:18:53] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2025-10-29 15:18:53] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2025-10-29 15:18:53] Processing log ID: 128 for type: order
+[QUEUE_PROCESSOR][2025-10-29 15:18:53] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2025-10-29 15:18:53] Found log ID 128 with status: pending
+[QUEUE_PROCESSOR][2025-10-29 15:18:53] Status updated to 'sending' for log ID 128.
+[QUEUE_PROCESSOR][2025-10-29 15:18:53] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-29102025-003.pdf
+[QUEUE_PROCESSOR][2025-10-29 15:18:53] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-29102025-003.pdf
+[QUEUE_PROCESSOR][2025-10-29 15:18:55] Email sent successfully for Log ID: 128.
+[QUEUE_PROCESSOR][2025-10-29 15:18:55] Final status updated to 'sent' for log ID 128.
+[QUEUE_PROCESSOR][2025-10-29 15:18:55] Script finished for Log ID: 128

@@ -152,3 +152,6 @@ if (isset($company_info) && is_array($company_info) && !empty($company_info['sig
 <script src="assets/js/sq_pdf.js"></script>
 <script src="assets/js/sq_main.js"></script>
 <script src="assets/js/sq_events.js"></script>
+<script>
+  window.APP_CONTEXT = { type: 'quote', documentName: 'Báo giá' };
+</script>

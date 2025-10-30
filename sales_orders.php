@@ -187,3 +187,6 @@ if (isset($company_info) && is_array($company_info) && !empty($company_info['sig
 <script src="assets/js/sales_orders_pdf.js"></script>
 <script src="assets/js/sales_orders_events.js"></script>
 <script src="assets/js/sales_orders_main.js"></script>
+<script>
+  window.APP_CONTEXT = { type: 'order', documentName: 'Đơn hàng' };
+</script>
