@@ -1,144 +1,123 @@
 <?php
-// inventory.php — Báo cáo Tồn kho (On hand) + Allocated + ATP
-// Yêu cầu: đã tạo các VIEW: v_stock_on_hand, v_inventory_allocated, v_inventory_atp
-// Lưu ý: trang layout của bạn phải đang nạp sẵn jQuery + DataTables + Bootstrap + Bootstrap Icons
+// inventory.php — Trang quản lý tồn kho khả dụng
+require_once __DIR__ . '/includes/init.php';
+require_once __DIR__ . '/includes/auth_check.php';
+require_login();
 
-require_once __DIR__ . '/includes/init.php'; // $pdo (PDO)
+$page_title = 'Quản lý tồn kho';
 require_once __DIR__ . '/includes/header.php';
-$categories = [];
-try {
-  $stmt = $pdo->query("SELECT id, name FROM categories ORDER BY name");
-  $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (Throwable $e) {
-  $categories = [];
-}
 ?>
-<!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="utf-8">
-  <title>Tồn kho</title>
-  <style>
-    /* tinh chỉnh nhỏ cho bảng */
-    #inventory-table td, #inventory-table th { white-space: nowrap; }
-    .stat-badges .badge { font-weight: 500; }
-  </style>
-</head>
-<body>
-<div class="card">
-  <div class="card-header d-flex flex-wrap align-items-center gap-2">
-    <h5 class="mb-0">Tồn kho</h5>
-    <div class="ms-auto d-flex align-items-center gap-2">
-      <select id="filterCategory" class="form-select form-select-sm" style="max-width: 260px">
-        <option value="">— Tất cả danh mục —</option>
-        <?php foreach ($categories as $c): ?>
-          <option value="<?= (int)$c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
-        <?php endforeach; ?>
-      </select>
 
-      <div class="stat-badges d-none d-sm-flex align-items-center gap-1">
-        <span class="badge bg-secondary" id="badgeOnHand">On hand: 0</span>
-        <span class="badge bg-warning text-dark" id="badgeAllocated">Allocated: 0</span>
-        <span class="badge bg-success" id="badgeATP">ATP: 0</span>
-      </div>
+<div class="container-fluid py-3">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="mb-0">Quản lý tồn kho</h4>
+    <div class="d-flex gap-2">
+      <input id="inv-search" type="text" class="form-control form-control-sm" placeholder="Tìm sản phẩm...">
+      <select id="status-filter" class="form-select form-select-sm">
+        <option value="">Trạng thái đơn mua (SO)</option>
+        <option value="ordered">ordered</option>
+        <option value="partially_received">partially_received</option>
+        <option value="fully_received">fully_received</option>
+      </select>
+      <button id="btn-export" class="btn btn-sm btn-outline-secondary">Xuất Excel</button>
     </div>
   </div>
 
-  <div class="card-body">
-    <table id="inventory-table" class="table table-striped table-bordered w-100">
-      <thead class="table-light">
-      <tr>
-        <th>ID</th>
-        <th>Sản phẩm</th>
-        <th>ĐVT</th>
-        <th>Danh mục</th>
-        <th class="text-end">On hand</th>
-        <th class="text-end">Allocated</th>
-        <th class="text-end">ATP</th>
-      </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
-<div class="card">
-  <div class="card-header d-flex align-items-center gap-2">
-    <h5 class="mb-0">Tồn kho</h5>
-    <select id="filterCategory" class="form-select form-select-sm" style="max-width:240px">
-      <option value="">-- Tất cả danh mục --</option>
-      <!-- render server-side các option categories nếu cần -->
-    </select>
-  </div>
-  <div class="card-body">
-    <table id="inventory-table" class="table table-striped table-bordered w-100"></table>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <table id="inv-table" class="table table-striped table-bordered w-100">
+  <thead>
+    <tr>
+      <th>Danh mục</th>
+      <th>Tên sản phẩm</th>
+      <th>ĐVT</th>
+      <th class="text-end">SL mua (SO)</th>
+      <th class="text-end">SL đã chốt bán</th>
+      <th class="text-end">Tồn khả dụng</th>
+      <th class="text-end">Tổng tiền mua</th>
+      <th class="text-end">Tổng tiền bán (accepted)</th>
+      <th>Chi tiết</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+  <tfoot>
+    <tr>
+      <!-- 3 cột đầu để trống -->
+      <th colspan="3" class="text-end">Tổng:</th>
+      <!-- tổng ở 5 cột số tiếp theo -->
+      <th class="text-end"></th>
+      <th class="text-end"></th>
+      <th class="text-end"></th>
+      <th class="text-end"></th>
+      <th class="text-end"></th>
+      <!-- cột nút -->
+      <th></th>
+    </tr>
+  </tfoot>
+</table>
+    </div>
   </div>
 </div>
 
-<!-- Modal sổ chi tiết -->
-<div class="modal fade" id="ledgerModal" tabindex="-1" aria-hidden="true">
+<!-- Modal chi tiết xuất/nhập -->
+<div class="modal fade" id="movementModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 id="ledgerModalLabel" class="modal-title">Sổ chi tiết</h5>
-        <input id="asOfDate" type="date" class="form-control form-control-sm ms-3" style="max-width: 200px;">
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <h6 class="modal-title">Lịch sử xuất/nhập: <span id="mv-product-title"></span></h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
       </div>
       <div class="modal-body">
-        <table id="ledger-table" class="table table-sm table-hover w-100"></table>
+        <div class="row g-3">
+          <div class="col-12 col-lg-6">
+            <div class="card border-success-subtle">
+              <div class="card-header bg-success-subtle">Nhập (Mua vào từ SO)</div>
+              <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                  <thead>
+                    <tr>
+                      <th>Ngày mua</th>
+                      <th>Nhà cung cấp</th>
+                      <th class="text-end">SL</th>
+                      <th class="text-end">Đơn giá</th>
+                      <th class="text-end">Thành tiền</th>
+                      <th>SO #</th>
+                    </tr>
+                  </thead>
+                  <tbody id="mv-purchases-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-6">
+            <div class="card border-primary-subtle">
+              <div class="card-header bg-primary-subtle">Xuất (Bán ra từ Quote accepted)</div>
+              <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                  <thead>
+                    <tr>
+                      <th>Ngày bán</th>
+                      <th>Khách hàng</th>
+                      <th class="text-end">SL</th>
+                      <th class="text-end">Đơn giá</th>
+                      <th class="text-end">Thành tiền</th>
+                      <th>Quote #</th>
+                    </tr>
+                  </thead>
+                  <tbody id="mv-sales-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <small class="text-muted">Ghi chú: “Tồn khả dụng” = Tổng SL mua (SO, trừ draft/cancel) − Tổng SL đã chốt bán (Quote accepted).</small>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-// Khởi tạo DataTable
-$(function(){
-  const $table = $('#inventory-table');
-  const dt = $table.DataTable({
-    processing: true,
-    serverSide: true,
-    ajax: {
-      url: 'process/inventory_serverside.php',
-      type: 'POST',
-      data: function(d){
-        d.category_id = $('#filterCategory').val() || '';
-      }
-    },
-    columns: [
-      { data: 0, title: 'ID' },
-      { data: 1, title: 'Sản phẩm' },
-      { data: 2, title: 'ĐVT' },
-      { data: 3, title: 'Danh mục' },
-      { data: 4, title: 'On hand', className: 'text-end',
-        render: data => Number(data).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) },
-      { data: 5, title: 'Allocated', className: 'text-end',
-        render: data => Number(data).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) },
-      { data: 6, title: 'ATP', className: 'text-end',
-        render: function(data){
-          const n = Number(data);
-          const txt = n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-          // tô màu theo âm/dương
-          return n < 0 ? `<span class="text-danger fw-semibold">${txt}</span>` : `<span class="text-success fw-semibold">${txt}</span>`;
-        }
-      }
-    ],
-    order: [[1,'asc']],
-    pageLength: 25,
-    stateSave: true,
-    responsive: true,
-    drawCallback: function(settings){
-      // cập nhật badges tổng hợp (server trả về qua json.summary)
-      const json = settings.json || {};
-      const sum = json.summary || {on_hand:0, allocated:0, atp:0};
-      $('#badgeOnHand').text('On hand: ' + Number(sum.on_hand||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}));
-      $('#badgeAllocated').text('Allocated: ' + Number(sum.allocated||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}));
-      $('#badgeATP').text('ATP: ' + Number(sum.atp||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}));
-    }
-  });
-
-  $('#filterCategory').on('change', ()=> dt.ajax.reload());
-});
-</script>
-</body>
-</html>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
+<script src="assets/js/inventory.js?v=<?php echo time(); ?>"></script>
