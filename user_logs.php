@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/init.php';
+require_once __DIR__ . '/includes/header.php';
 require_login();
 
 // Rút gọn User Agent
@@ -74,16 +74,8 @@ $stmt = $pdo->prepare("
 $stmt->execute();
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lịch sử hoạt động người dùng</title>
-<!-- CSS đã đưa vào assets/css/style.css theo phần 2 -->
-</head>
-<body>
-<div class="container mt-5">
+
+<div class="container mt-5 user-logs">
   <div class="card shadow-sm rounded-4 p-4 mb-4">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
       <h2 class="mb-0"><i class="bi bi-clipboard-data me-2"></i>Lịch sử hoạt động người dùng</h2>
@@ -152,26 +144,26 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- Thanh công cụ bảng -->
     <div class="logs-toolbar mt-4">
-  <div class="row g-3 align-items-center">
-    <div class="col-md-6">
-      <div class="input-group">
-        <span class="input-group-text"><i class="bi bi-search"></i></span>
-        <input id="globalSearch" type="text" class="form-control" placeholder="Tìm kiếm nhanh (mọi cột)">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-6">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="globalSearch" type="text" class="form-control" placeholder="Tìm kiếm nhanh (mọi cột)">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-list-ol"></i></span>
+            <select id="rowsPerPage" class="form-select">
+              <option value="50">50 dòng / trang</option>
+              <option value="100">100 dòng / trang</option>
+              <option value="200">200 dòng / trang</option>
+              <option value="500">500 dòng / trang</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="input-group">
-        <span class="input-group-text"><i class="bi bi-list-ol"></i></span>
-        <select id="rowsPerPage" class="form-select">
-          <option value="50">50 dòng / trang</option>
-          <option value="100">100 dòng / trang</option>
-          <option value="200">200 dòng / trang</option>
-          <option value="500">500 dòng / trang</option>
-        </select>
-      </div>
-    </div>
-
-
 
     <!-- Bảng logs -->
     <div class="log-table-wrapper mt-3">
@@ -213,13 +205,13 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
       </table>
     </div>
 
-    <!-- Phần chân DataTables: info + phân trang -->
+    <!-- Phần chân: info + phân trang -->
     <div class="dt-bottom row align-items-center mt-2">
       <div class="col-md-6">
         <div id="dtInfo" class="text-muted small"></div>
       </div>
       <div class="col-md-6">
-        <div id="dtPager" class="d-flex justify-content-end"></div>
+        <div id="dtPager" class="d-flex justify-content-end flex-wrap gap-1"></div>
       </div>
     </div>
   </div>
@@ -240,9 +232,5 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
   </div>
 </div>
 
-
-</body>
-</html>
-<body class="user-logs"></body>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
-<script src="assets/js/user_logs.js?v=1.0.0" defer></script>
+<script src="assets/js/user_logs.js?v=1.1.0" defer></script>
