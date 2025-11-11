@@ -1,0 +1,12 @@
+[QUEUE_PROCESSOR][2025-11-10 10:17:55] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2025-11-10 10:17:55] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2025-11-10 10:17:55] Processing log ID: 135 for type: order
+[QUEUE_PROCESSOR][2025-11-10 10:17:55] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2025-11-10 10:17:55] Found log ID 135 with status: pending
+[QUEUE_PROCESSOR][2025-11-10 10:17:55] Status updated to 'sending' for log ID 135.
+[QUEUE_PROCESSOR][2025-11-10 10:17:58] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2025-11-10 10:17:58] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-10112025-002.pdf
+[QUEUE_PROCESSOR][2025-11-10 10:17:58] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-10112025-002.pdf
+[QUEUE_PROCESSOR][2025-11-10 10:18:00] Email sent successfully for Log ID: 135.
+[QUEUE_PROCESSOR][2025-11-10 10:18:00] Final status updated to 'sent' for log ID 135.
+[QUEUE_PROCESSOR][2025-11-10 10:18:00] Script finished for Log ID: 135

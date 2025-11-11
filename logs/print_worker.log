@@ -1,0 +1,68 @@
+[2025-11-11 13:40:59] CLAIMED job #36
+[2025-11-11 13:40:59] PRINT file=C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf printer=Brother HL-L2320D series (Copy 1) copies=1
+[2025-11-11 13:40:59] CMD: "C:\Program Files\SumatraPDF\SumatraPDF.exe" -silent -exit-when-done -print-to "Brother HL-L2320D series (Copy 1)" -print-settings "copies=1" "C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf" 2>&1
+[2025-11-11 13:41:02] RET=0 OUT=Starting SumatraPDF 3.5.2, GetCommandLineW():
+"C:\Program Files\SumatraPDF\SumatraPDF.exe"  -silent -exit-when-done -print-to "Brother HL-L2320D series (Copy 1)" -print-settings "copies=1" "C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf"
+OpenEmbeddedFilesArchive: opened archive
+LoadSettings() took 1.29 ms
+ParseTranslationsTxt: 17632 lines, nStrings: 372
+PrintFile: file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf', printer: 'Brother HL-L2320D series (Copy 1)'
+PrintFile2: file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf', printer: 'Brother HL-L2320D series (Copy 1)'
+PrintToDevice: printer: 'Brother HL-L2320D series (Copy 1)', file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf'
+PrintToDevice: finished ok
+PrintFile2: finished ok
+PrintFile: finished ok
+Finished printing, exitCode: 0
+Exiting with exit code: 0
+[2025-11-11 13:41:02] DONE #36: Đã in: pdf/pxk/PXK1111202501.pdf → Brother HL-L2320D series (Copy 1) (bản: 1)
+[2025-11-11 15:50:57] CLAIMED job #37
+[2025-11-11 15:50:57] PRINT file=C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf printer=Brother HL-L2320D series (Copy 1) copies=1
+[2025-11-11 15:50:57] CMD: "C:\Program Files\SumatraPDF\SumatraPDF.exe" -silent -exit-when-done -print-to "Brother HL-L2320D series (Copy 1)" -print-settings "copies=1" "C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf" 2>&1
+[2025-11-11 15:51:00] RET=0 OUT=Starting SumatraPDF 3.5.2, GetCommandLineW():
+"C:\Program Files\SumatraPDF\SumatraPDF.exe"  -silent -exit-when-done -print-to "Brother HL-L2320D series (Copy 1)" -print-settings "copies=1" "C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf"
+OpenEmbeddedFilesArchive: opened archive
+LoadSettings() took 0.90 ms
+ParseTranslationsTxt: 17632 lines, nStrings: 372
+PrintFile: file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf', printer: 'Brother HL-L2320D series (Copy 1)'
+PrintFile2: file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf', printer: 'Brother HL-L2320D series (Copy 1)'
+PrintToDevice: printer: 'Brother HL-L2320D series (Copy 1)', file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf'
+PrintToDevice: finished ok
+PrintFile2: finished ok
+PrintFile: finished ok
+Finished printing, exitCode: 0
+Exiting with exit code: 0
+[2025-11-11 15:51:00] DONE #37: Đã in: pdf/pxk/PXK1111202501.pdf → Brother HL-L2320D series (Copy 1) (bản: 1)
+[2025-11-11 15:55:28] CLAIMED job #38
+[2025-11-11 15:55:28] PRINT file=C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf printer=Brother HL-L2320D series (Copy 1) copies=1
+[2025-11-11 15:55:28] CMD: "C:\Program Files\SumatraPDF\SumatraPDF.exe" -silent -exit-when-done -print-to "Brother HL-L2320D series (Copy 1)" -print-settings "copies=1" "C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf" 2>&1
+[2025-11-11 15:55:30] RET=0 OUT=Starting SumatraPDF 3.5.2, GetCommandLineW():
+"C:\Program Files\SumatraPDF\SumatraPDF.exe"  -silent -exit-when-done -print-to "Brother HL-L2320D series (Copy 1)" -print-settings "copies=1" "C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf"
+OpenEmbeddedFilesArchive: opened archive
+LoadSettings() took 0.41 ms
+ParseTranslationsTxt: 17632 lines, nStrings: 372
+PrintFile: file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf', printer: 'Brother HL-L2320D series (Copy 1)'
+PrintFile2: file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf', printer: 'Brother HL-L2320D series (Copy 1)'
+PrintToDevice: printer: 'Brother HL-L2320D series (Copy 1)', file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf'
+PrintToDevice: finished ok
+PrintFile2: finished ok
+PrintFile: finished ok
+Finished printing, exitCode: 0
+Exiting with exit code: 0
+[2025-11-11 15:55:30] DONE #38: Đã in: pdf/pxk/PXK1111202501.pdf → Brother HL-L2320D series (Copy 1) (bản: 1)
+[2025-11-11 15:58:54] CLAIMED job #39
+[2025-11-11 15:58:54] PRINT file=C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf printer=Brother HL-L2320D series (Copy 1) copies=1
+[2025-11-11 15:58:54] CMD: "C:\Program Files\SumatraPDF\SumatraPDF.exe" -silent -exit-when-done -print-to "Brother HL-L2320D series (Copy 1)" -print-settings "copies=1" "C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf" 2>&1
+[2025-11-11 15:58:56] RET=0 OUT=Starting SumatraPDF 3.5.2, GetCommandLineW():
+"C:\Program Files\SumatraPDF\SumatraPDF.exe"  -silent -exit-when-done -print-to "Brother HL-L2320D series (Copy 1)" -print-settings "copies=1" "C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf"
+OpenEmbeddedFilesArchive: opened archive
+LoadSettings() took 0.44 ms
+ParseTranslationsTxt: 17632 lines, nStrings: 372
+PrintFile: file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf', printer: 'Brother HL-L2320D series (Copy 1)'
+PrintFile2: file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf', printer: 'Brother HL-L2320D series (Copy 1)'
+PrintToDevice: printer: 'Brother HL-L2320D series (Copy 1)', file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK1111202501.pdf'
+PrintToDevice: finished ok
+PrintFile2: finished ok
+PrintFile: finished ok
+Finished printing, exitCode: 0
+Exiting with exit code: 0
+[2025-11-11 15:58:56] DONE #39: Đã in: pdf/pxk/PXK1111202501.pdf → Brother HL-L2320D series (Copy 1) (bản: 1)

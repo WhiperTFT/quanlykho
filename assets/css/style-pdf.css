@@ -1,5 +1,5 @@
 /* ==========================================================================
-   DOMPDF-SAFE — A4 with two A5 slips (no @media, no CSS variables)
+   DOMPDF-SAFE — A4 with two A5 slips (perfectly balanced, NO divider)
    ========================================================================== */
 
 @page { size: A4 portrait; margin: 9mm; }
@@ -18,27 +18,26 @@ html, body {
 /* Khung A4 chứa 2 slip A5 */
 .a4-container {
   position: relative;
-  height: 279mm;              /* thay var(--print-height) */
+  height: 279mm;              /* chiều cao phần in sau khi trừ @page margin trên+dưới */
   page-break-inside: avoid;
 }
-.mid-cutline {
-  position: absolute;
-  top: 139.5mm;               /* thay var(--half) */
-  left: 0; right: 0;
-  border-top: 1px dashed #999;
-  height: 0;
-}
+
+/* === BỎ ĐƯỜNG CHIA === */
+/* (Đã loại bỏ .mid-cutline hoàn toàn, không cần nữa) */
+
+/* Slip A5 */
 .slip-a5 {
   position: absolute;
   left: 0; right: 0;
-  height: 139.5mm;            /* thay var(--half) */
-  padding: 4.5mm 7mm;
+  height: 132mm;             /* giảm chiều cao cho mỗi slip */
+  padding: 6mm 7mm;
   overflow: hidden;
   page-break-inside: avoid;
   border: none;
 }
-.slip-top { top: 0; }
-.slip-bottom { top: 139.5mm; } /* thay var(--half) */
+
+.slip-top    { top: 0; }
+.slip-bottom { top: 147mm; } /* 132mm (nửa trên) + 15mm (đệm trắng giữa) */
 
 /* Typography cho slip */
 .a4-container .company-name {

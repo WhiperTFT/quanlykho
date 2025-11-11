@@ -1,5 +1,5 @@
 <?php
-// File: pxk_print.php (match layout "PXK mẫu ok.pdf")
+// File: process\pxk_print.php
 // - A4 chứa 2 bản A5 xếp dọc, không tách trang
 // - Header text block: Đơn vị / ĐC / Tel / Website / Email
 // - Tiêu đề: PHIẾU XUẤT KHO + "Ngày dd tháng mm năm yyyy"
