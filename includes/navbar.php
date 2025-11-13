@@ -18,7 +18,14 @@ require_once __DIR__ . '/menu_functions.php';
 $all_menus = get_all_menus_from_db($pdo);
 $menu_html_output = build_navbar_html($all_menus);
 
-$usernameDisplay = $_SESSION['username'] ?? ($lang['guest'] ?? 'Khách');
+$isLoggedIn = is_logged_in();
+
+if ($isLoggedIn) {
+    $usernameDisplay = $_SESSION['username'];
+} else {
+    $usernameDisplay = null; // Không dùng chữ Khách nữa
+}
+
 $current_lang_code = $_SESSION['lang_code'] ?? 'vi';
 ?>
 

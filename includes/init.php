@@ -10,11 +10,11 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     ini_set('session.use_strict_mode', '1');
     ini_set('session.gc_probability', '1');
     ini_set('session.gc_divisor', '100');
-    ini_set('session.gc_maxlifetime', '14400'); // 4h (tùy chỉnh)
+    ini_set('session.gc_maxlifetime', '28800'); // 8h (tùy chỉnh)
     ini_set('session.cookie_httponly', '1');
 
     session_set_cookie_params([
-        'lifetime' => 0, // session cookie hết khi đóng trình duyệt
+        'lifetime' => 28800, // session cookie hết khi đóng trình duyệt
         'path'     => '/',
         'domain'   => '',
         'secure'   => $is_https,
@@ -28,8 +28,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 // ==========================
 // 🔒 2. QUẢN LÝ IDLE TIMEOUT & REGENERATE ID
 // ==========================
-define('SESSION_IDLE_TIMEOUT', (int)(ini_get('session.gc_maxlifetime') ?: 14400)); // 4h
-
+define('SESSION_IDLE_TIMEOUT', (int)(ini_get('session.gc_maxlifetime') ?: 28800)); // 8h
 $now = time();
 if (!empty($_SESSION['user_id'])) {
     $last = (int)($_SESSION['LAST_ACTIVITY'] ?? $now);
@@ -48,6 +47,51 @@ if (!empty($_SESSION['user_id'])) {
         exit;
     }
     $_SESSION['LAST_ACTIVITY'] = $now;
+    $now = time();
+if (!empty($_SESSION['user_id'])) {
+    $last = (int)($_SESSION['LAST_ACTIVITY'] ?? $now);
+    if ($now - $last > SESSION_IDLE_TIMEOUT) {
+        // Phiên hết hạn → hủy session và chuyển login
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $p = session_get_cookie_params();
+            setcookie(session_name(), '', $now - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+        }
+        session_destroy();
+
+        $base = defined('PROJECT_BASE_URL') ? PROJECT_BASE_URL : '/';
+        $current = $_SERVER['REQUEST_URI'] ?? ($base . 'dashboard.php');
+        header('Location: ' . $base . 'login.php?message=session_expired&redirect=' . urlencode($current));
+        exit;
+    }
+    $_SESSION['LAST_ACTIVITY'] = $now;
+
+    // 🔔 Thêm đoạn này: qua ngày mới thì buộc login lại
+    $today = date('Y-m-d');
+    if (empty($_SESSION['LOGIN_DATE'])) {
+        $_SESSION['LOGIN_DATE'] = $today;
+    } elseif ($_SESSION['LOGIN_DATE'] !== $today) {
+        // Đã qua ngày khác → hủy session và bắt login lại
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $p = session_get_cookie_params();
+            setcookie(session_name(), '', $now - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+        }
+        session_destroy();
+
+        $base = defined('PROJECT_BASE_URL') ? PROJECT_BASE_URL : '/';
+        header('Location: ' . $base . 'login.php?message=session_new_day');
+        exit;
+    }
+
+    // Định kỳ regenerate ID chống fixation (30 phút)
+    if (empty($_SESSION['CREATED'])) {
+        $_SESSION['CREATED'] = $now;
+    } elseif ($now - (int)$_SESSION['CREATED'] > 1800) {
+        session_regenerate_id(true);
+        $_SESSION['CREATED'] = $now;
+    }
+}
 
     // Định kỳ regenerate ID chống fixation (30 phút)
     if (empty($_SESSION['CREATED'])) {
@@ -162,8 +206,9 @@ if (!isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 function is_logged_in(): bool {
-    return isset($_SESSION['user_id']);
+    return isset($_SESSION['user_id'], $_SESSION['username']) && (int)$_SESSION['user_id'] > 0;
 }
+
 function is_admin(): bool {
     return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 }
