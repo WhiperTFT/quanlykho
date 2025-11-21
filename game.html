@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Trò chơi lá cờ cho bé</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #fef6ff, #e0f3ff);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      color: #222;
+    }
+
+    .app {
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 12px 12px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    header {
+      text-align: center;
+      padding: 6px 6px 4px;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    header p {
+      font-size: 0.82rem;
+      opacity: 0.8;
+    }
+
+    .mode-switch {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      flex: 1 1 auto;
+      min-width: 140px;
+      border-radius: 999px;
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      background: #fff;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.1s ease;
+    }
+
+    .mode-btn span {
+      display: block;
+      font-size: 0.7rem;
+      opacity: 0.7;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, #ffb347, #ffcc33);
+      border-color: #f39c12;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    .mode-btn:active {
+      transform: scale(0.97);
+    }
+
+    .card {
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .question-header {
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .question-main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 120px;
+      padding: 6px;
+    }
+
+    .flag-display {
+      max-width: 80%;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+      border: 2px solid #fff;
+      background: #eee;
+    }
+
+    .flag-display img {
+      width: 100%;
+      display: block;
+    }
+
+    .name-display {
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .name-display span {
+      display: block;
+    }
+
+    .name-display .en {
+      font-size: 1.15rem;
+    }
+
+    .name-display .vi {
+      font-size: 1rem;
+      color: #e67e22;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .option-btn {
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      padding: 8px 10px;
+      background: #fff;
+      font-size: 0.9rem;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.08s ease, border-color 0.08s ease;
+    }
+
+    .option-btn:active {
+      transform: scale(0.97);
+    }
+
+    .option-btn .flag-thumb {
+      width: 56px;
+      min-width: 56px;
+      height: 36px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+      background: #eee;
+    }
+
+    .flag-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .option-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .option-text .en {
+      font-weight: 600;
+    }
+
+    .option-text .vi {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .option-btn.correct {
+      background: #27ae60;
+      border-color: #1e8449;
+      color: #fff;
+      box-shadow: 0 3px 8px rgba(39, 174, 96, 0.6);
+    }
+
+    .option-btn.correct .vi {
+      opacity: 0.95;
+    }
+
+    .option-btn.wrong {
+      background: #e74c3c;
+      border-color: #c0392b;
+      color: #fff;
+      animation: shake 0.25s;
+    }
+
+    .option-btn.disabled {
+      opacity: 0.7;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      50% { transform: translateX(3px); }
+      75% { transform: translateX(-2px); }
+      100% { transform: translateX(0); }
+    }
+
+    .feedback {
+      text-align: center;
+      min-height: 22px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .feedback.ok {
+      color: #27ae60;
+      animation: pop 0.4s;
+    }
+
+    .feedback.no {
+      color: #c0392b;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.9); opacity: 0; }
+      60% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .next-row {
+      display: flex;
+      justify-content: center;
+      margin-top: 4px;
+    }
+
+    .next-btn {
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #3498db, #9b59b6);
+      color: #fff;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 7px rgba(0, 0, 0, 0.18);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .next-btn:active {
+      transform: scale(0.97);
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+      font-size: 0.8rem;
+    }
+
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .controls-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8rem;
+    }
+
+    .controls-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+    }
+
+    .slider-group {
+      flex: 1 1 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .slider-group input[type="range"] {
+      width: 100%;
+    }
+
+    .slider-group span {
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.72rem;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+
+    .badge {
+      background: rgba(0, 0, 0, 0.06);
+      padding: 2px 6px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-top: 4px;
+    }
+
+    .stats {
+      font-size: 0.75rem;
+      text-align: center;
+      margin-top: 4px;
+      opacity: 0.8;
+    }
+
+    /* Confetti simple */
+    .confetti-wrapper {
+      position: fixed;
+      pointer-events: none;
+      inset: 0;
+      overflow: hidden;
+      z-index: 9999;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 6px;
+      height: 10px;
+      border-radius: 2px;
+      opacity: 0.9;
+      animation: confetti-fall 1.2s linear forwards;
+    }
+
+    @keyframes confetti-fall {
+      0% { transform: translateY(-20px) rotate(0deg); }
+      100% { transform: translateY(110vh) rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Trò chơi lá cờ cho bé 🌍</h1>
+      <p>Vừa chơi vừa học – Nhận diện quốc kỳ bằng tiếng Anh &amp; tiếng Việt</p>
+
+      <div class="mode-switch">
+        <button class="mode-btn active" data-mode="flag-to-name">
+          Cờ → Tên nước
+          <span>Hiển thị lá cờ, chọn tên đúng</span>
+        </button>
+        <button class="mode-btn" data-mode="name-to-flag">
+          Tên nước → Cờ
+          <span>Hiển thị tên, chọn lá cờ đúng</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="card" aria-live="polite">
+      <div class="question-header">
+        Câu hỏi: <span id="questionNumber">1</span>
+      </div>
+
+      <div class="question-main" id="questionMain">
+        <!-- Nội dung câu hỏi sẽ được render bằng JS -->
+      </div>
+
+      <div class="options" id="optionsContainer">
+        <!-- Các lựa chọn hiển thị bằng JS -->
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="next-row">
+        <button class="next-btn" id="nextBtn">
+          Câu tiếp theo ➜
+        </button>
+      </div>
+      <div class="next-row">
+    <button class="next-btn" id="resetBtn" style="background:linear-gradient(135deg,#e74c3c,#c0392b)">
+      Reset trò chơi 🔄
+    </button>
+</div>
+
+      <div class="controls">
+        <div class="controls-row">
+          <label>
+            <input type="checkbox" id="autoNextCheckbox" checked />
+            Tự chuyển câu mới
+          </label>
+          <label>
+            <input type="checkbox" id="soundCheckbox" checked />
+            Âm thanh
+          </label>
+        </div>
+        <div class="controls-row">
+          <div class="slider-group">
+            <span>Thời gian chờ trước khi qua câu mới: <span id="delayLabel">10</span> giây</span>
+            <input type="range" id="delayRange" min="3" max="20" value="10" />
+          </div>
+        </div>
+      </div>
+
+      <div class="stats" id="stats">
+        Đúng: <span id="correctCount">0</span> · Sai: <span id="wrongCount">0</span>
+      </div>
+
+      <div class="footer">
+        <span class="badge">Mẹo: Mở bằng Chrome trên Android và “Thêm vào màn hình chính” để dùng như app 📱</span>
+      </div>
+    </main>
+  </div>
+
+  <div id="confettiRoot"></div>
+
+  <script>
+    // ===== DỮ LIỆU QUỐC GIA (có thể thêm bớt tùy thích) =====
+    // code = mã ISO 3166-1 alpha-2 (dùng cho flagcdn.com)
+    const COUNTRIES = [
+  // Đông Nam Á + Châu Á gần gũi
+  { code: "vn", en: "Vietnam", vi: "Việt Nam" },
+  { code: "th", en: "Thailand", vi: "Thái Lan" },
+  { code: "la", en: "Laos", vi: "Lào" },
+  { code: "kh", en: "Cambodia", vi: "Campuchia" },
+  { code: "my", en: "Malaysia", vi: "Malaysia" },
+  { code: "id", en: "Indonesia", vi: "Indonesia" },
+  { code: "sg", en: "Singapore", vi: "Singapore" },
+  { code: "ph", en: "Philippines", vi: "Philippines" },
+  { code: "bn", en: "Brunei", vi: "Brunei" },
+  { code: "mm", en: "Myanmar", vi: "Myanmar" },
+  { code: "tl", en: "Timor-Leste", vi: "Đông Timor" },
+
+  // Châu Á rộng hơn
+  { code: "cn", en: "China", vi: "Trung Quốc" },
+  { code: "jp", en: "Japan", vi: "Nhật Bản" },
+  { code: "kr", en: "South Korea", vi: "Hàn Quốc" },
+  { code: "kp", en: "North Korea", vi: "Triều Tiên" },
+  { code: "in", en: "India", vi: "Ấn Độ" },
+  { code: "bd", en: "Bangladesh", vi: "Bangladesh" },
+  { code: "pk", en: "Pakistan", vi: "Pakistan" },
+  { code: "np", en: "Nepal", vi: "Nepal" },
+  { code: "bt", en: "Bhutan", vi: "Bhutan" },
+  { code: "lk", en: "Sri Lanka", vi: "Sri Lanka" },
+  { code: "mv", en: "Maldives", vi: "Maldives" },
+  { code: "mn", en: "Mongolia", vi: "Mông Cổ" },
+
+  // Trung Đông
+  { code: "ae", en: "United Arab Emirates", vi: "Các Tiểu vương quốc Ả Rập Thống nhất" },
+  { code: "sa", en: "Saudi Arabia", vi: "Ả Rập Xê Út" },
+  { code: "qa", en: "Qatar", vi: "Qatar" },
+  { code: "kw", en: "Kuwait", vi: "Kuwait" },
+  { code: "bh", en: "Bahrain", vi: "Bahrain" },
+  { code: "om", en: "Oman", vi: "Oman" },
+  { code: "jo", en: "Jordan", vi: "Jordan" },
+  { code: "lb", en: "Lebanon", vi: "Liban" },
+  { code: "il", en: "Israel", vi: "Israel" },
+  { code: "ps", en: "Palestine", vi: "Palestine" },
+  { code: "iq", en: "Iraq", vi: "Iraq" },
+  { code: "ir", en: "Iran", vi: "Iran" },
+  { code: "ye", en: "Yemen", vi: "Yemen" },
+  { code: "sy", en: "Syria", vi: "Syria" },
+  { code: "af", en: "Afghanistan", vi: "Afghanistan" },
+
+  // Châu Âu lớn
+  { code: "gb", en: "United Kingdom", vi: "Vương quốc Anh" },
+  { code: "fr", en: "France", vi: "Pháp" },
+  { code: "de", en: "Germany", vi: "Đức" },
+  { code: "it", en: "Italy", vi: "Ý" },
+  { code: "es", en: "Spain", vi: "Tây Ban Nha" },
+  { code: "pt", en: "Portugal", vi: "Bồ Đào Nha" },
+  { code: "nl", en: "Netherlands", vi: "Hà Lan" },
+  { code: "be", en: "Belgium", vi: "Bỉ" },
+  { code: "ch", en: "Switzerland", vi: "Thụy Sĩ" },
+  { code: "se", en: "Sweden", vi: "Thụy Điển" },
+  { code: "no", en: "Norway", vi: "Na Uy" },
+  { code: "dk", en: "Denmark", vi: "Đan Mạch" },
+  { code: "fi", en: "Finland", vi: "Phần Lan" },
+  { code: "ie", en: "Ireland", vi: "Ireland" },
+  { code: "is", en: "Iceland", vi: "Iceland" },
+
+  // Đông Âu / Trung Âu
+  { code: "pl", en: "Poland", vi: "Ba Lan" },
+  { code: "cz", en: "Czechia", vi: "Séc" },
+  { code: "sk", en: "Slovakia", vi: "Slovakia" },
+  { code: "hu", en: "Hungary", vi: "Hungary" },
+  { code: "at", en: "Austria", vi: "Áo" },
+  { code: "ro", en: "Romania", vi: "Rumani" },
+  { code: "bg", en: "Bulgaria", vi: "Bulgaria" },
+  { code: "gr", en: "Greece", vi: "Hy Lạp" },
+  { code: "cy", en: "Cyprus", vi: "Síp" },
+  { code: "ua", en: "Ukraine", vi: "Ukraina" },
+  { code: "by", en: "Belarus", vi: "Belarus" },
+  { code: "ru", en: "Russia", vi: "Nga" },
+  { code: "hr", en: "Croatia", vi: "Croatia" },
+  { code: "si", en: "Slovenia", vi: "Slovenia" },
+  { code: "ba", en: "Bosnia and Herzegovina", vi: "Bosnia và Herzegovina" },
+  { code: "rs", en: "Serbia", vi: "Serbia" },
+  { code: "me", en: "Montenegro", vi: "Montenegro" },
+  { code: "mk", en: "North Macedonia", vi: "Bắc Macedonia" },
+  { code: "al", en: "Albania", vi: "Albania" },
+  { code: "xk", en: "Kosovo", vi: "Kosovo" }, // (với flagcdn vẫn có cờ)
+  { code: "lt", en: "Lithuania", vi: "Lithuania" },
+  { code: "lv", en: "Latvia", vi: "Latvia" },
+  { code: "ee", en: "Estonia", vi: "Estonia" },
+  { code: "lu", en: "Luxembourg", vi: "Luxembourg" },
+  { code: "mt", en: "Malta", vi: "Malta" },
+
+  // Nam Âu / quanh Địa Trung Hải và Kavkaz
+  { code: "tr", en: "Türkiye", vi: "Thổ Nhĩ Kỳ" },
+  { code: "ge", en: "Georgia", vi: "Georgia" },
+  { code: "am", en: "Armenia", vi: "Armenia" },
+  { code: "az", en: "Azerbaijan", vi: "Azerbaijan" },
+
+  // Châu Phi
+  { code: "eg", en: "Egypt", vi: "Ai Cập" },
+  { code: "ma", en: "Morocco", vi: "Ma-rốc" },
+  { code: "dz", en: "Algeria", vi: "Algeria" },
+  { code: "tn", en: "Tunisia", vi: "Tunisia" },
+  { code: "ly", en: "Libya", vi: "Libya" },
+  { code: "sd", en: "Sudan", vi: "Sudan" },
+  { code: "et", en: "Ethiopia", vi: "Ethiopia" },
+  { code: "so", en: "Somalia", vi: "Somalia" },
+  { code: "ke", en: "Kenya", vi: "Kenya" },
+  { code: "ug", en: "Uganda", vi: "Uganda" },
+  { code: "tz", en: "Tanzania", vi: "Tanzania" },
+  { code: "rw", en: "Rwanda", vi: "Rwanda" },
+  { code: "bi", en: "Burundi", vi: "Burundi" },
+  { code: "cd", en: "Democratic Republic of the Congo", vi: "Cộng hòa Dân chủ Congo" },
+  { code: "cg", en: "Republic of the Congo", vi: "Cộng hòa Congo" },
+  { code: "ng", en: "Nigeria", vi: "Nigeria" },
+  { code: "gh", en: "Ghana", vi: "Ghana" },
+  { code: "ci", en: "Côte d'Ivoire", vi: "Bờ Biển Ngà" },
+  { code: "sn", en: "Senegal", vi: "Senegal" },
+  { code: "ml", en: "Mali", vi: "Mali" },
+  { code: "ne", en: "Niger", vi: "Niger" },
+  { code: "bf", en: "Burkina Faso", vi: "Burkina Faso" },
+  { code: "cm", en: "Cameroon", vi: "Cameroon" },
+  { code: "ga", en: "Gabon", vi: "Gabon" },
+  { code: "gq", en: "Equatorial Guinea", vi: "Guinea Xích đạo" },
+  { code: "ao", en: "Angola", vi: "Angola" },
+  { code: "mz", en: "Mozambique", vi: "Mozambique" },
+  { code: "zw", en: "Zimbabwe", vi: "Zimbabwe" },
+  { code: "zm", en: "Zambia", vi: "Zambia" },
+  { code: "na", en: "Namibia", vi: "Namibia" },
+  { code: "bw", en: "Botswana", vi: "Botswana" },
+  { code: "mg", en: "Madagascar", vi: "Madagascar" },
+  { code: "za", en: "South Africa", vi: "Nam Phi" },
+
+  // Bắc / Trung / Nam Mỹ
+  { code: "us", en: "United States", vi: "Hoa Kỳ / Mỹ" },
+  { code: "ca", en: "Canada", vi: "Canada" },
+  { code: "mx", en: "Mexico", vi: "Mexico" },
+  { code: "cu", en: "Cuba", vi: "Cuba" },
+  { code: "do", en: "Dominican Republic", vi: "Cộng hòa Dominica" },
+  { code: "jm", en: "Jamaica", vi: "Jamaica" },
+
+  { code: "gt", en: "Guatemala", vi: "Guatemala" },
+  { code: "hn", en: "Honduras", vi: "Honduras" },
+  { code: "sv", en: "El Salvador", vi: "El Salvador" },
+  { code: "ni", en: "Nicaragua", vi: "Nicaragua" },
+  { code: "cr", en: "Costa Rica", vi: "Costa Rica" },
+  { code: "pa", en: "Panama", vi: "Panama" },
+
+  { code: "br", en: "Brazil", vi: "Brazil" },
+  { code: "ar", en: "Argentina", vi: "Argentina" },
+  { code: "cl", en: "Chile", vi: "Chile" },
+  { code: "uy", en: "Uruguay", vi: "Uruguay" },
+  { code: "py", en: "Paraguay", vi: "Paraguay" },
+  { code: "bo", en: "Bolivia", vi: "Bolivia" },
+  { code: "pe", en: "Peru", vi: "Peru" },
+  { code: "ec", en: "Ecuador", vi: "Ecuador" },
+  { code: "co", en: "Colombia", vi: "Colombia" },
+  { code: "ve", en: "Venezuela", vi: "Venezuela" },
+
+  // Châu Đại Dương
+  { code: "au", en: "Australia", vi: "Úc" },
+  { code: "nz", en: "New Zealand", vi: "New Zealand" },
+  { code: "fj", en: "Fiji", vi: "Fiji" },
+  { code: "pg", en: "Papua New Guinea", vi: "Papua New Guinea" },
+  { code: "sb", en: "Solomon Islands", vi: "Quần đảo Solomon" },
+  { code: "ws", en: "Samoa", vi: "Samoa" },
+  { code: "to", en: "Tonga", vi: "Tonga" },
+  { code: "vu", en: "Vanuatu", vi: "Vanuatu" }
+];
+
+
+    // ===== STATE =====
+    let mode = "flag-to-name"; // hoặc 'name-to-flag'
+    let questionIndex = 0;
+    let usedIndices = [];
+    let currentCountry = null;
+    let allowClick = true;
+    let autoNextTimeoutId = null;
+    let correctCount = 0;
+    let wrongCount = 0;
+
+    let audioCtx = null; // Web Audio cho âm thanh
+
+    // ===== DOM =====
+    const modeButtons = document.querySelectorAll(".mode-btn");
+    const questionNumberEl = document.getElementById("questionNumber");
+    const questionMainEl = document.getElementById("questionMain");
+    const optionsContainer = document.getElementById("optionsContainer");
+    const feedbackEl = document.getElementById("feedback");
+    const nextBtn = document.getElementById("nextBtn");
+    const autoNextCheckbox = document.getElementById("autoNextCheckbox");
+    const soundCheckbox = document.getElementById("soundCheckbox");
+    const delayRange = document.getElementById("delayRange");
+    const delayLabel = document.getElementById("delayLabel");
+    const correctCountEl = document.getElementById("correctCount");
+    const wrongCountEl = document.getElementById("wrongCount");
+    const confettiRoot = document.getElementById("confettiRoot");
+
+    delayLabel.textContent = delayRange.value;
+
+    // ===== HELPER FUNCTIONS =====
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function pickNextCountry() {
+      if (usedIndices.length >= COUNTRIES.length) {
+        // Dùng hết -> reset để tránh trùng quá nhiều
+        usedIndices = [];
+      }
+      let idx;
+      do {
+        idx = Math.floor(Math.random() * COUNTRIES.length);
+      } while (usedIndices.includes(idx) && usedIndices.length < COUNTRIES.length);
+      usedIndices.push(idx);
+      return COUNTRIES[idx];
+    }
+
+    function clearAutoNext() {
+      if (autoNextTimeoutId !== null) {
+        clearTimeout(autoNextTimeoutId);
+        autoNextTimeoutId = null;
+      }
+    }
+
+    function scheduleAutoNext() {
+      clearAutoNext();
+      if (!autoNextCheckbox.checked) return;
+      const delaySec = parseInt(delayRange.value, 10) || 10;
+      autoNextTimeoutId = setTimeout(() => {
+        newQuestion();
+      }, delaySec * 1000);
+    }
+
+    function playCorrectSound() {
+      if (!soundCheckbox.checked) return;
+
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      const now = audioCtx.currentTime;
+      const notes = [880, 1175, 1568]; // 3 nốt vui tai
+
+      notes.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, now + i * 0.12);
+        gain.gain.setValueAtTime(0.001, now + i * 0.12);
+        gain.gain.linearRampToValueAtTime(0.2, now + i * 0.12 + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.2);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(now + i * 0.12);
+        osc.stop(now + i * 0.12 + 0.25);
+      });
+    }
+
+    function spawnConfetti() {
+      const wrapper = document.createElement("div");
+      wrapper.className = "confetti-wrapper";
+
+      const pieces = 20;
+      for (let i = 0; i < pieces; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti-piece";
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.3;
+        const colors = ["#f1c40f", "#e74c3c", "#9b59b6", "#3498db", "#2ecc71"];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.left = left + "vw";
+        piece.style.backgroundColor = color;
+        piece.style.animationDelay = delay + "s";
+        wrapper.appendChild(piece);
+      }
+      confettiRoot.appendChild(wrapper);
+      setTimeout(() => {
+        confettiRoot.removeChild(wrapper);
+      }, 1500);
+    }
+
+    // ===== RENDER QUESTION =====
+    function renderQuestion() {
+      questionNumberEl.textContent = questionIndex;
+      feedbackEl.textContent = "";
+      feedbackEl.className = "feedback";
+
+      questionMainEl.innerHTML = "";
+      optionsContainer.innerHTML = "";
+
+      const country = currentCountry;
+
+      if (mode === "flag-to-name") {
+        // Hiển thị cờ ở trên, tên ở các lựa chọn
+        const container = document.createElement("div");
+        container.className = "flag-display";
+        const img = document.createElement("img");
+        img.src = `https://flagcdn.com/w320/${country.code}.png`;
+        img.alt = `Flag of ${country.en}`;
+        container.appendChild(img);
+        questionMainEl.appendChild(container);
+
+        const options = [country];
+        const usedCodes = new Set([country.code]);
+        while (options.length < 4 && options.length < COUNTRIES.length) {
+          const c = COUNTRIES[Math.floor(Math.random() * COUNTRIES.length)];
+          if (!usedCodes.has(c.code)) {
+            usedCodes.add(c.code);
+            options.push(c);
+          }
+        }
+        shuffle(options);
+
+        options.forEach((opt) => {
+          const btn = document.createElement("button");
+          btn.className = "option-btn";
+          btn.dataset.correct = (opt.code === country.code).toString();
+
+          const textBox = document.createElement("div");
+          textBox.className = "option-text";
+          const en = document.createElement("span");
+          en.className = "en";
+          en.textContent = opt.en;
+          const vi = document.createElement("span");
+          vi.className = "vi";
+          vi.textContent = opt.vi;
+          textBox.appendChild(en);
+          textBox.appendChild(vi);
+
+          btn.appendChild(textBox);
+          optionsContainer.appendChild(btn);
+        });
+      } else {
+        // name-to-flag: tên ở trên, cờ ở lựa chọn
+        const nameBox = document.createElement("div");
+        nameBox.className = "name-display";
+        const en = document.createElement("span");
+        en.className = "en";
+        en.textContent = country.en;
+        const vi = document.createElement("span");
+        vi.className = "vi";
+        vi.textContent = country.vi;
+        nameBox.appendChild(en);
+        nameBox.appendChild(vi);
+        questionMainEl.appendChild(nameBox);
+
+        const options = [country];
+        const usedCodes = new Set([country.code]);
+        while (options.length < 4 && options.length < COUNTRIES.length) {
+          const c = COUNTRIES[Math.floor(Math.random() * COUNTRIES.length)];
+          if (!usedCodes.has(c.code)) {
+            usedCodes.add(c.code);
+            options.push(c);
+          }
+        }
+        shuffle(options);
+
+         options.forEach((opt) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.dataset.correct = (opt.code === country.code).toString();
+
+    const thumb = document.createElement("div");
+    thumb.className = "flag-thumb";
+    const img = document.createElement("img");
+    img.src = `https://flagcdn.com/w160/${opt.code}.png`;
+    img.alt = `Flag of ${opt.en}`; // alt vẫn giữ cho người lớn / hỗ trợ đọc màn hình
+    thumb.appendChild(img);
+
+    // Chỉ thêm HÌNH, không thêm chữ
+    btn.appendChild(thumb);
+    optionsContainer.appendChild(btn);
+  });
+      }
+
+      allowClick = true;
+    }
+
+    function newQuestion() {
+      clearAutoNext();
+      currentCountry = pickNextCountry();
+      questionIndex++;
+      renderQuestion();
+    }
+
+    // ===== EVENT HANDLERS =====
+    optionsContainer.addEventListener("click", (e) => {
+      const btn = e.target.closest(".option-btn");
+      if (!btn || !allowClick) return;
+
+      const isCorrect = btn.dataset.correct === "true";
+      if (isCorrect) {
+        allowClick = false;
+        btn.classList.remove("wrong");
+        btn.classList.add("correct");
+        feedbackEl.textContent = "Giỏi lắm! Con chọn đúng rồi 🎉";
+        feedbackEl.className = "feedback ok";
+        correctCount++;
+        correctCountEl.textContent = correctCount;
+        playCorrectSound();
+        spawnConfetti();
+
+        // Disable all buttons
+        const allBtns = optionsContainer.querySelectorAll(".option-btn");
+        allBtns.forEach((b) => {
+          if (b !== btn && b.dataset.correct !== "true") {
+            b.classList.add("disabled");
+          }
+        });
+
+        scheduleAutoNext();
+      } else {
+        btn.classList.add("wrong");
+        feedbackEl.textContent = "Chưa đúng, thử lại nhé ❤️";
+        feedbackEl.className = "feedback no";
+        wrongCount++;
+        wrongCountEl.textContent = wrongCount;
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      newQuestion();
+    });
+
+    modeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const newMode = btn.dataset.mode;
+        if (newMode === mode) return;
+        mode = newMode;
+        modeButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        // Reset nhẹ câu hiện tại nhưng giữ số câu
+        renderQuestion();
+      });
+    });
+
+    delayRange.addEventListener("input", () => {
+      delayLabel.textContent = delayRange.value;
+    });
+
+    autoNextCheckbox.addEventListener("change", () => {
+      if (!autoNextCheckbox.checked) {
+        clearAutoNext();
+      }
+    });
+   function resetGame() {
+  clearAutoNext();
+
+  // Reset biến về trạng thái ban đầu
+  questionIndex = 0;
+  usedIndices = [];
+  correctCount = 0;
+  wrongCount = 0;
+
+  // Reset giao diện điểm
+  correctCountEl.textContent = 0;
+  wrongCountEl.textContent = 0;
+  feedbackEl.textContent = "";
+
+  // Quan trọng: KHÔNG đặt questionNumberEl ở đây
+
+  // Tạo câu đầu tiên
+  newQuestion();
+}
+
+
+    // ===== KHỞI ĐỘNG =====
+    document.addEventListener("DOMContentLoaded", () => {
+      newQuestion();
+    });
+    const resetBtn = document.getElementById("resetBtn");
+resetBtn.addEventListener("click", () => {
+  resetGame();
+});
+  </script>
+</body>
+</html>

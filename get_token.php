@@ -4,7 +4,11 @@ require __DIR__ . '/vendor/autoload.php';
 
 $client = new Google_Client();
 $client->setApplicationName("Gmail OAuth App");
-$client->setScopes('https://www.googleapis.com/auth/gmail.send'); // chỉ gửi mail
+$client->setScopes([
+  'https://www.googleapis.com/auth/gmail.readonly',
+  'https://www.googleapis.com/auth/gmail.send',
+  'https://www.googleapis.com/auth/gmail.modify',
+]);
 $client->setAuthConfig(__DIR__ . '/config/client_secret.json');
 $client->setAccessType('offline');
 $client->setIncludeGrantedScopes(true);
