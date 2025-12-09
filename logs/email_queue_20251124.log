@@ -1,0 +1,24 @@
+[QUEUE_PROCESSOR][2025-11-24 11:22:43] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2025-11-24 11:22:43] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2025-11-24 11:22:43] Processing log ID: 142 for type: order
+[QUEUE_PROCESSOR][2025-11-24 11:22:43] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2025-11-24 11:22:43] Found log ID 142 with status: pending
+[QUEUE_PROCESSOR][2025-11-24 11:22:43] Status updated to 'sending' for log ID 142.
+[QUEUE_PROCESSOR][2025-11-24 11:22:46] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2025-11-24 11:22:46] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-24112025-001.pdf
+[QUEUE_PROCESSOR][2025-11-24 11:22:46] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-24112025-001.pdf
+[QUEUE_PROCESSOR][2025-11-24 11:22:49] Email sent successfully for Log ID: 142.
+[QUEUE_PROCESSOR][2025-11-24 11:22:49] Final status updated to 'sent' for log ID 142.
+[QUEUE_PROCESSOR][2025-11-24 11:22:49] Script finished for Log ID: 142
+[QUEUE_PROCESSOR][2025-11-24 14:21:45] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2025-11-24 14:21:45] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2025-11-24 14:21:45] Processing log ID: 143 for type: order
+[QUEUE_PROCESSOR][2025-11-24 14:21:45] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2025-11-24 14:21:45] Found log ID 143 with status: pending
+[QUEUE_PROCESSOR][2025-11-24 14:21:45] Status updated to 'sending' for log ID 143.
+[QUEUE_PROCESSOR][2025-11-24 14:21:46] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2025-11-24 14:21:46] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-24112025-003.pdf
+[QUEUE_PROCESSOR][2025-11-24 14:21:46] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-24112025-003.pdf
+[QUEUE_PROCESSOR][2025-11-24 14:21:48] Email sent successfully for Log ID: 143.
+[QUEUE_PROCESSOR][2025-11-24 14:21:48] Final status updated to 'sent' for log ID 143.
+[QUEUE_PROCESSOR][2025-11-24 14:21:48] Script finished for Log ID: 143

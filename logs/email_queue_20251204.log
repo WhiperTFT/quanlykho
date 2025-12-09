@@ -1,0 +1,23 @@
+[QUEUE_PROCESSOR][2025-12-04 14:08:33] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2025-12-04 14:08:33] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2025-12-04 14:08:33] Processing log ID: 149 for type: order
+[QUEUE_PROCESSOR][2025-12-04 14:08:33] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2025-12-04 14:08:33] Found log ID 149 with status: pending
+[QUEUE_PROCESSOR][2025-12-04 14:08:33] Status updated to 'sending' for log ID 149.
+[QUEUE_PROCESSOR][2025-12-04 14:08:35] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2025-12-04 14:08:35] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-04122025-002.pdf
+[QUEUE_PROCESSOR][2025-12-04 14:08:35] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-04122025-002.pdf
+[QUEUE_PROCESSOR][2025-12-04 14:08:37] Email sent successfully for Log ID: 149.
+[QUEUE_PROCESSOR][2025-12-04 14:08:37] Final status updated to 'sent' for log ID 149.
+[QUEUE_PROCESSOR][2025-12-04 14:08:37] Script finished for Log ID: 149
+[QUEUE_PROCESSOR][2025-12-04 14:29:41] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2025-12-04 14:29:41] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2025-12-04 14:29:41] Processing log ID: 150 for type: order
+[QUEUE_PROCESSOR][2025-12-04 14:29:41] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2025-12-04 14:29:41] Found log ID 150 with status: pending
+[QUEUE_PROCESSOR][2025-12-04 14:29:41] Status updated to 'sending' for log ID 150.
+[QUEUE_PROCESSOR][2025-12-04 14:29:41] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-04122025-004.pdf
+[QUEUE_PROCESSOR][2025-12-04 14:29:41] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-04122025-004.pdf
+[QUEUE_PROCESSOR][2025-12-04 14:29:43] Email sent successfully for Log ID: 150.
+[QUEUE_PROCESSOR][2025-12-04 14:29:43] Final status updated to 'sent' for log ID 150.
+[QUEUE_PROCESSOR][2025-12-04 14:29:43] Script finished for Log ID: 150
