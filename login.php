@@ -43,7 +43,7 @@ if (is_logged_in()) {
 <body>
 <?php if (isset($_GET['message']) && $_GET['message'] === 'login_required'): ?>
     <div class="alert alert-warning login-alert">
-        Vui lòng đăng nhập để tiếp tục : user1/123456
+        Vui lòng đăng nhập để tiếp tục
     </div>
     <script>
         setTimeout(() => {

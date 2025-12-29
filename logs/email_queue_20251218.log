@@ -1,0 +1,12 @@
+[QUEUE_PROCESSOR][2025-12-18 08:03:46] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2025-12-18 08:03:46] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2025-12-18 08:03:46] Processing log ID: 156 for type: order
+[QUEUE_PROCESSOR][2025-12-18 08:03:46] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2025-12-18 08:03:46] Found log ID 156 with status: pending
+[QUEUE_PROCESSOR][2025-12-18 08:03:46] Status updated to 'sending' for log ID 156.
+[QUEUE_PROCESSOR][2025-12-18 08:03:48] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2025-12-18 08:03:49] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-18122025-001.pdf
+[QUEUE_PROCESSOR][2025-12-18 08:03:49] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-18122025-001.pdf
+[QUEUE_PROCESSOR][2025-12-18 08:03:51] Email sent successfully for Log ID: 156.
+[QUEUE_PROCESSOR][2025-12-18 08:03:51] Final status updated to 'sent' for log ID 156.
+[QUEUE_PROCESSOR][2025-12-18 08:03:51] Script finished for Log ID: 156

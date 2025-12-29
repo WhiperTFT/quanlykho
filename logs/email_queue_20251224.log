@@ -1,0 +1,24 @@
+[QUEUE_PROCESSOR][2025-12-24 08:03:41] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2025-12-24 08:03:41] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2025-12-24 08:03:41] Processing log ID: 163 for type: order
+[QUEUE_PROCESSOR][2025-12-24 08:03:41] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2025-12-24 08:03:41] Found log ID 163 with status: pending
+[QUEUE_PROCESSOR][2025-12-24 08:03:41] Status updated to 'sending' for log ID 163.
+[QUEUE_PROCESSOR][2025-12-24 08:03:43] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2025-12-24 08:03:44] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-24122025-001.pdf
+[QUEUE_PROCESSOR][2025-12-24 08:03:44] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-24122025-001.pdf
+[QUEUE_PROCESSOR][2025-12-24 08:03:46] Email sent successfully for Log ID: 163.
+[QUEUE_PROCESSOR][2025-12-24 08:03:46] Final status updated to 'sent' for log ID 163.
+[QUEUE_PROCESSOR][2025-12-24 08:03:46] Script finished for Log ID: 163
+[QUEUE_PROCESSOR][2025-12-24 13:39:13] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2025-12-24 13:39:13] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2025-12-24 13:39:13] Processing log ID: 164 for type: order
+[QUEUE_PROCESSOR][2025-12-24 13:39:13] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2025-12-24 13:39:13] Found log ID 164 with status: pending
+[QUEUE_PROCESSOR][2025-12-24 13:39:13] Status updated to 'sending' for log ID 164.
+[QUEUE_PROCESSOR][2025-12-24 13:39:16] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2025-12-24 13:39:16] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-24122025-002.pdf
+[QUEUE_PROCESSOR][2025-12-24 13:39:16] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-24122025-002.pdf
+[QUEUE_PROCESSOR][2025-12-24 13:39:18] Email sent successfully for Log ID: 164.
+[QUEUE_PROCESSOR][2025-12-24 13:39:18] Final status updated to 'sent' for log ID 164.
+[QUEUE_PROCESSOR][2025-12-24 13:39:18] Script finished for Log ID: 164
