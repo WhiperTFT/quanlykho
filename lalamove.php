@@ -171,9 +171,9 @@ include 'includes/header.php';
             <tr>
                 <th>Thời gian</th>
                 <th>Mã đơn</th>
-                <th>Pickup</th>
-                <th>Dropoff</th>
-                <th>KM</th>
+                <th>Lấy hàng</th>
+                <th>Giao hàng</th>
+                <th>Kilomet</th>
                 <th>Yêu cầu</th>
                 <th class="text-end">Phí (₫)</th>
             </tr>

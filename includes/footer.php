@@ -14,6 +14,8 @@
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+<script src="assets/js/upload-enhance.js"></script>
 
 <!-- Custom navbar script -->
 <script src="<?= PROJECT_BASE_URL ?>assets/js/navbar.js?v=<?= filemtime(__DIR__ . '/../assets/js/navbar.js') ?>"></script>

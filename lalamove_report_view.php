@@ -37,9 +37,9 @@ function vnd($n) {
                 <tr>
                     <th>Thời gian</th>
                     <th>Mã đơn</th>
-                    <th>Pickup</th>
-                    <th>Dropoff</th>
-                    <th class="text-end">KM</th>
+                    <th>Lấy hàng</th>
+                    <th>Trả hàng</th>
+                    <th class="text-end">Kilomet</th>
                     <th>Yêu cầu</th>
                     <th class="text-end">Phí</th>
                 </tr>
@@ -53,9 +53,9 @@ function vnd($n) {
                 <tr>
                     <td><?= $i['created_time'] ?></td>
                     <td><?= htmlspecialchars($i['order_path']) ?></td>
-                    <td><?= htmlspecialchars($i['pickup']) ?></td>
-                    <td><?= htmlspecialchars($i['dropoff']) ?></td>
-                    <td class="text-end"><?= number_format($i['distance'], 2) ?></td>
+                    <td><?= htmlspecialchars($i['pickup_address']) ?></td>
+                    <td><?= htmlspecialchars($i['dropoff_address']) ?></td>
+                    <td class="text-end"><?= number_format($i['distance_km'], 2) ?></td>
                     <td><?= htmlspecialchars($i['special_request']) ?></td>
                     <td class="text-end fw-bold text-primary"><?= vnd($i['fee']) ?></td>
                 </tr>
@@ -66,8 +66,8 @@ function vnd($n) {
                     <th colspan="6" class="text-end">Tổng</th>
                     <th class="text-end text-success fs-6"><?= vnd($total) ?></th>
                 </tr>
-                </tfoot>
-            </table>
+                    </tfoot>
+                </table>
         </div>
     </div>
 

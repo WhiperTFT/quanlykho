@@ -17,6 +17,17 @@ header('Permissions-Policy: fullscreen=(self)');
     <!-- DataTables + jQuery UI -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <!-- Dropzone CSS (CDN) -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css"
+    />
+
+    <!-- Upload Enhance CSS (custom) -->
+        <link
+        rel="stylesheet"
+        href="assets/css/upload-enhance.css"
+    />
 
     <!-- Custom CSS (kèm cache busting thông minh) -->
     <link rel="stylesheet" href="<?= PROJECT_BASE_URL; ?>assets/css/style.css?v=<?= filemtime(__DIR__ . '/../assets/css/style.css') ?>">

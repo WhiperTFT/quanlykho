@@ -1,0 +1,12 @@
+.universal-dropzone {
+    border: 2px dashed #6366f1;
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.universal-dropzone .dz-message {
+    font-size: 14px;
+    color: #4338ca;
+}
