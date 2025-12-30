@@ -1,166 +1,206 @@
 <?php
-require_once __DIR__ . '/includes/init.php';
-require_once __DIR__ . '/libs/psr-simple-cache/CacheInterface.php';
-
-// PhpSpreadsheet portable autoload
-spl_autoload_register(function ($class) {
-    $prefix = 'PhpOffice\\PhpSpreadsheet\\';
-    $baseDir = __DIR__ . '/libs/phpspreadsheet/src/PhpSpreadsheet/';
-    if (strncmp($class, $prefix, strlen($prefix)) !== 0) return;
-    $file = $baseDir . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (file_exists($file)) require_once $file;
-});
+require_once 'includes/init.php';
+require_once 'includes/excel.php'; // file bạn đã test OK
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\RichText\RichText;
 
-// ===================== Helpers =====================
-function parseMoney($value)
-{
-    if ($value instanceof RichText) {
-        $value = $value->getPlainText();
+function cellText($v) {
+    if ($v instanceof RichText) {
+        return trim($v->getPlainText());
     }
-    $value = preg_replace('/[^0-9\-]/', '', $value);
-    return abs((int)$value);
+    return trim((string)$v);
 }
 
-$headerData = [];
-$rows = [];
-$totalCharge = 0;
+$headerMap = [
+    'Company Name'      => 'Tên công ty',
+    'Date Range'        => 'Khoảng thời gian',
+    'Currency'          => 'Loại tiền',
+    'Total Orders'      => 'Tổng số chuyến',
+    'Completed Orders'  => 'Hoàn thành',
+    'Cancelled Orders'  => 'Huỷ',
+    'Total Fee'         => 'Tổng phí (Lalamove)',
+    'Generated Time'    => 'Thời điểm tạo báo cáo',
+];
+
+$headerDisplay = [];
+$items = [];
+$totalFee = 0;
+$uploaded = false;
+$error = '';
 
 if (!empty($_FILES['excel']['tmp_name'])) {
+    try {
+        $spreadsheet = IOFactory::load($_FILES['excel']['tmp_name']);
+        $sheet = $spreadsheet->getActiveSheet();
 
-    $spreadsheet = IOFactory::load($_FILES['excel']['tmp_name']);
-    $sheet = $spreadsheet->getActiveSheet();
+        // ===== A1 → B8 =====
+        $headerRaw = [];
+        for ($i = 1; $i <= 8; $i++) {
+            $k = cellText($sheet->getCell("A$i")->getValue());
+            $v = cellText($sheet->getCell("B$i")->getFormattedValue());
+            if ($k !== '') {
+                $headerRaw[$k] = $v;
+                $headerDisplay[] = [
+                    'label' => $headerMap[$k] ?? $k,
+                    'value' => $v
+                ];
+            }
+        }
 
-    // -------- HEADER A1:B8
-    for ($i = 1; $i <= 8; $i++) {
-        $headerData[] = [
-            'label' => trim($sheet->getCell("A$i")->getFormattedValue()),
-            'value' => trim($sheet->getCell("B$i")->getFormattedValue()),
-        ];
-    }
+        // Date range
+        preg_match('/(\d{4}-\d{2}-\d{2}).*(\d{4}-\d{2}-\d{2})/', $headerRaw['Date Range'], $m);
+        $dateFrom = $m[1] ?? null;
+        $dateTo   = $m[2] ?? null;
 
-    // map header
-    $map = [];
-    foreach ($headerData as $h) {
-        $map[$h['label']] = $h['value'];
-    }
+        // ===== Check duplicate =====
+        $isDuplicate = 0;
+        $chk = $pdo->prepare("
+            SELECT COUNT(*) FROM lalamove_reports
+            WHERE company_name = ? AND date_from = ? AND date_to = ?
+        ");
+        $chk->execute([$headerRaw['Company Name'], $dateFrom, $dateTo]);
+        if ($chk->fetchColumn() > 0) $isDuplicate = 1;
 
-    // -------- DETAIL FROM ROW 10
-    $highestRow = $sheet->getHighestRow();
-    for ($row = 10; $row <= $highestRow; $row++) {
-
-        $charge = parseMoney($sheet->getCell("D$row")->getValue());
-        $totalCharge += $charge;
-
-        $rows[] = [
-            'created_time' => $sheet->getCell("J$row")->getFormattedValue(),
-            'order_path'   => $sheet->getCell("Q$row")->getFormattedValue(),
-            'pickup'       => $sheet->getCell("R$row")->getFormattedValue(),
-            'dropoff'      => $sheet->getCell("S$row")->getFormattedValue(),
-            'distance'     => $sheet->getCell("T$row")->getFormattedValue(),
-            'special'      => $sheet->getCell("V$row")->getFormattedValue(),
-            'charge'       => $charge,
-        ];
-    }
-
-    // -------- SAVE REPORT
-    $stmt = $pdo->prepare("
-        INSERT INTO lalamove_reports
-        (company_name, company_address, company_id, date_range, generated_at, total_charge)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ");
-
-    $stmt->execute([
-        $map['Company Name'] ?? '',
-        $map['Company Address'] ?? '',
-        $map['Company ID'] ?? '',
-        $map['Date Range'] ?? '',
-        $map['Date/Time of Generation'] ?? '',
-        $totalCharge
-    ]);
-
-    $reportId = $pdo->lastInsertId();
-
-    // -------- SAVE ITEMS
-    $stmtItem = $pdo->prepare("
-        INSERT INTO lalamove_report_items
-        (report_id, created_time, order_path, pickup_address, dropoff_address, distance, special_request, final_charge)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ");
-
-    foreach ($rows as $r) {
-        $stmtItem->execute([
-            $reportId,
-            $r['created_time'],
-            $r['order_path'],
-            $r['pickup'],
-            $r['dropoff'],
-            $r['distance'],
-            $r['special'],
-            $r['charge']
+        // ===== Insert report =====
+        $stmt = $pdo->prepare("
+            INSERT INTO lalamove_reports
+            (company_name, date_from, date_to, total_orders, total_fee, generated_time, is_duplicate)
+            VALUES (?, ?, ?, ?, 0, ?, ?)
+        ");
+        $stmt->execute([
+            $headerRaw['Company Name'],
+            $dateFrom,
+            $dateTo,
+            (int)($headerRaw['Total Orders'] ?? 0),
+            $headerRaw['Generated Time'] ?? null,
+            $isDuplicate
         ]);
+        $reportId = $pdo->lastInsertId();
+
+        // ===== Items từ dòng 10 =====
+        $row = 10;
+        while (true) {
+            $created = cellText($sheet->getCell("J$row")->getValue());
+            if ($created === '') break;
+
+            $distance = (float)cellText($sheet->getCell("T$row")->getValue());
+
+            $feeRaw = $sheet->getCell("D$row")->getValue();
+            if ($feeRaw instanceof RichText) {
+                $feeRaw = $feeRaw->getPlainText();
+            }
+            $fee = abs((float)$feeRaw); // FIX lỗi dư số 0
+            $totalFee += $fee;
+
+            $items[] = [
+                'created_time' => $created,
+                'order_path'   => cellText($sheet->getCell("Q$row")->getValue()),
+                'pickup'       => cellText($sheet->getCell("R$row")->getValue()),
+                'dropoff'      => cellText($sheet->getCell("S$row")->getValue()),
+                'distance'     => $distance,
+                'special'      => cellText($sheet->getCell("V$row")->getValue()),
+                'fee'          => $fee
+            ];
+            $row++;
+        }
+
+        // insert items
+        $stmtItem = $pdo->prepare("
+            INSERT INTO lalamove_report_items
+            (report_id, created_time, order_path, pickup_address, dropoff_address, distance_km, special_request, fee)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+
+        foreach ($items as $it) {
+            $stmtItem->execute([
+                $reportId,
+                $it['created_time'],
+                $it['order_path'],
+                $it['pickup'],
+                $it['dropoff'],
+                $it['distance'],
+                $it['special'],
+                $it['fee']
+            ]);
+        }
+
+        $pdo->prepare("UPDATE lalamove_reports SET total_fee=? WHERE id=?")
+            ->execute([$totalFee, $reportId]);
+
+        $uploaded = true;
+
+    } catch (Exception $e) {
+        $error = $e->getMessage();
     }
 }
 
-include __DIR__ . '/includes/header.php';
+include 'includes/header.php';
 ?>
 
-<h2>🚚 Báo cáo Lalamove</h2>
+<div class="container">
+    <h3 class="mb-3">Upload báo cáo Lalamove</h3>
 
-<form method="post" enctype="multipart/form-data">
-    <input type="file" name="excel" accept=".xls,.xlsx" required>
-    <button type="submit" class="btn btn-primary">Xem báo cáo</button>
-    <a href="lalamove_reports.php" class="btn btn-secondary">
-        📊 Xem thống kê các chuyến đã lưu
-    </a>
-</form>
+    <form method="post" enctype="multipart/form-data" class="mb-4">
+        <input type="file" name="excel" required class="form-control" onchange="this.form.submit()">
+    </form>
 
-<?php if ($headerData): ?>
-<hr>
-
-<h3>Thông tin chung</h3>
-<table class="table table-bordered">
-<?php foreach ($headerData as $h): ?>
-<tr>
-    <td><b><?= htmlspecialchars($h['label']) ?></b></td>
-    <td><?= htmlspecialchars($h['value']) ?></td>
-</tr>
-<?php endforeach; ?>
-</table>
-
-<h3>Chi tiết chuyến xe</h3>
-<table class="table table-bordered">
-<thead>
-<tr>
-    <th>Thời gian</th>
-    <th>Lộ trình</th>
-    <th>Lấy hàng</th>
-    <th>Giao hàng</th>
-    <th>Km</th>
-    <th>Yêu cầu</th>
-    <th>Phí (VND)</th>
-</tr>
-</thead>
-<tbody>
-<?php foreach ($rows as $r): ?>
-<tr>
-    <td><?= $r['created_time'] ?></td>
-    <td><?= $r['order_path'] ?></td>
-    <td><?= $r['pickup'] ?></td>
-    <td><?= $r['dropoff'] ?></td>
-    <td><?= $r['distance'] ?></td>
-    <td><?= $r['special'] ?></td>
-    <td class="text-end"><?= number_format($r['charge'],0,',','.') ?> ₫</td>
-</tr>
-<?php endforeach; ?>
-<tr>
-    <td colspan="6" class="text-end"><b>TỔNG CỘNG</b></td>
-    <td class="text-end"><b><?= number_format($totalCharge,0,',','.') ?> ₫</b></td>
-</tr>
-</tbody>
-</table>
+<?php if ($error): ?>
+    <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php if ($uploaded): ?>
+    <?php if ($isDuplicate): ?>
+        <div class="alert alert-warning">⚠ Báo cáo này trùng khoảng thời gian với báo cáo đã có</div>
+    <?php endif; ?>
+
+    <div class="card mb-3">
+        <div class="card-header fw-bold">Thông tin chung</div>
+        <table class="table table-sm mb-0">
+            <?php foreach ($headerDisplay as $h): ?>
+            <tr>
+                <td class="text-muted" width="30%"><?= $h['label'] ?></td>
+                <td><?= htmlspecialchars($h['value']) ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </table>
+    </div>
+
+    <table class="table table-bordered table-hover table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Thời gian</th>
+                <th>Mã đơn</th>
+                <th>Pickup</th>
+                <th>Dropoff</th>
+                <th>KM</th>
+                <th>Yêu cầu</th>
+                <th class="text-end">Phí (₫)</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($items as $it): ?>
+            <tr>
+                <td><?= $it['created_time'] ?></td>
+                <td><?= $it['order_path'] ?></td>
+                <td><?= $it['pickup'] ?></td>
+                <td><?= $it['dropoff'] ?></td>
+                <td><?= number_format($it['distance'],2) ?></td>
+                <td><?= $it['special'] ?></td>
+                <td class="text-end"><?= number_format($it['fee'],0,',','.') ?> ₫</td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+        <tfoot>
+            <tr class="fw-bold">
+                <td colspan="6">Tổng</td>
+                <td class="text-end"><?= number_format($totalFee,0,',','.') ?> ₫</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <a href="lalamove_reports.php" class="btn btn-secondary">Quản lý báo cáo</a>
+<?php endif; ?>
+</div>
+
+<?php include 'includes/footer.php'; ?>

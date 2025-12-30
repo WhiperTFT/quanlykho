@@ -1,51 +1,69 @@
 <?php
-require_once __DIR__ . '/includes/init.php';
+require_once 'includes/init.php';
 
 if (isset($_GET['delete'])) {
-    $id = (int)$_GET['delete'];
-    $pdo->prepare("DELETE FROM lalamove_reports WHERE id=?")->execute([$id]);
+    $pdo->prepare("DELETE FROM lalamove_reports WHERE id=?")
+        ->execute([(int)$_GET['delete']]);
     header("Location: lalamove_reports.php");
     exit;
 }
 
 $reports = $pdo->query("
-    SELECT id, company_name, date_range, total_charge, created_at
-    FROM lalamove_reports
-    ORDER BY created_at DESC
-")->fetchAll();
+    SELECT * FROM lalamove_reports
+    ORDER BY date_from DESC
+")->fetchAll(PDO::FETCH_ASSOC);
 
-include __DIR__ . '/includes/header.php';
+include 'includes/header.php';
 ?>
 
-<h2>📊 Báo cáo Lalamove đã lưu</h2>
+<div class="container">
+<h3 class="mb-3">Báo cáo Lalamove</h3>
 
-<table class="table table-bordered">
-<thead>
+<form method="get" action="lalamove_compare.php">
+<table class="table table-striped table-hover table-bordered">
+<thead class="table-light">
 <tr>
-    <th>ID</th>
+    <th></th>
     <th>Công ty</th>
     <th>Date Range</th>
-    <th>Tổng phí</th>
+    <th class="text-end">Tổng phí</th>
     <th>Ngày tạo</th>
-    <th>Hành động</th>
+    <th></th>
 </tr>
 </thead>
 <tbody>
 <?php foreach ($reports as $r): ?>
 <tr>
-    <td><?= $r['id'] ?></td>
-    <td><?= htmlspecialchars($r['company_name']) ?></td>
-    <td><?= htmlspecialchars($r['date_range']) ?></td>
-    <td><?= number_format($r['total_charge'],0,',','.') ?> ₫</td>
-    <td><?= $r['created_at'] ?></td>
+    <td><input type="checkbox" name="ids[]" value="<?= $r['id'] ?>"></td>
     <td>
-        <a href="lalamove_report_view.php?id=<?= $r['id'] ?>" class="btn btn-sm btn-info">Xem</a>
-        <a href="?delete=<?= $r['id'] ?>" class="btn btn-sm btn-danger"
-           onclick="return confirm('Xóa báo cáo này?')">Xóa</a>
+        <?= htmlspecialchars($r['company_name']) ?>
+        <?php if ($r['is_duplicate']): ?>
+            <span class="badge bg-warning text-dark">TRÙNG</span>
+        <?php endif; ?>
+    </td>
+    <td><?= $r['date_from'] ?> → <?= $r['date_to'] ?></td>
+    <td class="text-end"><?= number_format($r['total_fee'],0,',','.') ?> ₫</td>
+    <td><?= $r['generated_time'] ?></td>
+    <td>
+        <a href="lalamove_report_view.php?id=<?= $r['id'] ?>">Xem</a> |
+        <a href="?delete=<?= $r['id'] ?>" onclick="return confirm('Xóa báo cáo này?')" class="text-danger">Xóa</a>
     </td>
 </tr>
 <?php endforeach; ?>
 </tbody>
 </table>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<button class="btn btn-primary">So sánh 2 báo cáo</button>
+</form>
+</div>
+
+<script>
+document.querySelector('form').onsubmit = function(){
+    if (document.querySelectorAll('input[name="ids[]"]:checked').length !== 2) {
+        alert('Vui lòng chọn đúng 2 báo cáo');
+        return false;
+    }
+};
+</script>
+
+<?php include 'includes/footer.php'; ?>

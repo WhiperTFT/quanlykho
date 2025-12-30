@@ -2,52 +2,78 @@
 require_once __DIR__ . '/includes/init.php';
 
 $id = (int)($_GET['id'] ?? 0);
+if ($id <= 0) {
+    die('ID báo cáo không hợp lệ');
+}
 
-$reportStmt = $pdo->prepare("SELECT * FROM lalamove_reports WHERE id=?");
-$reportStmt->execute([$id]);
-$report = $reportStmt->fetch();
+$report = $pdo->query("SELECT * FROM lalamove_reports WHERE id = $id")->fetch();
+if (!$report) {
+    die('Không tìm thấy báo cáo');
+}
 
-$itemStmt = $pdo->prepare("
+$items = $pdo->query("
     SELECT * FROM lalamove_report_items
-    WHERE report_id=?
-");
-$itemStmt->execute([$id]);
-$items = $itemStmt->fetchAll();
+    WHERE report_id = $id
+    ORDER BY created_time
+")->fetchAll();
 
-include __DIR__ . '/includes/header.php';
+function vnd($n) {
+    return number_format($n, 0, ',', '.') . ' ₫';
+}
 ?>
 
-<h2>📄 Chi tiết báo cáo Lalamove</h2>
+<?php include __DIR__ . '/includes/header.php'; ?>
 
-<p><b>Công ty:</b> <?= htmlspecialchars($report['company_name']) ?></p>
-<p><b>Date Range:</b> <?= htmlspecialchars($report['date_range']) ?></p>
-<p><b>Tổng phí:</b> <?= number_format($report['total_charge'],0,',','.') ?> ₫</p>
+<div class="container-fluid">
+    <h4 class="mb-1"><?= htmlspecialchars($report['company_name']) ?></h4>
+    <div class="text-muted mb-3">
+        <?= $report['date_from'] ?> → <?= $report['date_to'] ?>
+    </div>
 
-<table class="table table-bordered">
-<thead>
-<tr>
-    <th>Thời gian</th>
-    <th>Lộ trình</th>
-    <th>Lấy hàng</th>
-    <th>Giao hàng</th>
-    <th>Km</th>
-    <th>Phí</th>
-</tr>
-</thead>
-<tbody>
-<?php foreach ($items as $i): ?>
-<tr>
-    <td><?= $i['created_time'] ?></td>
-    <td><?= $i['order_path'] ?></td>
-    <td><?= $i['pickup_address'] ?></td>
-    <td><?= $i['dropoff_address'] ?></td>
-    <td><?= $i['distance'] ?></td>
-    <td class="text-end"><?= number_format($i['final_charge'],0,',','.') ?> ₫</td>
-</tr>
-<?php endforeach; ?>
-</tbody>
-</table>
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Mã đơn</th>
+                    <th>Pickup</th>
+                    <th>Dropoff</th>
+                    <th class="text-end">KM</th>
+                    <th>Yêu cầu</th>
+                    <th class="text-end">Phí</th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php
+                $total = 0;
+                foreach ($items as $i):
+                    $total += (int)$i['fee'];
+                ?>
+                <tr>
+                    <td><?= $i['created_time'] ?></td>
+                    <td><?= htmlspecialchars($i['order_path']) ?></td>
+                    <td><?= htmlspecialchars($i['pickup']) ?></td>
+                    <td><?= htmlspecialchars($i['dropoff']) ?></td>
+                    <td class="text-end"><?= number_format($i['distance'], 2) ?></td>
+                    <td><?= htmlspecialchars($i['special_request']) ?></td>
+                    <td class="text-end fw-bold text-primary"><?= vnd($i['fee']) ?></td>
+                </tr>
+                <?php endforeach; ?>
+                </tbody>
+                <tfoot class="table-light">
+                <tr>
+                    <th colspan="6" class="text-end">Tổng</th>
+                    <th class="text-end text-success fs-6"><?= vnd($total) ?></th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
 
-<a href="lalamove_reports.php" class="btn btn-secondary">← Quay lại</a>
+    <a href="lalamove_reports.php" class="btn btn-link mt-3">
+        ← Quay lại danh sách
+    </a>
+</div>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
