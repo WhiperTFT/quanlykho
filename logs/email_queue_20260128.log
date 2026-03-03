@@ -1,0 +1,24 @@
+[QUEUE_PROCESSOR][2026-01-28 09:05:18] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2026-01-28 09:05:18] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2026-01-28 09:05:18] Processing log ID: 179 for type: order
+[QUEUE_PROCESSOR][2026-01-28 09:05:18] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2026-01-28 09:05:18] Found log ID 179 with status: pending
+[QUEUE_PROCESSOR][2026-01-28 09:05:18] Status updated to 'sending' for log ID 179.
+[QUEUE_PROCESSOR][2026-01-28 09:05:21] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2026-01-28 09:05:21] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-28012026-002.pdf
+[QUEUE_PROCESSOR][2026-01-28 09:05:21] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-28012026-002.pdf
+[QUEUE_PROCESSOR][2026-01-28 09:05:23] Email sent successfully for Log ID: 179.
+[QUEUE_PROCESSOR][2026-01-28 09:05:23] Final status updated to 'sent' for log ID 179.
+[QUEUE_PROCESSOR][2026-01-28 09:05:23] Script finished for Log ID: 179
+[QUEUE_PROCESSOR][2026-01-28 13:41:36] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2026-01-28 13:41:36] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2026-01-28 13:41:36] Processing log ID: 180 for type: order
+[QUEUE_PROCESSOR][2026-01-28 13:41:36] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2026-01-28 13:41:36] Found log ID 180 with status: pending
+[QUEUE_PROCESSOR][2026-01-28 13:41:36] Status updated to 'sending' for log ID 180.
+[QUEUE_PROCESSOR][2026-01-28 13:41:36] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2026-01-28 13:41:36] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-28012026-003.pdf
+[QUEUE_PROCESSOR][2026-01-28 13:41:36] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-28012026-003.pdf
+[QUEUE_PROCESSOR][2026-01-28 13:41:38] Email sent successfully for Log ID: 180.
+[QUEUE_PROCESSOR][2026-01-28 13:41:38] Final status updated to 'sent' for log ID 180.
+[QUEUE_PROCESSOR][2026-01-28 13:41:38] Script finished for Log ID: 180

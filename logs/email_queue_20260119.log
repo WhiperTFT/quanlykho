@@ -1,0 +1,23 @@
+[QUEUE_PROCESSOR][2026-01-19 08:57:46] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2026-01-19 08:57:46] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2026-01-19 08:57:46] Processing log ID: 175 for type: order
+[QUEUE_PROCESSOR][2026-01-19 08:57:46] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2026-01-19 08:57:46] Found log ID 175 with status: pending
+[QUEUE_PROCESSOR][2026-01-19 08:57:46] Status updated to 'sending' for log ID 175.
+[QUEUE_PROCESSOR][2026-01-19 08:57:46] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-19012026-003.pdf
+[QUEUE_PROCESSOR][2026-01-19 08:57:46] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-19012026-003.pdf
+[QUEUE_PROCESSOR][2026-01-19 08:57:49] Email sent successfully for Log ID: 175.
+[QUEUE_PROCESSOR][2026-01-19 08:57:49] Final status updated to 'sent' for log ID 175.
+[QUEUE_PROCESSOR][2026-01-19 08:57:49] Script finished for Log ID: 175
+[QUEUE_PROCESSOR][2026-01-19 16:14:47] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2026-01-19 16:14:47] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2026-01-19 16:14:47] Processing log ID: 176 for type: order
+[QUEUE_PROCESSOR][2026-01-19 16:14:47] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2026-01-19 16:14:47] Found log ID 176 with status: pending
+[QUEUE_PROCESSOR][2026-01-19 16:14:47] Status updated to 'sending' for log ID 176.
+[QUEUE_PROCESSOR][2026-01-19 16:14:47] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2026-01-19 16:14:47] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-19012026-005.pdf
+[QUEUE_PROCESSOR][2026-01-19 16:14:47] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-19012026-005.pdf
+[QUEUE_PROCESSOR][2026-01-19 16:14:49] Email sent successfully for Log ID: 176.
+[QUEUE_PROCESSOR][2026-01-19 16:14:49] Final status updated to 'sent' for log ID 176.
+[QUEUE_PROCESSOR][2026-01-19 16:14:49] Script finished for Log ID: 176

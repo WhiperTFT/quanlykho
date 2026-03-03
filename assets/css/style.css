@@ -1139,3 +1139,26 @@ td.col-expected_delivery_date .form-control.form-control-sm {
   height: 30px;
   padding: 2px 6px;
 }
+/* css vat */
+body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f4f6fb, #eef2ff);
+            min-height: 100vh;
+        }
+        .card {
+            border-radius: 16px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .result-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .result-box span {
+            font-weight: 600;
+            color: #d63384;
+        }

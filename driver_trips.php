@@ -4,30 +4,50 @@ $skip_login_check = true;
 $force_navbar_always = true;
 require_once 'includes/init.php';
 
-// --- LẤY DỮ LIỆU ---
+// =======================
+// PARAMS GỐC
+// =======================
 $driver_id = isset($_GET['driver_id']) ? (int)$_GET['driver_id'] : 0;
 $year = isset($_GET['year']) ? (int)$_GET['year'] : date('Y');
 $month = isset($_GET['month']) ? str_pad((int)$_GET['month'], 2, '0', STR_PAD_LEFT) : date('m');
 
-$driver = null; $trips = []; $adjustments = []; $total_shipping_cost = 0; $all_drivers = [];
+// ===== ADVANCED SEARCH (THÊM MỚI) =====
+$advanced = isset($_GET['advanced']);
+$adv_supplier  = trim($_GET['adv_supplier'] ?? '');
+$adv_customer  = trim($_GET['adv_customer'] ?? '');
+$adv_from      = $_GET['adv_date_from'] ?? '';
+$adv_to        = $_GET['adv_date_to'] ?? '';
+// ======================================
+
+$driver = null; 
+$trips = []; 
+$adjustments = []; 
+$total_shipping_cost = 0; 
+$all_drivers = [];
+
 $driver_result = $pdo->query("SELECT id, ten FROM drivers ORDER BY ten ASC");
 $all_drivers = $driver_result->fetchAll(PDO::FETCH_ASSOC);
 
 if ($driver_id > 0) {
+
     $stmt = $pdo->prepare("SELECT * FROM drivers WHERE id = :driver_id");
     $stmt->execute([':driver_id' => $driver_id]);
     $driver = $stmt->fetch(PDO::FETCH_ASSOC);
-    $trip_stmt = $pdo->prepare(
-    "SELECT
+
+    // =======================
+    // QUERY GỐC + MỞ RỘNG
+    // =======================
+    $sql = "
+    SELECT
         so.id,
         so.order_number,
         so.order_date,
-        so.expected_delivery_date,    -- lấy thêm ngày giao dự kiến
+        so.expected_delivery_date,
         so.tien_xe,
         so.ghi_chu,
         s.name AS supplier_name,
         c.name AS customer_name,
-        da.delivery_date              -- ngày giao thực tế (nếu bạn có lưu ở bảng da)
+        da.delivery_date
      FROM sales_orders so
      JOIN partners s ON so.supplier_id = s.id
      LEFT JOIN sales_quotes sq ON so.quote_id = sq.id
@@ -36,30 +56,78 @@ if ($driver_id > 0) {
      WHERE
         so.driver_id = :driver_id
         AND so.expected_delivery_date IS NOT NULL
-        AND YEAR(so.expected_delivery_date) = :year
-        AND MONTH(so.expected_delivery_date) = :month
-     ORDER BY so.expected_delivery_date ASC"
-);
+    ";
 
-$trip_stmt->execute([
-    ':driver_id' => $driver_id,
-    ':year'      => (int)$year,
-    ':month'     => (int)$month
-]);
+    $params = [':driver_id'=>$driver_id];
+
+    // ===== nếu dùng tìm kiếm nâng cao =====
+    if ($advanced) {
+
+        if ($adv_from && $adv_to) {
+            $sql .= " AND DATE(so.expected_delivery_date) BETWEEN :df AND :dt ";
+            $params[':df']=$adv_from;
+            $params[':dt']=$adv_to;
+        }
+
+        if ($adv_supplier !== '') {
+            $sql .= " AND s.name LIKE :sup ";
+            $params[':sup']="%$adv_supplier%";
+        }
+
+        if ($adv_customer !== '') {
+            $sql .= " AND c.name LIKE :cus ";
+            $params[':cus']="%$adv_customer%";
+        }
+
+    } else {
+        // GIỮ NGUYÊN FILTER CŨ
+        $sql .= "
+        AND YEAR(so.expected_delivery_date)=:year
+        AND MONTH(so.expected_delivery_date)=:month";
+        $params[':year']=$year;
+        $params[':month']=$month;
+    }
+
+    $sql .= " ORDER BY so.expected_delivery_date ASC";
+
+    $trip_stmt = $pdo->prepare($sql);
+    $trip_stmt->execute($params);
     $trips = $trip_stmt->fetchAll(PDO::FETCH_ASSOC);
+
     foreach ($trips as $trip) {
         if ($trip['tien_xe'] > 0) {
             $total_shipping_cost += $trip['tien_xe'];
         }
     }
-    $adj_stmt = $pdo->prepare("SELECT * FROM driver_adjustments WHERE driver_id = :driver_id AND year = :year AND month = :month");
-    $adj_stmt->execute([':driver_id' => $driver_id, ':year' => $year, ':month' => $month]);
-    $adjustments = $adj_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // GIỮ NGUYÊN LOGIC CŨ
+    $adj_stmt = $pdo->prepare("
+        SELECT * FROM driver_adjustments
+        WHERE driver_id=:driver_id
+        AND year=:year
+        AND month=:month
+    ");
+    $adj_stmt->execute([
+        ':driver_id'=>$driver_id,
+        ':year'=>$year,
+        ':month'=>$month
+    ]);
+    $adjustments=$adj_stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-$page_title = "Bảng kê tài xế";
+
+$page_title="Bảng kê tài xế";
 include 'includes/header.php';
 ?>
-
+<!-- =========================
+     NÚT TÌM KIẾM NÂNG CAO (THÊM)
+========================= -->
+<div class="text-end mb-3">
+<button class="btn btn-outline-secondary"
+        data-bs-toggle="modal"
+        data-bs-target="#advancedSearchModal">
+    <i class="bi bi-search"></i> Tìm kiếm nâng cao
+</button>
+</div>
 <!-- Thêm Flatpickr -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -214,4 +282,56 @@ include 'includes/header.php';
 </style>
 
 <?php include 'includes/footer.php'; ?>
+
+<!-- =========================
+     MODAL ADVANCED SEARCH
+========================= -->
+<div class="modal fade" id="advancedSearchModal">
+<div class="modal-dialog">
+<div class="modal-content">
+
+<form method="GET" action="driver_trips.php">
+
+<div class="modal-header">
+<h5 class="modal-title">Tìm kiếm nâng cao</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+
+<input type="hidden" name="driver_id" value="<?= $driver_id ?>">
+<input type="hidden" name="advanced" value="1">
+
+<div class="mb-3">
+<label>Nhà cung cấp</label>
+<input name="adv_supplier" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Khách hàng</label>
+<input name="adv_customer" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Từ ngày</label>
+<input type="date" name="adv_date_from" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Đến ngày</label>
+<input type="date" name="adv_date_to" class="form-control">
+</div>
+
+</div>
+
+<div class="modal-footer">
+<button class="btn btn-primary">Tìm kiếm</button>
+</div>
+
+</form>
+
+</div>
+</div>
+</div>
+
 <script src="assets/js/driver_trips.js"></script>

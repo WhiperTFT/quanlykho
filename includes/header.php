@@ -23,11 +23,6 @@ header('Permissions-Policy: fullscreen=(self)');
         href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css"
     />
 
-    <!-- Upload Enhance CSS (custom) -->
-        <link
-        rel="stylesheet"
-        href="assets/css/upload-enhance.css"
-    />
 
     <!-- Custom CSS (kèm cache busting thông minh) -->
     <link rel="stylesheet" href="<?= PROJECT_BASE_URL; ?>assets/css/style.css?v=<?= filemtime(__DIR__ . '/../assets/css/style.css') ?>">

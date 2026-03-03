@@ -1,0 +1,23 @@
+[QUEUE_PROCESSOR][2026-01-14 10:33:12] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2026-01-14 10:33:12] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2026-01-14 10:33:12] Processing log ID: 173 for type: order
+[QUEUE_PROCESSOR][2026-01-14 10:33:12] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2026-01-14 10:33:12] Found log ID 173 with status: pending
+[QUEUE_PROCESSOR][2026-01-14 10:33:12] Status updated to 'sending' for log ID 173.
+[QUEUE_PROCESSOR][2026-01-14 10:33:12] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-14012026-001.pdf
+[QUEUE_PROCESSOR][2026-01-14 10:33:12] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-14012026-001.pdf
+[QUEUE_PROCESSOR][2026-01-14 10:33:15] Email sent successfully for Log ID: 173.
+[QUEUE_PROCESSOR][2026-01-14 10:33:15] Final status updated to 'sent' for log ID 173.
+[QUEUE_PROCESSOR][2026-01-14 10:33:15] Script finished for Log ID: 173
+[QUEUE_PROCESSOR][2026-01-14 13:39:40] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2026-01-14 13:39:40] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2026-01-14 13:39:40] Processing log ID: 174 for type: order
+[QUEUE_PROCESSOR][2026-01-14 13:39:40] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2026-01-14 13:39:40] Found log ID 174 with status: pending
+[QUEUE_PROCESSOR][2026-01-14 13:39:40] Status updated to 'sending' for log ID 174.
+[QUEUE_PROCESSOR][2026-01-14 13:39:40] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2026-01-14 13:39:40] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-14012026-002.pdf
+[QUEUE_PROCESSOR][2026-01-14 13:39:40] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-14012026-002.pdf
+[QUEUE_PROCESSOR][2026-01-14 13:39:42] Email sent successfully for Log ID: 174.
+[QUEUE_PROCESSOR][2026-01-14 13:39:42] Final status updated to 'sent' for log ID 174.
+[QUEUE_PROCESSOR][2026-01-14 13:39:42] Script finished for Log ID: 174
