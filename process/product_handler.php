@@ -200,9 +200,10 @@ try {
                     $pdo->commit();
 
                     // ✅ Ghi log
-                    $logAction = $action === 'add' ? 'product_add' : 'product_edit';
+                    $logAction = $action === 'add' ? 'CREATE' : 'UPDATE';
+                    $logType = $action === 'add' ? 'success' : 'info';
                     $logDesc = ($action === 'add' ? 'Thêm' : 'Cập nhật') . " sản phẩm ID=$productId, tên={$inputData['name']}";
-                    write_user_log($pdo, (int)$_SESSION['user_id'], $logAction, $logDesc);
+                    write_user_log($logAction, 'product', $logDesc, $inputData, $logType);
 
                     echo json_encode(['success' => true, 'message' => $message, 'data' => ['id' => $productId]]);
                 } catch (Exception $e) {
@@ -251,7 +252,7 @@ try {
                     $pdo->commit();
 
                     // ✅ Ghi log
-                    write_user_log($pdo, (int)$_SESSION['user_id'], 'product_delete', 'Đã xóa sản phẩm ID=' . $id . ', tên: ' . $product['name']);
+                    write_user_log('DELETE', 'product', 'Đã xóa sản phẩm ID=' . $id . ', tên: ' . $product['name'], ['id' => $id], 'danger');
 
                     echo json_encode(['success' => true, 'message' => $lang['product_deleted_success'] ?? 'Product deleted successfully.']);
                 } catch (Exception $e) {

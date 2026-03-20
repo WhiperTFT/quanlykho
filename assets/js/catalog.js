@@ -776,7 +776,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         detailsHtml += '<div class="d-flex flex-wrap gap-3 mb-3">';
                         images.forEach(img => {
                             detailsHtml += `
-                                <div class="text-center border rounded p-1">
+                                <div class="text-center border rounded p-1 position-relative">
+                                    <div class="position-absolute top-0 start-0 m-1">
+                                        <input type="checkbox" class="form-check-input share-checkbox" style="transform: scale(1.3); cursor: pointer;" value="${img.file_path}">
+                                    </div>
                                     <img src="${img.file_path}" alt="${escapeHtml(img.original_filename)}" class="img-fluid img-thumbnail" style="max-width: 150px; max-height: 150px; object-fit: contain; cursor: pointer;" onclick="showLargeImage('${img.file_path}')" onerror="this.src='https://placehold.co/150x150/eee/ccc?text=Error'; this.onerror=null;">
                                     <a href="${img.file_path}" download="${escapeHtml(img.original_filename)}" class="d-block small mt-1"><i class="bi bi-download"></i> ${LANG['download'] || 'Download'}</a>
                                 </div>`;
@@ -793,10 +796,11 @@ document.addEventListener('DOMContentLoaded', function () {
                          detailsHtml += '<ul class="list-unstyled">';
                          documents.forEach(doc => {
                              detailsHtml += `
-                                 <li class="mb-2 border-bottom pb-1">
+                                 <li class="mb-2 border-bottom pb-1 d-flex align-items-center">
+                                     <input type="checkbox" class="form-check-input me-2 share-checkbox" style="transform: scale(1.1); cursor: pointer;" value="${doc.file_path}">
                                      <i class="bi bi-file-earmark-pdf me-1"></i>
                                      <a href="${doc.file_path}" target="_blank" title="${LANG['view'] || 'View'} ${escapeHtml(doc.original_filename)}">${escapeHtml(doc.original_filename)}</a>
-                                     <a href="${doc.file_path}" download="${escapeHtml(doc.original_filename)}" class="ms-2 small float-end" title="${LANG['download'] || 'Download'}"><i class="bi bi-download"></i></a>
+                                     <a href="${doc.file_path}" download="${escapeHtml(doc.original_filename)}" class="ms-auto small float-end" title="${LANG['download'] || 'Download'}"><i class="bi bi-download"></i></a>
                                  </li>`;
                          });
                          detailsHtml += '</ul>';
@@ -804,6 +808,14 @@ document.addEventListener('DOMContentLoaded', function () {
                          detailsHtml += `<p class="text-muted"><em>${LANG['no_documents_available'] || 'No documents available.'}</em></p>`;
                      }
 
+                    if (files.length > 0) {
+                        detailsHtml += `
+                            <div class="mt-4 pt-3 border-top text-end">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="$('.share-checkbox').prop('checked', true)"><i class="bi bi-check-all"></i> Chọn tất cả</button>
+                                <button type="button" class="btn btn-sm btn-primary ms-2" onclick="shareSelectedToZalo()"><i class="bi bi-chat-dots"></i> Chia sẻ Zalo</button>
+                            </div>
+                        `;
+                    }
                     modalBody.html(detailsHtml);
                      // Khởi tạo lại tooltips trong modal vừa load xong
                     const tooltipTriggerList = [].slice.call(modalBody[0].querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -958,3 +970,31 @@ window.openProductEditModal = function(productId){
     });
 };
 }); // End document ready
+
+window.shareSelectedToZalo = function() {
+    let rawPaths = [];
+    $('.share-checkbox:checked').each(function() {
+        rawPaths.push($(this).val());
+    });
+    
+    if (rawPaths.length === 0) {
+        alert("Vui lòng tích chọn ít nhất 1 ảnh/file đính kèm để chia sẻ!");
+        return;
+    }
+
+    $.post('process/generate_share.php', { files: rawPaths }, function(res) {
+        if (res.success && res.links) {
+            let textToShare = "Tài liệu sản phẩm đính kèm:\n" + res.links.join("\n");
+            navigator.clipboard.writeText(textToShare).then(function() {
+                alert("Đã copy toàn bộ link chia sẻ vào bộ nhớ tạm!\nCác link này không cần đăng nhập và có thời hạn 3 ngày.\n\nHệ thống sẽ tự động mở Zalo PC, bạn chỉ cần dán (Ctrl+V) vào khung chat.");
+                window.location.href = "zalo://";
+            }).catch(function() {
+                alert("Không thể chuyển hướng/copy tự động, vui lòng copy thủ công dòng sau:\n\n" + textToShare);
+            });
+        } else {
+            alert("Lỗi tạo link chia sẻ: " + (res.message || 'Lỗi không xác định'));
+        }
+    }, 'json').fail(function() {
+        alert("Lỗi giao tiếp máy chủ khi tạo link chia sẻ.");
+    });
+};

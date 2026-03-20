@@ -146,9 +146,10 @@ $(document).ready(function() {
                                     </a>
                                     <input type="text" class="form-control form-control-sm me-1" value="${attachment.path}" readonly onclick="this.select(); document.execCommand('copy'); alert('Đã sao chép link!');">
                                 `}
+                                ${(typeof IS_LOGGED_IN !== 'undefined' && IS_LOGGED_IN) ? `
                                 <button class="btn btn-sm btn-outline-danger remove-attachment-btn" data-attachment-id="${attachment.id}">
                                     <i class="bi bi-trash"></i>
-                                </button>
+                                </button>` : ''}
                             </div>`;
                     });
                     $('#attachments-list').html(html);

@@ -86,7 +86,7 @@ try {
 
             if ($success) {
                 // Ghi log hoạt động (nếu có)
-                write_user_log($pdo, $userId, 'update_order_status', "Cập nhật trạng thái đơn hàng #$order_id sang '$new_status'");
+                write_user_log('UPDATE', 'sales_order', "Cập nhật trạng thái đơn hàng #$order_id sang '$new_status'", ['order_id' => $order_id, 'new_status' => $new_status], 'info');
 
                 send_json_response(['success' => true, 'message' => 'Cập nhật trạng thái thành công!']);
             } else {
@@ -226,7 +226,7 @@ try {
                     $orderId = $newOrderId; // Gán $orderId để đồng bộ item
 
                     $message = $lang['order_created_success'] ?? 'Order created successfully.';
-                    write_user_log($pdo, $userId, 'create_order', "Tạo đơn hàng mới #$orderId - Số đơn: $orderNumber, NCC ID: $supplierId");
+                    write_user_log('CREATE', 'sales_order', "Tạo đơn hàng mới #$orderId - Số đơn: $orderNumber, NCC ID: $supplierId", ['order_id' => $orderId, 'order_number' => $orderNumber], 'success');
 
                     $http_status_code = 201;
                 } else { // action === 'edit'
@@ -253,7 +253,7 @@ try {
                         ':qid' => $quote_id, ':id' => $orderId
                     ]);
                     $message = $lang['order_updated_success'] ?? 'Order updated successfully.';
-                    write_user_log($pdo, $userId, 'edit_order', "Cập nhật đơn hàng #$orderId - Số đơn: $orderNumber");
+                    write_user_log('UPDATE', 'sales_order', "Cập nhật đơn hàng #$orderId - Số đơn: $orderNumber", ['order_id' => $orderId], 'info');
 
                     $http_status_code = 200;
                 }
@@ -359,7 +359,7 @@ try {
                 if ($deleted_rows) {
                     $pdo->commit();
                     $response = ['success' => true, 'message' => $lang['order_deleted_success'] ?? 'Order deleted success.'];
-                    write_user_log($pdo, $userId, 'delete_order', "Xóa đơn hàng #$id");
+                    write_user_log('DELETE', 'sales_order', "Xóa đơn hàng #$id", ['id' => $id], 'danger');
 
                     $http_status_code = 200;
                 } else {

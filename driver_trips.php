@@ -181,9 +181,13 @@ include 'includes/header.php';
                                     <td><?= htmlspecialchars($trip['supplier_name']) ?></td>
                                     <td><?= htmlspecialchars($trip['customer_name'] ?? 'N/A') ?></td>
                                     <td>
-                                        <input type="text" class="form-control form-control-sm delivery-date-input" 
-                                               value="<?= $trip['delivery_date'] ? date('d/m/Y', strtotime($trip['delivery_date'])) : '' ?>" 
-                                               data-order-id="<?= $trip['id'] ?>">
+                                        <?php if (is_logged_in()): ?>
+                                            <input type="text" class="form-control form-control-sm delivery-date-input" 
+                                                   value="<?= $trip['delivery_date'] ? date('d/m/Y', strtotime($trip['delivery_date'])) : '' ?>" 
+                                                   data-order-id="<?= $trip['id'] ?>">
+                                        <?php else: ?>
+                                            <?= $trip['delivery_date'] ? date('d/m/Y', strtotime($trip['delivery_date'])) : '<span class="text-muted">Chưa giao</span>' ?>
+                                        <?php endif; ?>
                                     </td>
                                     <td><?= htmlspecialchars($trip['ghi_chu']) ?></td>
                                     <td class="text-end trip-cost"><?= number_format($trip['tien_xe'], 0, ',', '.') ?></td>
@@ -213,6 +217,7 @@ include 'includes/header.php';
                         </div>
                         <div class="modal-body">
                             <div id="attachments-list"></div>
+                            <?php if (is_logged_in()): ?>
                             <hr>
                             <h6>Tải lên file chứng từ</h6>
                             <input type="file" class="form-control form-control-sm upload-proof-input mb-2" id="modal-upload-proof">
@@ -221,6 +226,7 @@ include 'includes/header.php';
                                 <input type="text" class="form-control" id="modal-url-input" placeholder="Nhập link bản đồ (VD: https://maps.app.goo.gl/...)">
                                 <button class="btn btn-primary add-url-btn" id="modal-add-url">Thêm</button>
                             </div>
+                            <?php endif; ?>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
@@ -242,13 +248,15 @@ include 'includes/header.php';
                                     <div id="adjustments-list" class="mb-2">
                                         <?php foreach ($adjustments as $adj): ?>
                                         <div class="adjustment-row row g-2 align-items-center p-2">
-                                            <div class="col-md-5"><input type="text" class="form-control adjustment-description" placeholder="Diễn giải (VD: Phụ cấp xăng xe)" value="<?= htmlspecialchars($adj['description']) ?>"></div>
-                                            <div class="col-md-3"><select class="form-select adjustment-type"><option value="add" <?= ($adj['type'] == 'add') ? 'selected' : '' ?>>Cộng (+)</option><option value="subtract" <?= ($adj['type'] == 'subtract') ? 'selected' : '' ?>>Trừ (-)</option></select></div>
-                                            <div class="col-md-4"><div class="input-group"><input type="text" class="form-control adjustment-amount text-end" placeholder="0" value="<?= number_format($adj['amount'], 0, ',', '.') ?>"><button class="btn btn-outline-danger remove-adjustment-btn" type="button"><i class="bi bi-trash"></i></button></div></div>
+                                            <div class="col-md-5"><input type="text" class="form-control adjustment-description" placeholder="Diễn giải (VD: Phụ cấp xăng xe)" value="<?= htmlspecialchars($adj['description']) ?>" <?= !is_logged_in() ? 'disabled' : '' ?>></div>
+                                            <div class="col-md-3"><select class="form-select adjustment-type" <?= !is_logged_in() ? 'disabled' : '' ?>><option value="add" <?= ($adj['type'] == 'add') ? 'selected' : '' ?>>Cộng (+)</option><option value="subtract" <?= ($adj['type'] == 'subtract') ? 'selected' : '' ?>>Trừ (-)</option></select></div>
+                                            <div class="col-md-4"><div class="input-group"><input type="text" class="form-control adjustment-amount text-end" placeholder="0" value="<?= number_format($adj['amount'], 0, ',', '.') ?>" <?= !is_logged_in() ? 'disabled' : '' ?>><?php if (is_logged_in()): ?><button class="btn btn-outline-danger remove-adjustment-btn" type="button"><i class="bi bi-trash"></i></button><?php endif; ?></div></div>
                                         </div>
                                         <?php endforeach; ?>
                                     </div>
+                                    <?php if (is_logged_in()): ?>
                                     <button class="btn btn-link text-success text-decoration-none" id="add-adjustment-btn"><i class="bi bi-plus-circle"></i> Thêm điều chỉnh</button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -265,6 +273,8 @@ include 'includes/header.php';
                     </div>
                 </div>
             </div>
+            <script>const IS_LOGGED_IN = <?= is_logged_in() ? 'true' : 'false' ?>;</script>
+            <?php if (is_logged_in()): ?>
             <div class="text-end mt-4">
                 <button class="btn btn-primary btn-lg" id="save-adjustments-btn"
                         data-driver-id="<?= $driver_id ?? 0 ?>"
@@ -273,6 +283,7 @@ include 'includes/header.php';
                     <i class="bi bi-save"></i> Lưu Bảng Lương
                 </button>
             </div>
+            <?php endif; ?>
         </div>
     </div>
     <?php endif; ?>

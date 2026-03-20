@@ -294,7 +294,7 @@ try {
                         }
                         $pdo->commit();
                         $response = ['success' => true, 'message' => $lang['quote_created_success'] ?? 'Quote created successfully.', 'quote_id' => $newQuoteId];
-                        write_user_log($pdo, $userId, 'add_quote', "Tạo báo giá #$newQuoteId - $quoteNumber cho khách hàng ID $customerId");
+                        write_user_log('CREATE', 'sales_quote', "Tạo báo giá #$newQuoteId - $quoteNumber cho khách hàng ID $customerId", ['quote_id' => $newQuoteId, 'customer_id' => $customerId], 'success');
 
                         $http_status_code = 201; // Created
                     } else { // action === 'edit'
@@ -358,7 +358,7 @@ try {
                         }
                         $pdo->commit();
                         $response = ['success' => true, 'message' => $lang['quote_updated_success'] ?? 'Quote updated successfully.', 'quote_id' => $quoteId];
-                        write_user_log($pdo, $userId, 'edit_quote', "Cập nhật báo giá #$quoteId - $quoteNumber cho khách hàng ID $customerId");
+                        write_user_log('UPDATE', 'sales_quote', "Cập nhật báo giá #$quoteId - $quoteNumber cho khách hàng ID $customerId", ['quote_id' => $quoteId], 'info');
 
                         $http_status_code = 200;
                     }
@@ -393,7 +393,7 @@ try {
 
                     if ($stmt_update_us->rowCount() > 0) {
                         $response = ['success' => true, 'message' => sprintf($lang['quote_status_updated_success_to'] ?? 'Quote status updated to %s.', $newStatus_us)];
-                        write_user_log($pdo, $userId, 'update_quote_status', "Cập nhật trạng thái báo giá #$quoteId_us từ $currentDBStatus_us → $newStatus_us");
+                        write_user_log('UPDATE', 'sales_quote', "Cập nhật trạng thái báo giá #$quoteId_us từ $currentDBStatus_us → $newStatus_us", ['quote_id' => $quoteId_us, 'new_status' => $newStatus_us], 'info');
 
                         $http_status_code = 200;
                     } else {
@@ -427,7 +427,7 @@ try {
                     if ($deleted_rows) {
                         $pdo->commit();
                         $response = ['success' => true, 'message' => $lang['quote_deleted_success'] ?? 'Quote deleted success.'];
-                        write_user_log($pdo, $userId, 'delete_quote', "Xóa báo giá #$quoteId_del");
+                        write_user_log('DELETE', 'sales_quote', "Xóa báo giá #$quoteId_del", ['id' => $quoteId_del], 'danger');
 
                         $http_status_code = 200;
                     } else {

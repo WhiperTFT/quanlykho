@@ -1,11 +1,24 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# Secure static files inside uploads by routing to internal authenticated file server
+RewriteRule ^uploads/(.*)$ file.php?path=$1 [L,QSA]
+
+# Block absolute direct access to sensitive execution/config directories
+RewriteRule ^(includes|config|tmp|vendor)/.*$ - [F,L]
+</IfModule>
+
 # Chặn tải token.json
 <Files "token.json">
   Require all denied
 </Files>
 
-# (Khuyến nghị) Chặn luôn file .log khỏi web nếu cần
-<FilesMatch "\.(log|tmp)$">
+# Chặn các file nhạy cảm chung
+<FilesMatch "\.(log|tmp|bak|env|sql)$">
   Require all denied
 </FilesMatch>
+
 # Cho phép tính năng fullscreen cho origin hiện tại
 Header always set Permissions-Policy "fullscreen=(self)"

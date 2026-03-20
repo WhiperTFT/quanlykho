@@ -163,7 +163,7 @@ try {
                         $newId = $pdo->lastInsertId();
                         $pdo->commit();
                         // Ghi log
-                        write_user_log($pdo, (int)$_SESSION['user_id'], 'category_add', 'Thêm danh mục: ' . $inputData['name']);
+                        write_user_log('CREATE', 'category', 'Thêm danh mục: ' . $inputData['name'], $inputData, 'success');
 
                         // Return data of the newly added category for potential DOM update
                         echo json_encode([
@@ -187,7 +187,7 @@ try {
                         $stmt->execute([':name' => $inputData['name'], ':parent_id' => $inputData['parent_id'], ':id' => $inputData['category_id']]);
                         $pdo->commit();
                         // Ghi log
-                        write_user_log($pdo, (int)$_SESSION['user_id'], 'category_edit', 'Cập nhật danh mục ID=' . $inputData['category_id'] . ', tên mới: ' . $inputData['name']); // Return updated data
+                        write_user_log('UPDATE', 'category', 'Cập nhật danh mục ID=' . $inputData['category_id'] . ', tên mới: ' . $inputData['name'], $inputData, 'info'); // Return updated data
                          echo json_encode([
                             'success' => true,
                             'message' => $lang['category_updated_success'] ?? 'Category updated successfully.',
@@ -230,7 +230,7 @@ try {
                     if ($stmt->rowCount() > 0) {
                         $pdo->commit();
                         // Ghi log
-                        write_user_log($pdo, (int)$_SESSION['user_id'], 'category_delete', 'Xóa danh mục ID=' . $id);
+                        write_user_log('DELETE', 'category', 'Xóa danh mục ID=' . $id, ['id' => $id], 'danger');
                             
                        echo json_encode(['success' => true, 'message' => $lang['category_deleted_success'] ?? 'Category deleted successfully.']);
                     } else {
