@@ -8,12 +8,12 @@ $(document).ready(function() {
     const viewProductModalElement = document.getElementById('viewProductModal');
 
     // Kiểm tra xem element có tồn tại không trước khi tạo modal instance
-    const categoryModal = categoryModalElement ? new bootstrap.Modal(categoryModalElement) : null;
-    const productModal = productModalElement ? new bootstrap.Modal(productModalElement) : null;
-    const viewProductModal = viewProductModalElement ? new bootstrap.Modal(viewProductModalElement) : null;
+    window.categoryModal = categoryModalElement ? new bootstrap.Modal(categoryModalElement) : null;
+    window.productModal = productModalElement ? new bootstrap.Modal(productModalElement) : null;
+    window.viewProductModal = viewProductModalElement ? new bootstrap.Modal(viewProductModalElement) : null;
 
     // Kiểm tra xem các modal instance đã được tạo thành công chưa
-    if (!categoryModal || !productModal || !viewProductModal) {
+    if (!window.categoryModal || !window.productModal || !window.viewProductModal) {
         console.error("One or more modal elements not found. Check HTML IDs.");
 
     }
@@ -881,4 +881,79 @@ function showLargeImage(imagePath) {
         console.error("Element #largeImage not found.");
     }
 }
+// GLOBAL function (đặt ngoài document.ready nếu muốn gọi từ file khác)
+window.openProductEditModal = function(productId){
+
+    if (!productModal) {
+        console.error("productModal not initialized");
+        return;
+    }
+
+    // reset form
+    resetProductForm();
+
+    $('#productModalLabel').text(LANG['edit_product'] || 'Edit Product');
+    $('#saveProductBtn').text(LANG['update'] || 'Update');
+    $('#productId').val(productId);
+
+    // loading effect
+    $('#productForm .modal-body').addClass('opacity-50');
+
+    $.ajax({
+        url: 'process/product_handler.php',
+        type: 'GET',
+        data: { action: 'get', id: productId },
+        dataType: 'json',
+
+        success: function(response) {
+
+            if (response.success && response.data) {
+
+                const product = response.data.product;
+                const files = response.data.files || [];
+
+                $('#productName').val(product.name);
+                $('#productCategory').val(product.category_id);
+                $('#productUnit').val(product.unit_id);
+                $('#productDescription').val(product.description || '');
+
+                // render file giống logic cũ
+                let imageCount = 0;
+                let docCount = 0;
+
+                $('#currentImages, #currentDocuments').empty();
+
+                files.forEach(file => {
+                    const el = createFileElement(file, true);
+
+                    if (file.file_type === 'image') {
+                        $('#currentImages').append(el);
+                        imageCount++;
+                    } else if (file.file_type === 'pdf') {
+                        $('#currentDocuments').append(el);
+                        docCount++;
+                    }
+                });
+
+                $('#productImages').data('current-files', imageCount);
+                $('#productDocuments').data('current-files', docCount);
+
+                productModal.show();
+
+            } else {
+                alert("Load product failed");
+            }
+
+        },
+
+        error: function(xhr) {
+            console.error(xhr.responseText);
+            alert("Server error");
+        },
+
+        complete: function(){
+            $('#productForm .modal-body').removeClass('opacity-50');
+        }
+    });
+};
 }); // End document ready

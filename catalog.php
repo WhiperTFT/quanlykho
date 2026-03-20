@@ -114,3 +114,13 @@ require_once __DIR__ . '/includes/footer.php';
 // Nhúng file JS tùy chỉnh cho trang catalog
 echo '<script src="assets/js/catalog.js?v=' . time() . '"></script>';
 ?>
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const pid = urlParams.get('open_product');
+
+if(pid){
+window.onload = function(){
+openProductEditModal(pid);
+};
+}
+</script>
