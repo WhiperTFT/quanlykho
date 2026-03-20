@@ -1,22 +1,23 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sales_orders_email.js
 
 // --- Hàm Bắt Đầu Polling Trạng Thái Email ---
 function startEmailStatusPolling(logId, logType) {
-    console.log(`Starting email status polling for log ID: ${logId}, Type: ${logType}`);
+    devLog(`Starting email status polling for log ID: ${logId}, Type: ${logType}`);
     if (emailStatusPollingInterval !== null) {
         clearInterval(emailStatusPollingInterval);
         emailStatusPollingInterval = null;
     }
 
     emailStatusPollingInterval = setInterval(() => {
-        console.log(`Polling status for log ID: ${logId}, Type: ${logType}`);
+        devLog(`Polling status for log ID: ${logId}, Type: ${logType}`);
         $.ajax({
             url: PROJECT_BASE_URL + 'status_check.php',
             type: 'GET',
             data: { log_id: logId, log_type: logType },
             dataType: 'json',
             success: function (response) {
-                console.log(`Polling response for log ID ${logId} (Type: ${logType}):`, response);
+                devLog(`Polling response for log ID ${logId} (Type: ${logType}):`, response);
                 if (response && typeof response.status !== 'undefined') {
                     let finalMessage = '';
                     let messageType = 'info';
@@ -36,16 +37,16 @@ function startEmailStatusPolling(logId, logType) {
                             clearInterval(emailStatusPollingInterval); emailStatusPollingInterval = null;
                             break;
                         case 'pending': case 'sending':
-                            console.log(`Log ID ${logId} (Type: ${logType}): Status is still ${response.status}. Continuing polling.`); return;
+                            devLog(`Log ID ${logId} (Type: ${logType}): Status is still ${response.status}. Continuing polling.`); return;
                         case 'not_found':
                             messageType = 'warning';
                             finalMessage = `Lỗi: Không tìm thấy lịch sử gửi email (${currentDocumentName} ${escapeHtml(documentNumber)}) cho yêu cầu này (Log ID: ${logId}).`;
                             clearInterval(emailStatusPollingInterval); emailStatusPollingInterval = null;
-                            console.warn("Email log not found for ID:", logId, "Type:", logType);
+                            devLog("Email log not found for ID:", logId, "Type:", logType);
                             break;
                         case null: case '':
                             messageType = 'info';
-                            console.warn(`Log ID ${logId} (Type: ${logType}): Status is null or empty ('${response.status}'), treating as pending/unknown. Continuing polling.`); return;
+                            devLog(`Log ID ${logId} (Type: ${logType}): Status is null or empty ('${response.status}'), treating as pending/unknown. Continuing polling.`); return;
                         default:
                             messageType = 'error';
                             finalMessage = `Log ID ${logId} (Type: ${logType}) trả về trạng thái không xác định: ${escapeHtml(response.status)}.`;
@@ -59,13 +60,13 @@ function startEmailStatusPolling(logId, logType) {
                     const openModalDocumentId = $logModalElement.data('current-document-id');
                     const documentIdFromPolling = response.document_info?.id;
                     if ($logModalElement.hasClass('show') && openModalDocumentId && documentIdFromPolling == openModalDocumentId) {
-                        console.log(`Polling finished for visible log modal. Triggering log modal refresh for Document ID: ${openModalDocumentId}, Type: ${logType}`);
+                        devLog(`Polling finished for visible log modal. Triggering log modal refresh for Document ID: ${openModalDocumentId}, Type: ${logType}`);
                         setTimeout(() => {
                             const $logButton = $('#sales-orders-table').find(`.btn-view-order-logs[data-order-id="${openModalDocumentId}"]`);
                             if ($logButton.length) {
                                 $logButton.trigger('click');
                             } else {
-                                console.warn(`Log button for Document ID ${openModalDocumentId} not found in current DataTable view to trigger refresh.`);
+                                devLog(`Log button for Document ID ${openModalDocumentId} not found in current DataTable view to trigger refresh.`);
                                 if (salesOrderDataTable) salesOrderDataTable.draw(false);
                             }
                         }, 100);
@@ -96,7 +97,7 @@ function startEmailStatusPolling(logId, logType) {
 // --- Hàm Dừng Polling Trạng Thái Email ---
 function stopEmailStatusPolling() {
     if (emailStatusPollingInterval !== null) {
-        console.log("Stopping email status polling.");
+        devLog("Stopping email status polling.");
         clearInterval(emailStatusPollingInterval);
         emailStatusPollingInterval = null;
     }
@@ -174,9 +175,9 @@ const updateLogModalContent = (logs) => {
                 const parsedPaths = JSON.parse(log.attachment_paths);
                 if (Array.isArray(parsedPaths)) {
                     attachedFilesWebPaths = parsedPaths.filter(path => typeof path === 'string' && path !== '');
-                } else { console.warn(`Log ID ${log.id}: attachment_paths is not a JSON array string:`, log.attachment_paths); }
+                } else { devLog(`Log ID ${log.id}: attachment_paths is not a JSON array string:`, log.attachment_paths); }
             } catch (e) { console.error(`Log ID ${log.id}: Error parsing attachment_paths as JSON:`, e, log.attachment_paths); attachedFilesWebPaths = []; }
-        } else { console.warn(`Log ID ${log.id}: attachment_paths is null, undefined, or not a string:`, log.attachment_paths); }
+        } else { devLog(`Log ID ${log.id}: attachment_paths is null, undefined, or not a string:`, log.attachment_paths); }
 
         if (attachedFilesWebPaths.length > 0) {
             attachedFilesWebPaths.forEach(fileWebPath => {

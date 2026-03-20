@@ -1,10 +1,11 @@
+// cleaned: console logs optimized, debug system applied
 Dropzone.autoDiscover = false;
 
 document.addEventListener("DOMContentLoaded", function () {
 
     document.querySelectorAll('input[type="file"]').forEach(function (input) {
         if (typeof Dropzone === "undefined") {
-        console.warn("Dropzone CDN not loaded, fallback to native file input.");
+        devLog("Dropzone CDN not loaded, fallback to native file input.");
         document.querySelectorAll('input[type="file"]').forEach(i => i.style.display = "");
         return;
     }

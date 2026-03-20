@@ -1,7 +1,8 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sq_events.js
 
 function setupEventListeners() {
-    console.log("setupEventListeners function started for " + APP_CONTEXT.type); // APP_CONTEXT từ sq_config.js
+    devLog("setupEventListeners function started for " + APP_CONTEXT.type); // APP_CONTEXT từ sq_config.js
 
     // --- Listener cho nút Tạo Mới Báo Giá ---
     $('#btn-create-new-quote').on('click', function () { // ID cho nút tạo báo giá
@@ -20,7 +21,7 @@ function setupEventListeners() {
 
     // --- Listener cho nút Tạo Số Báo Giá Tự Động ---
     $('#btn-generate-quote-number').on('click', function () {
-    console.log(">>> Listener #btn-generate-quote-number clicked!");
+    devLog(">>> Listener #btn-generate-quote-number clicked!");
     const button = $(this);
     button.prop('disabled', true);
     $.ajax({
@@ -29,7 +30,7 @@ function setupEventListeners() {
         data: { action: 'generate_quote_number' },
         dataType: 'json',
         success: function (response) {
-            console.log(">>> Generate Quote # AJAX success response:", response);
+            devLog(">>> Generate Quote # AJAX success response:", response);
             if (response.success && response.quote_number) {
                 $('#quote_number')
                     .val(response.quote_number)
@@ -38,7 +39,7 @@ function setupEventListeners() {
                     .prop('disabled', false) // Bỏ thuộc tính disabled (phòng ngừa)
                     .closest('.input-group')
                     .find('.invalid-feedback').text('');
-                console.log(">>> After setting: readonly =", $('#quote_number').prop('readonly')); // Debug
+                devLog(">>> After setting: readonly =", $('#quote_number').prop('readonly')); // Debug
                 showUserMessage(response.message || (LANG['number_generated'] || 'Đã tạo số báo giá.'), 'success');
             } else {
                 console.error("Error generating quote number:", response.message);
@@ -246,7 +247,7 @@ if (ckEditorInstances['emailBody']) {
 } else {
     // Fallback: nếu CKEditor không được khởi tạo, lấy từ textarea gốc
     emailBodyContent = $('#emailBody').val() || ''; // Lấy giá trị từ textarea
-    console.warn('CKEditor instance for "emailBody" not found. Got content from textarea directly.');
+    devLog('CKEditor instance for "emailBody" not found. Got content from textarea directly.');
 }
 // Bây giờ emailBodyContent chứa nội dung từ CKEditor hoặc textarea
         const docId = $('#sendEmailModal').data('current-document-id');
@@ -291,7 +292,7 @@ if (ckEditorInstances['emailBody']) {
         
         // Kiểm tra xem tr có phải là một phần của DataTable không
         if (!salesQuoteDataTable.row(tr).node()) {
-            console.warn("SQ Child Row: Clicked on an invalid row for details-control.");
+            devLog("SQ Child Row: Clicked on an invalid row for details-control.");
             return;
         }
         const row = salesQuoteDataTable.row(tr);
@@ -313,7 +314,7 @@ if (ckEditorInstances['emailBody']) {
             tr.addClass('shown');
             icon.removeClass('bi-plus-square text-success').addClass('bi-dash-square text-danger');
 
-            console.log("SQ Child Row: Fetching details for quote ID:", quoteData.id);
+            devLog("SQ Child Row: Fetching details for quote ID:", quoteData.id);
             $.ajax({
                 url: AJAX_URL.sales_quote, // Đảm bảo AJAX_URL.sales_quote trỏ đến process/sales_quote_handler.php
                 type: 'GET', // Hoặc 'POST' nếu handler của bạn cho action 'get_details' là POST
@@ -323,7 +324,7 @@ if (ckEditorInstances['emailBody']) {
                 },
                 dataType: 'json',
                 success: function(response) { // Sử dụng function thường để dễ đọc `this` nếu cần (không cần ở đây)
-                    console.log("SQ Child Row: AJAX success response:", response);
+                    devLog("SQ Child Row: AJAX success response:", response);
 
                     // **QUAN TRỌNG: Kiểm tra response.data.items thay vì response.data.details**
                     // Dựa trên sales_quote_handler.php, action 'get_details' trả về:
@@ -345,10 +346,10 @@ if (ckEditorInstances['emailBody']) {
                         let errorMsg = LANG['error_loading_details'] || 'Lỗi tải chi tiết.';
                         if (!response.data || !Array.isArray(response.data.items)) {
                              errorMsg += " " + (LANG['no_item_details_returned_sq'] || 'Không có chi tiết sản phẩm nào được trả về cho báo giá.');
-                             console.warn("SQ Child Row: AJAX success but no valid items data in response.data.items.", response);
+                             devLog("SQ Child Row: AJAX success but no valid items data in response.data.items.", response);
                         } else if (response && !response.success) {
                             errorMsg = response.message || errorMsg;
-                            console.warn("SQ Child Row: AJAX request was not successful.", response);
+                            devLog("SQ Child Row: AJAX request was not successful.", response);
                         }
                         row.child('<div class="p-2 text-danger">' + escapeHtml(errorMsg) + '</div>').show();
                     }
@@ -395,7 +396,7 @@ if (ckEditorInstances['emailBody']) {
                 } else {
                     // Fallback: nếu CKEditor không được khởi tạo, đặt giá trị cho textarea gốc
                     $('#emailBody').val(bodyDefaultContent);
-                    console.warn('CKEditor instance for "emailBody" not found. Set default content for textarea directly.');
+                    devLog('CKEditor instance for "emailBody" not found. Set default content for textarea directly.');
                 }
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('sendEmailModal')).show();
                                 } else { /* alert error */ }
@@ -431,7 +432,7 @@ if (ckEditorInstances['emailBody']) {
         const $button = $(this);
         let quoteIdFromData = $button.data('id');
 
-        console.log("SQ Edit Click: Raw data-id from button:", quoteIdFromData, "| Type:", typeof quoteIdFromData);
+        devLog("SQ Edit Click: Raw data-id from button:", quoteIdFromData, "| Type:", typeof quoteIdFromData);
 
         let quoteIdToLoad;
 
@@ -443,7 +444,7 @@ if (ckEditorInstances['emailBody']) {
 
         // Kiểm tra cuối cùng: ID phải là một số và lớn hơn 0 (ID thường là số nguyên dương)
         if (quoteIdToLoad !== undefined && !isNaN(quoteIdToLoad) && quoteIdToLoad > 0) {
-            console.log("SQ Edit Click: Valid quoteId to load:", quoteIdToLoad);
+            devLog("SQ Edit Click: Valid quoteId to load:", quoteIdToLoad);
             if (typeof loadQuoteForEdit === 'function') {
                 loadQuoteForEdit(quoteIdToLoad);
             } else {
@@ -518,10 +519,10 @@ $('#reset-filters-sales-quotes-table').on('click', function () {
 
         // --- BẮT ĐẦU ĐOẠN CODE MỚI ---
         try {
-            console.log('Đang xóa bộ lọc Báo giá đã lưu...');
+            devLog('Đang xóa bộ lọc Báo giá đã lưu...');
             localStorage.removeItem('salesQuoteFilterYear');
             localStorage.removeItem('salesQuoteFilterMonth');
-            console.log('Đã xóa bộ lọc Báo giá.');
+            devLog('Đã xóa bộ lọc Báo giá.');
         } catch (e) {
             console.error('Không thể sử dụng localStorage.', e);
         }
@@ -542,7 +543,7 @@ $('#filterYear, #filterMonth').on('change', function () {
             localStorage.setItem('salesQuoteFilterYear', yearValue);
             localStorage.setItem('salesQuoteFilterMonth', monthValue);
             
-            console.log('Đã lưu bộ lọc Báo giá: Năm=' + yearValue + ', Tháng=' + monthValue);
+            devLog('Đã lưu bộ lọc Báo giá: Năm=' + yearValue + ', Tháng=' + monthValue);
         } catch (e) {
             console.error('Không thể sử dụng localStorage.', e);
         }
@@ -573,7 +574,7 @@ $('#filterYear, #filterMonth').on('change', function () {
         }
     });
 
-    console.log("All quote event listeners set up.");
+    devLog("All quote event listeners set up.");
 
 }
 // Thêm vào cuối file assets/js/sq_events.js

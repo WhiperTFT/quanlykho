@@ -1,4 +1,6 @@
 <?php
+// cleaned: console logs optimized, debug system applied
+
 // File: includes/footer.php
 ?>
 </main> 
@@ -31,11 +33,11 @@ document.addEventListener('DOMContentLoaded', function () {
     if (typeof AJAX_URL === 'object' && AJAX_URL !== null) {
       if (!('product_history' in AJAX_URL)) {
         AJAX_URL.product_history = PROJECT_BASE_URL + 'process/product_history_api.php';
-        console.log('[boot] attached AJAX_URL.product_history =', AJAX_URL.product_history);
+        devLog('[boot] attached AJAX_URL.product_history =', AJAX_URL.product_history);
       }
     } else {
       window.AJAX_URL = { product_history: PROJECT_BASE_URL + 'process/product_history_api.php' };
-      console.warn('[boot] created AJAX_URL with product_history');
+      devLog('[boot] created AJAX_URL with product_history');
     }
   } catch (e) { console.error('[boot] patch AJAX_URL failed:', e); }
 });
@@ -104,7 +106,7 @@ $(document).on('autocompleteselect', '.product-autocomplete', function (e, ui) {
       showMiniToast(res?.message || 'Không lấy được lịch sử sản phẩm.', 'error', 4500);
     }
   }).fail(function(xhr){
-    console.warn('[product_history] AJAX fail:', xhr?.status, xhr?.responseText);
+    devLog('[product_history] AJAX fail:', xhr?.status, xhr?.responseText);
     showMiniToast('Lỗi mạng khi lấy lịch sử sản phẩm.', 'error', 4500);
   });
 });

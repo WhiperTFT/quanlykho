@@ -36,6 +36,7 @@ header('Permissions-Policy: fullscreen=(self)');
         error_log("CRITICAL: set_js_vars.php not found at " . $set_js_vars_path);
     }
     ?>
+    <script src="<?= PROJECT_BASE_URL; ?>assets/js/debug_layer.js?v=<?= filemtime(__DIR__ . '/../assets/js/debug_layer.js') ?>"></script>
 </head>
 <body>
 <?php

@@ -1,3 +1,4 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sales_orders_helpers.js
 
 // === Chuẩn hóa số đến từ Server/DB (MySQL/API) ===
@@ -46,7 +47,7 @@ function showUserMessage(message, type = 'success') {
                     newAlert.remove();
                 }
             } catch (e) {
-                console.warn("Could not close alert:", e, newAlert);
+                devLog("Could not close alert:", e, newAlert);
                 newAlert.remove();
             }
         }, 5000);
@@ -75,7 +76,7 @@ function handleFormValidationErrors(errors) {
                 inputElement.after(`<div class="invalid-feedback d-block">${escapeHtml(errorMessage)}</div>`);
             }
         } else {
-            console.warn(`Input field not found for validation error: "${fieldName}"`);
+            devLog(`Input field not found for validation error: "${fieldName}"`);
             formErrorMessageDiv.append(`<br/>(${fieldName}): ${escapeHtml(errorMessage)}`);
         }
     };
@@ -122,7 +123,7 @@ function handleFormValidationErrors(errors) {
             $('html,body').animate({ scrollTop: firstInvalidElement.offset().top - 0 }, 300);
         }
     }
-    console.log("Finished handling validation errors.");
+    devLog("Finished handling validation errors.");
 }
 
 // --- Hàm định dạng chi tiết Child Row (DataTables) ---

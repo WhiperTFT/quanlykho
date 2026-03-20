@@ -1,3 +1,4 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sales_orders_config.js
 
 // --- Khởi tạo các biến và đối tượng DOM ---
@@ -7,7 +8,7 @@ let orderFormCard, orderForm, orderFormTitle, orderListTitle, orderTableElement,
 const signatureLocalStorageKey = 'buyerSignatureVisibleState';
 let basePath = ''; // Sẽ được gán trong $(document).ready()
 let APP_CONTEXT = window.APP_CONTEXT || { type: 'order', documentName: 'Tài liệu' };
-console.log("Using APP_CONTEXT in sales_orders_config.js:", APP_CONTEXT);
+devLog("Using APP_CONTEXT in sales_orders_config.js:", APP_CONTEXT);
 
 let webSignatureSrc = ''; // Đường dẫn ảnh chữ ký từ DB
 
@@ -45,10 +46,10 @@ function sanitizeFilename(name) {
 // Hoặc đảm bảo APP_SETTINGS có sẵn khi file này được parse
 if (typeof window.APP_SETTINGS !== 'undefined' && typeof window.APP_SETTINGS.buyerSignatureUrl === 'string' && window.APP_SETTINGS.buyerSignatureUrl.trim() !== '') {
     webSignatureSrc = window.APP_SETTINGS.buyerSignatureUrl;
-    console.log("Using signature from DB for web form: " + webSignatureSrc);
+    devLog("Using signature from DB for web form: " + webSignatureSrc);
     // Việc gán src cho buyerSignatureImg sẽ thực hiện trong $(document).ready()
 } else {
-    console.log("No signature_path from DB or it's empty.");
+    devLog("No signature_path from DB or it's empty.");
 }
 
 // Các biến toàn cục khác như AJAX_URL, LANG, PROJECT_BASE_URL, window.APP_SETTINGS

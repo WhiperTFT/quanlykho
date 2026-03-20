@@ -1,9 +1,10 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/helpers.js
 // Chứa các hàm JavaScript dùng chung toàn cục
 
 // Đảm bảo biến lang từ set_js_vars.php đã được load
 // if (typeof lang === 'undefined') {
-//     console.warn("Global 'lang' variable not found. Translate function might not work correctly.");
+//     devLog("Global 'lang' variable not found. Translate function might not work correctly.");
 // }
 
 /**

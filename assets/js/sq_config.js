@@ -1,3 +1,4 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sq_config.js
 
 // --- Khởi tạo các biến và đối tượng DOM (sẽ được gán trong sq_main.js) ---
@@ -6,7 +7,7 @@ let quoteFormCard, quoteForm, quoteFormTitle, quoteListTitle, quoteTableElement,
 const signatureLocalStorageKey = 'buyerSignatureVisibleState_quote'; // Sử dụng key riêng cho quote
 let basePath = ''; // Sẽ được gán trong $(document).ready()
 let APP_CONTEXT = window.APP_CONTEXT || { type: 'quote', documentName: 'Báo Giá' }; // Mặc định cho sales_quotes.js
-console.log("Using APP_CONTEXT in sq_config.js:", APP_CONTEXT);
+devLog("Using APP_CONTEXT in sq_config.js:", APP_CONTEXT);
 
 let webSignatureSrc = ''; // Đường dẫn ảnh chữ ký từ DB
 
@@ -41,9 +42,9 @@ function sanitizeFilename(name) {
 // --- Cập nhật đường dẫn ảnh chữ ký (logic này nên chạy sớm) ---
 if (typeof window.APP_SETTINGS !== 'undefined' && typeof window.APP_SETTINGS.buyerSignatureUrl === 'string' && window.APP_SETTINGS.buyerSignatureUrl.trim() !== '') {
     webSignatureSrc = window.APP_SETTINGS.buyerSignatureUrl;
-    console.log("Using signature from DB for quote web form: " + webSignatureSrc);
+    devLog("Using signature from DB for quote web form: " + webSignatureSrc);
 } else {
-    console.log("No signature_path from DB or it's empty for quote.");
+    devLog("No signature_path from DB or it's empty for quote.");
 }
 
 // Các biến toàn cục khác như AJAX_URL, LANG, PROJECT_BASE_URL, window.APP_SETTINGS

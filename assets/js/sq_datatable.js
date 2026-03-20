@@ -1,7 +1,8 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sq_datatable.js (GIỮ NGUYÊN CODE GỐC, CHỈ THÊM CỘT "GHI CHÚ")
 
 function initializeSalesQuoteDataTable() {
-    console.log("Initializing Server-Side DataTables for Sales Quotes...");
+    devLog("Initializing Server-Side DataTables for Sales Quotes...");
     if ($.fn.dataTable.isDataTable(quoteTableElement)) { // Đảm bảo quoteTableElement đã được gán
         quoteTableElement.DataTable().destroy();
     }
@@ -225,7 +226,7 @@ $(document).on('click', '.btn-view-pdf', function () {
             btn.prop('disabled', false).html(originalHtml);
         },
         error: function () {
-            console.warn(`PDF chưa tồn tại: ${pdfPath}. Gọi export_pdf.php để tạo.`);
+            devLog(`PDF chưa tồn tại: ${pdfPath}. Gọi export_pdf.php để tạo.`);
             showUserMessage("Đang tạo báo giá PDF, vui lòng chờ...", "info");
 
             $.ajax({

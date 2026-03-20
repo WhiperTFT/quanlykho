@@ -1,3 +1,4 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sq_form.js
 let loadQuoteCallCounter = 0;
 
@@ -27,23 +28,23 @@ if (typeof parseServerNumber !== 'function') {
 
 // --- Hàm Khởi Tạo Datepicker ---
 function initializeDatepicker() {
-    console.log("Initializing Flatpickr for quote form...");
+    devLog("Initializing Flatpickr for quote form...");
     if (typeof flatpickr !== 'undefined') {
         flatpickr(".datepicker", {
             dateFormat: "d/m/Y",
             locale: (typeof LANG !== 'undefined' && LANG.language === 'vi' ? 'vn' : 'default'),
             allowInput: true,
         });
-        console.log("Flatpickr initialized for quote.");
+        devLog("Flatpickr initialized for quote.");
     } else {
-        console.warn("Flatpickr library not found. Datepicker disabled for quote.");
+        devLog("Flatpickr library not found. Datepicker disabled for quote.");
         $('.datepicker').prop('disabled', true);
     }
 }
 
 // --- Hàm Khởi Tạo Autocomplete Khách hàng (Customer) ---
 function initializeCustomerAutocomplete() {
-    console.log("Initializing Customer Autocomplete for quote...");
+    devLog("Initializing Customer Autocomplete for quote...");
     const partnerInput = $("#partner_autocomplete");
     const partnerIdInput = $("#partner_id");
     const partnerAddressDisplay = $("#partner_address_display");
@@ -92,7 +93,7 @@ function initializeCustomerAutocomplete() {
                 partnerPhoneDisplay.text(ui.item.phone); partnerEmailDisplay.text(ui.item.email);
                 partnerContactDisplay.text(ui.item.contact_person);
                 partnerInput.removeClass('is-invalid').closest('.mb-2').find('.invalid-feedback').text('');
-                console.log("Customer selected for quote:", ui.item);
+                devLog("Customer selected for quote:", ui.item);
                 return false;
             },
             focus: function (event, ui) { event.preventDefault(); },
@@ -100,20 +101,20 @@ function initializeCustomerAutocomplete() {
                 if (!ui.item) {
                     partnerIdInput.val(''); partnerAddressDisplay.text('-'); partnerTaxIdDisplay.text('-');
                     partnerPhoneDisplay.text('-'); partnerEmailDisplay.text('-'); partnerContactDisplay.text('-');
-                    console.log("Customer selection cleared for quote.");
+                    devLog("Customer selection cleared for quote.");
                 }
             }
         });
-        console.log("Customer autocomplete initialized for quote.");
+        devLog("Customer autocomplete initialized for quote.");
     } else {
-        console.warn("jQuery UI Autocomplete not found. Customer autocomplete disabled for quote.");
+        devLog("jQuery UI Autocomplete not found. Customer autocomplete disabled for quote.");
         partnerInput.prop('disabled', true);
     }
 }
  
 // --- Hàm Khởi Tạo Autocomplete Sản Phẩm (Product) ---
 function initializeProductAutocomplete(containerSelector) {
-    console.log(`Initializing Product Autocomplete for quote: ${containerSelector}...`);
+    devLog(`Initializing Product Autocomplete for quote: ${containerSelector}...`);
     const targetElements = $(containerSelector).find('.product-autocomplete');
     if (typeof $.ui !== 'undefined' && typeof $.ui.autocomplete !== 'undefined') {
         targetElements.each(function () {
@@ -156,7 +157,7 @@ function initializeProductAutocomplete(containerSelector) {
                         row.find('.unit-display').val(ui.item.unit_name);
                         row.find('input[name$="[unit_snapshot]"]').val(ui.item.unit_name);
                         $(this).removeClass('is-invalid').closest('td').find('.invalid-feedback').text('');
-                        console.log("Product selected for quote:", ui.item);
+                        devLog("Product selected for quote:", ui.item);
                         calculateLineTotal(row);
                         return false;
                     },
@@ -167,7 +168,7 @@ function initializeProductAutocomplete(containerSelector) {
                             row.find('.product-id').val(''); row.find('.category-display').val('');
                             row.find('input[name$="[category_snapshot]"]').val('');
                             row.find('.unit-display').val(''); row.find('input[name$="[unit_snapshot]"]').val('');
-                            console.log("Product selection cleared for quote row:", row.index());
+                            devLog("Product selection cleared for quote row:", row.index());
                         }
                         calculateLineTotal(row);
                     }
@@ -175,14 +176,14 @@ function initializeProductAutocomplete(containerSelector) {
             }
         });
     } else {
-        console.warn("jQuery UI Autocomplete not found. Product autocomplete disabled for quote.");
+        devLog("jQuery UI Autocomplete not found. Product autocomplete disabled for quote.");
         targetElements.prop('disabled', true);
     }
 }
 
 // --- Hàm Reset Form Báo Giá ---
 function resetQuoteForm(isEdit = false) {
-    console.log("Resetting quote form. Is Edit:", isEdit);
+    devLog("Resetting quote form. Is Edit:", isEdit);
     if (quoteForm && quoteForm.length) quoteForm[0].reset();
     if (quoteForm && quoteForm.length) quoteForm.find('input[type="hidden"]').val('');
     
@@ -205,16 +206,16 @@ function resetQuoteForm(isEdit = false) {
         ckEditorInstances['notes'].setData('');
     } else {
         $('#notes').val('');
-        if (!ckEditorInstances) console.warn('ckEditorInstances object is not defined.');
-        else console.warn('CKEditor instance for "notes" (quote) not found. Cleared textarea directly.');
+        if (!ckEditorInstances) devLog('ckEditorInstances object is not defined.');
+        else devLog('CKEditor instance for "notes" (quote) not found. Cleared textarea directly.');
     }
 
     if (ckEditorInstances && ckEditorInstances['emailBody']) {
         ckEditorInstances['emailBody'].setData('');
     } else {
         $('#emailBody').val('');
-        if (!ckEditorInstances) console.warn('ckEditorInstances object is not defined.');
-        else console.warn('CKEditor instance for "emailBody" (quote) not found. Cleared textarea directly.');
+        if (!ckEditorInstances) devLog('ckEditorInstances object is not defined.');
+        else devLog('CKEditor instance for "emailBody" (quote) not found. Cleared textarea directly.');
     }
 
     if (currencySelect && currencySelect.length) currencySelect.val('VND');
@@ -249,13 +250,13 @@ function resetQuoteForm(isEdit = false) {
     
     updateSTT();
     $('#btn-download-pdf').prop('disabled', true);
-    console.log("Quote form reset complete.");
+    devLog("Quote form reset complete.");
 }
 
 
 // --- Hàm Thêm Dòng Item vào Form Báo Giá ---
 function addItemRow(data = {}) {
-    console.log("Adding item row to quote. Data:", data);
+    devLog("Adding item row to quote. Data:", data);
     const templateRow = $('.item-row-template').clone();
     templateRow.removeClass('item-row-template d-none').removeAttr('style');
     const newItemIndex = itemTableBody.find('tr').length;
@@ -298,7 +299,7 @@ function addItemRow(data = {}) {
    calculateLineTotal(templateRow); // giữ fallback cũ nếu cần
  }
 
-    console.log("Added item row to quote with index:", newItemIndex);
+    devLog("Added item row to quote with index:", newItemIndex);
     return templateRow;
 }
 
@@ -308,7 +309,7 @@ function addItemRow(data = {}) {
  * @param {string} quoteNumber Số báo giá (để hiển thị trên tiêu đề).
  */
 function setQuoteFormViewMode(isView, quoteNumber = '') {
-    console.log(`SQ Form: Setting view mode to: ${isView} for quote: ${quoteNumber}`);
+    devLog(`SQ Form: Setting view mode to: ${isView} for quote: ${quoteNumber}`);
 
     if (typeof quoteForm === 'undefined' || !quoteForm.length) {
         console.error("setQuoteFormViewMode: Biến quoteForm chưa được định nghĩa hoặc không tìm thấy form.");
@@ -350,7 +351,7 @@ function loadQuoteForEdit(quoteId, callSource = "UnknownSQ_Default") {
     loadQuoteCallCounter++;
     const currentCallNumber = loadQuoteCallCounter;
 
-    console.log(`SQ Form: CALL #${currentCallNumber} - loadQuoteForEdit initiated. Source: ${callSource}, Received quoteId:`, quoteId, "Type:", typeof quoteId);
+    devLog(`SQ Form: CALL #${currentCallNumber} - loadQuoteForEdit initiated. Source: ${callSource}, Received quoteId:`, quoteId, "Type:", typeof quoteId);
 
     let parsedQuoteId = null;
     if (quoteId !== false && quoteId !== null && quoteId !== undefined && String(quoteId).trim() !== "") {
@@ -358,7 +359,7 @@ function loadQuoteForEdit(quoteId, callSource = "UnknownSQ_Default") {
     }
 
     if (parsedQuoteId === null || isNaN(parsedQuoteId) || parsedQuoteId <= 0) {
-        console.warn(`SQ Form: CALL #${currentCallNumber} - Invalid quote ID. Source: ${callSource}, Original Value:`, quoteId, "Parsed Value:", parsedQuoteId, "Type of Original:", typeof quoteId);
+        devLog(`SQ Form: CALL #${currentCallNumber} - Invalid quote ID. Source: ${callSource}, Original Value:`, quoteId, "Parsed Value:", parsedQuoteId, "Type of Original:", typeof quoteId);
         if (typeof showUserMessage === 'function') {
             showUserMessage(LANG['error_invalid_quote_id_for_edit_or_view'] || 'Mã báo giá không hợp lệ để sửa/xem.', 'error');
         } else {
@@ -366,7 +367,7 @@ function loadQuoteForEdit(quoteId, callSource = "UnknownSQ_Default") {
         }
         return; 
     } else {
-        console.log(`SQ Form: CALL #${currentCallNumber} - Valid ID. Loading quote for edit/view. Source: ${callSource}, ID:`, parsedQuoteId);
+        devLog(`SQ Form: CALL #${currentCallNumber} - Valid ID. Loading quote for edit/view. Source: ${callSource}, ID:`, parsedQuoteId);
     }
 
     $.ajax({
@@ -381,7 +382,7 @@ function loadQuoteForEdit(quoteId, callSource = "UnknownSQ_Default") {
             $('#btn-save-quote, #btn-cancel-quote-form, #btn-download-sq-pdf').prop('disabled', true);
         },
         success: function (response) {
-            console.log(`SQ Form: CALL #${currentCallNumber} - Quote details received (Source: ${callSource}):`, response);
+            devLog(`SQ Form: CALL #${currentCallNumber} - Quote details received (Source: ${callSource}):`, response);
             if (response && response.success && response.data && response.data.quote) {
                 if(typeof resetQuoteForm !== 'function') {
                     console.error("SQ Form: resetQuoteForm function is not defined!");
@@ -410,7 +411,7 @@ function loadQuoteForEdit(quoteId, callSource = "UnknownSQ_Default") {
                         catch (e) { console.error("SQ Form: Error setting datepicker with quote_date (Y-m-d):", e); }
                     }
                 } else {
-                     console.warn("SQ Form: Flatpickr instance for #quote_date not found.");
+                     devLog("SQ Form: Flatpickr instance for #quote_date not found.");
                 }
 
                 // Khách hàng
@@ -433,7 +434,7 @@ function loadQuoteForEdit(quoteId, callSource = "UnknownSQ_Default") {
                         $('#partner_address_display, #partner_tax_id_display, #partner_phone_display, #partner_email_display, #partner_contact_person_display').text('-');
                     }
                 } else {
-                    console.warn("SQ Form: Missing customer_id or customer_info_snapshot for quote " + (quoteHeader.id || parsedQuoteId));
+                    devLog("SQ Form: Missing customer_id or customer_info_snapshot for quote " + (quoteHeader.id || parsedQuoteId));
                      $('#partner_id').val(''); $('#partner_autocomplete').val('');
                      $('#partner_address_display, #partner_tax_id_display, #partner_phone_display, #partner_email_display, #partner_contact_person_display').text('-');
                 }
@@ -473,7 +474,7 @@ function loadQuoteForEdit(quoteId, callSource = "UnknownSQ_Default") {
                         else { console.error("SQ Form: addItemRow function is not defined."); }
                     }
                 } else {
-                    console.warn("SQ Form: itemTableBody (for quote form items) is not defined or not found.");
+                    devLog("SQ Form: itemTableBody (for quote form items) is not defined or not found.");
                 }
 
                 if (typeof calculateSummaryTotals  === "function") {

@@ -1,3 +1,4 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/units.js
 // Cần jQuery và Bootstrap JS đã được load
 
@@ -269,6 +270,6 @@ $(document).ready(function() {
         }
     });
 
-    console.log("units.js loaded.");
+    devLog("units.js loaded.");
     log('units_js_loaded', 'File assets/js/units.js đã load', 'info');
 }); // End document ready

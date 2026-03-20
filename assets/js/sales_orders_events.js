@@ -1,11 +1,12 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sales_orders_events.js
 
 function setupEventListeners() {
-    console.log("setupEventListeners function started for " + APP_CONTEXT.type);
+    devLog("setupEventListeners function started for " + APP_CONTEXT.type);
 
     // --- Listener cho nút Tạo Mới Đơn Hàng ---
     $('#btn-create-new-order').on('click', function () {
-        console.log(">>> Listener #btn-create-new-order clicked!");
+        devLog(">>> Listener #btn-create-new-order clicked!");
         resetOrderForm();
         orderFormCard.slideDown();
         orderListTitle.hide();
@@ -15,7 +16,7 @@ function setupEventListeners() {
 
     // --- Listener cho nút Hủy Form ---
     $('#btn-cancel-order-form').on('click', function () {
-        console.log(">>> Listener #btn-cancel-order-form clicked!");
+        devLog(">>> Listener #btn-cancel-order-form clicked!");
         orderFormCard.slideUp(function () {
             resetOrderForm();
         });
@@ -24,7 +25,7 @@ function setupEventListeners() {
 
     // --- Listener cho nút Tạo Số Đơn Hàng Tự Động ---
     $('#btn-generate-order-number').on('click', function () {
-    console.log(">>> Listener #btn-generate-order-number clicked!");
+    devLog(">>> Listener #btn-generate-order-number clicked!");
     const button = $(this);
     button.prop('disabled', true);
     $.ajax({
@@ -33,7 +34,7 @@ function setupEventListeners() {
         data: { action: 'generate_order_number' },
         dataType: 'json',
         success: function (response) {
-            console.log(">>> Generate Order # AJAX success response:", response);
+            devLog(">>> Generate Order # AJAX success response:", response);
             if (response.success && response.order_number) {
                 $('#order_number')
                     .val(response.order_number)
@@ -63,14 +64,14 @@ function setupEventListeners() {
 
     // --- Listener cho nút Thêm Dòng Item ---
     $('#add-item-row').on('click', function () {
-        console.log(">>> Listener #add-item-row clicked!");
+        devLog(">>> Listener #add-item-row clicked!");
         addItemRow();
         itemTableBody.find('tr:last .product-autocomplete').focus();
     });
 
     // --- Listener cho nút Xóa Dòng Item (Delegated Event) ---
     itemTableBody.on('click', '.remove-item-row', function () {
-        console.log(">>> Listener .remove-item-row clicked!");
+        devLog(">>> Listener .remove-item-row clicked!");
         const row = $(this).closest('tr');
         if (itemTableBody.find('tr').length > 1) {
             row.fadeOut(300, function () {
@@ -79,7 +80,7 @@ function setupEventListeners() {
                 calculateSummaryTotals();
             });
         } else {
-            console.log("Last row, resetting instead of removing.");
+            devLog("Last row, resetting instead of removing.");
             row.find('input[type=text], input[type=number], input[type=hidden]').val('');
             row.find('.product-autocomplete').val('');
             row.find('.product-id').val('');
@@ -104,7 +105,7 @@ function setupEventListeners() {
     currencySelect.on('change', function () {
         const newCurrencyCode = $(this).val();
         const newCurrencySymbol = (newCurrencyCode === 'VND') ? 'đ' : '$';
-        console.log(`Currency changed: ${newCurrencyCode}, Symbol: ${newCurrencySymbol}`);
+        devLog(`Currency changed: ${newCurrencyCode}, Symbol: ${newCurrencySymbol}`);
         itemTableBody.find('.currency-symbol-unit').text(newCurrencySymbol);
         $('.item-row-template .currency-symbol-unit').text(newCurrencySymbol);
         calculateSummaryTotals();
@@ -112,14 +113,14 @@ function setupEventListeners() {
 
     // --- Listener cho nút Xóa File PDF Mặc Định (Email Modal) ---
     $(document).on('click', '.btn-remove-default-attachment', function() { // Listener gắn vào document để chắc chắn hoạt động nếu modal được load động
-        console.log("Removing default PDF attachment display.");
+        devLog("Removing default PDF attachment display.");
         $('#emailAttachmentDisplay').addClass('d-none');
     });
 
 
     // --- Listener cho Submit Form Chính (#order-form) ---
     orderForm.on('submit', function (e) {
-        console.log(">>> Listener orderForm submit event triggered!");
+        devLog(">>> Listener orderForm submit event triggered!");
         // const currentAction = $('#current_order_action').val(); // Biến này không thấy được sử dụng
         e.preventDefault();
 
@@ -192,7 +193,7 @@ function setupEventListeners() {
         }
 
         if (!isValid) {
-            console.warn("Form validation failed. Scrolling to first error.");
+            devLog("Form validation failed. Scrolling to first error.");
             const firstInvalidElement = orderForm.find('.is-invalid').first();
             if (formErrorMessageDiv.is(':visible')) {
                 $('html,body').animate({ scrollTop: formErrorMessageDiv.offset().top - 0 }, 300);
@@ -229,7 +230,7 @@ function setupEventListeners() {
                 processedRows.add(rowIndex);
             }
         });
-        console.log("Items Array trước khi gửi:", itemsArray);
+        devLog("Items Array trước khi gửi:", itemsArray);
 
         const orderData = {
             order_id: $('#order_id').val() || null,
@@ -243,7 +244,7 @@ function setupEventListeners() {
             items: itemsArray,
             status: $('#order_status_select').val() || 'draft', // Giả sử có select #order_status_select
         };
-        console.log("Submitting Order Data:", orderData);
+        devLog("Submitting Order Data:", orderData);
 
         saveButton.prop('disabled', true); saveButtonText.hide(); saveButtonSpinner.removeClass('d-none');
         const action = orderData.order_id ? 'edit' : 'add';
@@ -252,7 +253,7 @@ function setupEventListeners() {
             url: AJAX_URL.sales_order + '?action=' + action,
             type: 'POST', contentType: 'application/json', data: JSON.stringify(orderData), dataType: 'json',
             success: function (response) {
-                console.log(">>> Order Save AJAX success response:", response);
+                devLog(">>> Order Save AJAX success response:", response);
                 if (response.success) {
                     let savedOrderId = response.order_id || (response.data && response.data.id) || orderData.order_id;
                     showUserMessage(response.message || LANG['save_success'] || 'Đã lưu đơn hàng thành công!', 'success');
@@ -261,24 +262,24 @@ function setupEventListeners() {
                     if (salesOrderDataTable) salesOrderDataTable.draw(false);
 
                     if (savedOrderId) {
-                        console.log(`Order saved/updated. Order ID: ${savedOrderId}. Now calling export_pdf.php to generate and get PDF path.`);
+                        devLog(`Order saved/updated. Order ID: ${savedOrderId}. Now calling export_pdf.php to generate and get PDF path.`);
                         const isSignatureVisibleOnForm = $('#buyer-signature').is(':visible');
                         // Gọi export_pdf.php để tạo PDF trên server và lấy đường dẫn
                         $.ajax({
                             url: `${PROJECT_BASE_URL}process/export_pdf.php?id=${savedOrderId}&show_signature=${isSignatureVisibleOnForm}&type=${APP_CONTEXT.type}`, // type có thể là 'order' hoặc 'quote'
                             type: 'GET', dataType: 'json',
                             success: function(exportResponse) {
-                                console.log("Response from export_pdf.php:", exportResponse);
+                                devLog("Response from export_pdf.php:", exportResponse);
                                 if (exportResponse && exportResponse.success && exportResponse.pdf_web_path) {
                                     let actualPdfUrlToOpen = exportResponse.pdf_web_path; // Không cần thêm PROJECT_BASE_URL nữa
-                                    console.log(`PDF path received: ${actualPdfUrlToOpen}. Opening this path.`);
+                                    devLog(`PDF path received: ${actualPdfUrlToOpen}. Opening this path.`);
                                     try {
                                         const newTab = window.open(actualPdfUrlToOpen, '_blank');
-                                        if (newTab) { newTab.focus(); console.log("New tab for static PDF initiated."); }
-                                        else { console.warn("window.open returned null for static PDF. Popup might be blocked."); showUserMessage("Trình duyệt có thể đã chặn mở tab PDF. Vui lòng kiểm tra cài đặt popup.", "warning"); }
+                                        if (newTab) { newTab.focus(); devLog("New tab for static PDF initiated."); }
+                                        else { devLog("window.open returned null for static PDF. Popup might be blocked."); showUserMessage("Trình duyệt có thể đã chặn mở tab PDF. Vui lòng kiểm tra cài đặt popup.", "warning"); }
                                     } catch (e) { console.error("Error attempting to open static PDF tab:", e); showUserMessage("Có lỗi khi cố gắng mở tab PDF.", "error");}
                                 } else {
-                                    console.warn("export_pdf.php did not return a valid PDF path or was not successful. Response:", exportResponse);
+                                    devLog("export_pdf.php did not return a valid PDF path or was not successful. Response:", exportResponse);
                                     const exportMessage = (exportResponse && exportResponse.message) ? exportResponse.message : 'Không thể lấy đường dẫn PDF sau khi tạo.';
                                     showUserMessage('Lỗi xuất PDF: ' + escapeHtml(exportMessage), 'error');
                                 }
@@ -288,7 +289,7 @@ function setupEventListeners() {
                                 showUserMessage("Có lỗi khi yêu cầu tạo file PDF từ server. " + (xhrExport.responseText ? `Chi tiết: ${xhrExport.responseText.substring(0,100)}...` : ''), "error");
                             }
                         });
-                    } else { console.warn("Could not trigger PDF generation: savedOrderId is missing or invalid after save. Response:", response); }
+                    } else { devLog("Could not trigger PDF generation: savedOrderId is missing or invalid after save. Response:", response); }
                 } else { // response.success === false từ server
                     showUserMessage(response.message || LANG['save_error'] || 'Lỗi khi lưu đơn hàng.', 'error');
                      if(response.errors){
@@ -325,13 +326,13 @@ function setupEventListeners() {
             },
             complete: function () {
                 saveButton.prop('disabled', false); saveButtonText.show(); saveButtonSpinner.addClass('d-none');
-                console.log("Order Save AJAX request complete.");
+                devLog("Order Save AJAX request complete.");
             }
         });
     });
     // --- Listener cho Input Chọn File Đính Kèm Thêm (Modal Email) ---
     $('#emailExtraAttachments').on('change', function () {
-        console.log(">>> Listener #emailExtraAttachments change event triggered!");
+        devLog(">>> Listener #emailExtraAttachments change event triggered!");
         const files = this.files;
         selectedExtraAttachments = [];
         $('#emailExtraAttachmentsList').empty();
@@ -353,16 +354,16 @@ function setupEventListeners() {
         } else {
             $('#emailExtraAttachmentsList').html('<span class="text-muted">Chưa có file đính kèm thêm nào được chọn.</span>');
         }
-        console.log("Selected extra attachments:", selectedExtraAttachments);
+        devLog("Selected extra attachments:", selectedExtraAttachments);
     });
 
     // --- Listener cho Nút Xóa File Đính Kèm Thêm (Modal Email) ---
     $('#emailExtraAttachmentsList').on('click', '.btn-remove-attachment', function () {
-        console.log(">>> Listener .btn-remove-attachment clicked!");
+        devLog(">>> Listener .btn-remove-attachment clicked!");
         const fileIndex = $(this).data('index');
         if (fileIndex > -1 && fileIndex < selectedExtraAttachments.length) {
             selectedExtraAttachments.splice(fileIndex, 1);
-            console.log(`File at index ${fileIndex} removed from array.`);
+            devLog(`File at index ${fileIndex} removed from array.`);
             $('#emailExtraAttachmentsList').empty();
             if (selectedExtraAttachments.length > 0) {
                 $('#emailExtraAttachmentsList').html('<strong>Các file đính kèm thêm:</strong>');
@@ -379,15 +380,15 @@ function setupEventListeners() {
             } else {
                 $('#emailExtraAttachmentsList').html('<span class="text-muted">Chưa có file đính kèm thêm nào được chọn.</span>');
             }
-            console.log("Updated selected extra attachments:", selectedExtraAttachments);
+            devLog("Updated selected extra attachments:", selectedExtraAttachments);
         } else {
-            console.warn(`Attempted to remove attachment with invalid index: ${fileIndex}`);
+            devLog(`Attempted to remove attachment with invalid index: ${fileIndex}`);
         }
     });
 
     // --- Listener cho Submit Form Gửi Email (Modal Email) ---
     $('#sendEmailForm').on('submit', function (e) {
-        console.log(">>> Listener #sendEmailForm submit event triggered!");
+        devLog(">>> Listener #sendEmailForm submit event triggered!");
         e.preventDefault();
         const $form = $(this);
         const $btn = $form.find('#btnSubmitSendEmail');
@@ -400,7 +401,7 @@ function setupEventListeners() {
     if (ckEditorInstances['emailBody']) {
         emailBodyContent = ckEditorInstances['emailBody'].getData();
     } else {
-        console.warn("CKEditor 5 instance not found for #emailBody.");
+        devLog("CKEditor 5 instance not found for #emailBody.");
         // Fallback nếu CKEditor không được khởi tạo (tùy chọn)
         const emailBodyElement = document.querySelector('#emailBody');
         if (emailBodyElement) {
@@ -428,7 +429,7 @@ function setupEventListeners() {
 
     if (validationMessages.length > 0) {
         validationMessages.forEach(msg => showUserMessage(msg, 'warning')); // Giả sử bạn có hàm showUserMessage
-        console.warn("Client-side email form validation failed."); return;
+        devLog("Client-side email form validation failed."); return;
     }
 
     const formData = new FormData();
@@ -448,7 +449,7 @@ function setupEventListeners() {
         selectedExtraAttachments.forEach((file) => {
             formData.append('extra_attachments[]', file, file.name);
         });
-        console.log(`Sending email log creation request with FormData for ${logType} ID: ${documentId}`);
+        devLog(`Sending email log creation request with FormData for ${logType} ID: ${documentId}`);
 
         $btn.prop('disabled', true);
         $btnTextNode.text(' Đang tiếp nhận...'); // Cập nhật text node
@@ -456,14 +457,14 @@ function setupEventListeners() {
 
         const emailModalEl = document.getElementById('sendEmailModal');
         const emailModalInstance = bootstrap.Modal.getInstance(emailModalEl);
-        if (emailModalInstance) { emailModalInstance.hide(); console.log("#sendEmailModal hidden."); }
-        else { console.warn("Email modal instance not found to hide."); }
+        if (emailModalInstance) { emailModalInstance.hide(); devLog("#sendEmailModal hidden."); }
+        else { devLog("Email modal instance not found to hide."); }
 
         $.ajax({
             url: PROJECT_BASE_URL + 'includes/send_email_custom.php', // Hoặc create_email_log.php
             type: 'POST', data: formData, processData: false, contentType: false, dataType: 'json',
             success: function (response) {
-                console.log(">>> send_email_custom.php success response:", response);
+                devLog(">>> send_email_custom.php success response:", response);
                 if (response && response.success && response.log_id && response.log_type) {
                     const createdLogId = response.log_id;
                     const createdLogType = response.log_type;
@@ -474,12 +475,12 @@ function setupEventListeners() {
                     $('#emailExtraAttachments').val('');
 
                     if (typeof startEmailStatusPolling === 'function') {
-                        console.log("Calling startEmailStatusPolling with Log ID:", createdLogId, "and Log Type:", createdLogType);
+                        devLog("Calling startEmailStatusPolling with Log ID:", createdLogId, "and Log Type:", createdLogType);
                         setTimeout(() => { startEmailStatusPolling(createdLogId, createdLogType); }, 1500);
                     } else { console.error("startEmailStatusPolling function is not defined."); showUserMessage('Lỗi nội bộ: Chức năng kiểm tra trạng thái email không khả dụng.', 'error'); }
-                    if (salesOrderDataTable) { console.log("Refreshing DataTable after email queue request."); salesOrderDataTable.draw(false); }
+                    if (salesOrderDataTable) { devLog("Refreshing DataTable after email queue request."); salesOrderDataTable.draw(false); }
                 } else {
-                    console.warn(">>> send_email_custom.php success: response.success is false or missing data.", response);
+                    devLog(">>> send_email_custom.php success: response.success is false or missing data.", response);
                     showUserMessage('Lỗi: ' + (response.message || 'Lỗi khi tạo yêu cầu gửi email.'), 'error');
                 }
             },
@@ -498,7 +499,7 @@ function setupEventListeners() {
                 $btn.prop('disabled', false);
                 $btnTextNode.text(originalBtnText); // Khôi phục text gốc
                 $spinner.addClass('d-none');
-                console.log("create_email_log.php AJAX request complete.");
+                devLog("create_email_log.php AJAX request complete.");
             }
         });
     });
@@ -507,7 +508,7 @@ function setupEventListeners() {
     // --- Listener cho Child Rows (DataTables) ---
     if (orderTableElement && orderTableElement.length) {
         orderTableElement.find('tbody').on('click', 'td.details-control', function (event) { // Thêm event vào đây
-            console.log(">>> Listener td.details-control clicked!");
+            devLog(">>> Listener td.details-control clicked!");
             event.stopPropagation(); // Ngăn chặn event bubbling
 
             const tr = $(this).closest('tr');
@@ -518,7 +519,7 @@ function setupEventListeners() {
                 row.child.hide();
                 tr.removeClass('shown');
                 icon.removeClass('bi-dash-square text-danger').addClass('bi-plus-square text-success');
-                console.log("Child row closed.");
+                devLog("Child row closed.");
             } else {
                 const orderData = row.data();
                 if (!orderData || !orderData.id) {
@@ -533,12 +534,12 @@ function setupEventListeners() {
                 $.ajax({
                     url: AJAX_URL.sales_order, type: 'GET', data: { action: 'get_details', id: orderId }, dataType: 'json',
                     success: function (response) {
-                        console.log(">>> Child row details AJAX success response:", response);
+                        devLog(">>> Child row details AJAX success response:", response);
                         if (response.success && response.data?.details) {
                             row.child(formatChildRowDetails(response.data.details, currency)).show();
-                            console.log("Child row details loaded and shown.");
+                            devLog("Child row details loaded and shown.");
                         } else {
-                            console.warn(">>> Child row details AJAX success: response.success is false or no details.", response);
+                            devLog(">>> Child row details AJAX success: response.success is false or no details.", response);
                             row.child('<div class="p-2 text-danger">Lỗi khi tải chi tiết đơn hàng.</div>').show();
                         }
                     },
@@ -555,13 +556,13 @@ function setupEventListeners() {
     // --- Listener cho Nút Gửi Email (DataTables) ---
     if (orderTableElement && orderTableElement.length) {
         orderTableElement.find('tbody').on('click', '.btn-send-email', function () {
-            console.log(">>> Listener .btn-send-email clicked!");
+            devLog(">>> Listener .btn-send-email clicked!");
             const $button = $(this);
             const documentId = $button.data('id');
             const documentNumber = String($button.data('order-number') || '');
             const pdfUrl = $button.data('pdf-url');
 
-            console.log(`Data attributes: ID=${documentId}, DocumentNumber=${documentNumber}, PdfUrl=${pdfUrl}, ContextType=${APP_CONTEXT.type}`);
+            devLog(`Data attributes: ID=${documentId}, DocumentNumber=${documentNumber}, PdfUrl=${pdfUrl}, ContextType=${APP_CONTEXT.type}`);
             if (!documentId || !documentNumber) { alert('Lỗi: Thiếu thông tin cần thiết từ nút gửi email.'); console.error('Send email click: Missing required data attributes.'); return; }
 
             $('#sendEmailModal').data('current-document-id', documentId);
@@ -571,9 +572,9 @@ function setupEventListeners() {
             const $modalTitleSpan = $('#sendEmailModal').find('#modal-send-email-order-number-display');
             if ($modalTitleSpan.length) $modalTitleSpan.text(`${APP_CONTEXT.documentName} ${documentNumber}`);
 
-            console.log(`Requesting default email info for ${APP_CONTEXT.type} ID: ${documentId}...`);
+            devLog(`Requesting default email info for ${APP_CONTEXT.type} ID: ${documentId}...`);
             $.post(PROJECT_BASE_URL + 'includes/get_partner_email.php', { id: documentId, type: APP_CONTEXT.type }, function (response) {
-                console.log(">>> get_partner_email.php success response:", response);
+                devLog(">>> get_partner_email.php success response:", response);
                 if (response && response.success) {
                     const emailModalEl = document.getElementById('sendEmailModal');
                     // ... (Lấy các element input trong modal như file gốc) ...
@@ -613,11 +614,11 @@ function setupEventListeners() {
     // --- Listener cho Nút Xem Logs Email (DataTables) ---
     if (orderTableElement && orderTableElement.length) {
         orderTableElement.find('tbody').on('click', '.btn-view-order-logs', function () {
-            console.log(">>> Listener .btn-view-order-logs clicked!");
+            devLog(">>> Listener .btn-view-order-logs clicked!");
             const button = $(this);
             const documentId = button.data('order-id'); // Giữ nguyên 'order-id' cho sales_orders
             const documentNumber = button.data('order-number');
-            console.log(`Clicked view logs for ${APP_CONTEXT.type} ID: ${documentId}, Number: ${documentNumber}`);
+            devLog(`Clicked view logs for ${APP_CONTEXT.type} ID: ${documentId}, Number: ${documentNumber}`);
             if (!documentId) { alert('Lỗi: Không xác định được ID tài liệu.'); console.error('View logs click: Missing document ID.'); return; }
 
             const modalElement = document.getElementById('viewOrderEmailLogsModal');
@@ -640,7 +641,7 @@ function setupEventListeners() {
                 data: { action: 'get_for_document', document_id: documentId, log_type: APP_CONTEXT.type },
                 dataType: 'json',
                 success: function (response) {
-                    console.log(">>> ajax_email_logs.php success response:", response);
+                    devLog(">>> ajax_email_logs.php success response:", response);
                     if (response && response.success) {
                         updateLogModalContent(response.logs);
                     } else {
@@ -662,7 +663,7 @@ function setupEventListeners() {
         const $button = $(this);
         let orderIdFromData = $button.data('id'); 
 
-        console.log("SO Edit Click Listener: Raw data-id from button:", orderIdFromData, "| Type:", typeof orderIdFromData);
+        devLog("SO Edit Click Listener: Raw data-id from button:", orderIdFromData, "| Type:", typeof orderIdFromData);
 
         let orderIdToLoad;
         // Kiểm tra kỹ giá trị từ data-id
@@ -679,7 +680,7 @@ function setupEventListeners() {
             orderIdToLoad = false; // Gán là false nếu data-id rỗng hoặc không hợp lệ
         }
         
-        console.log("SO Edit Click Listener: orderId being passed to loadOrderForEdit:", orderIdToLoad);
+        devLog("SO Edit Click Listener: orderId being passed to loadOrderForEdit:", orderIdToLoad);
 
         if (typeof loadOrderForEdit === 'function') {
             loadOrderForEdit(orderIdToLoad, "SO_DataTable_EditButton"); // Truyền callSource
@@ -693,19 +694,19 @@ function setupEventListeners() {
     // --- Listener cho Nút Xóa Đơn Hàng (DataTables) ---
     if (orderTableElement && orderTableElement.length) {
         orderTableElement.find('tbody').on('click', '.btn-delete-document', function () {
-            console.log(">>> Listener .btn-delete-document clicked!");
+            devLog(">>> Listener .btn-delete-document clicked!");
             const orderId = $(this).data('id');
             const orderNumber = $(this).data('number');
-            console.log(`Delete Order ID: ${orderId}, Number: ${orderNumber}`);
+            devLog(`Delete Order ID: ${orderId}, Number: ${orderNumber}`);
             if (!orderId || !orderNumber) { alert('Lỗi: Thiếu thông tin để xóa.'); console.error('Delete click: Missing ID or number.'); return; }
 
             if (confirm(`Bạn có chắc chắn muốn xóa ${APP_CONTEXT.documentName} ${orderNumber} này không?`)) {
-                console.log(`User confirmed delete for ID: ${orderId}`);
+                devLog(`User confirmed delete for ID: ${orderId}`);
                 $.ajax({
                     url: AJAX_URL.sales_order, // Hoặc AJAX_URL.sales_quote nếu APP_CONTEXT.type là 'quote'
                     type: 'POST', data: { action: 'delete', id: orderId }, dataType: 'json',
                     success: function (response) {
-                        console.log(">>> Delete AJAX success response:", response);
+                        devLog(">>> Delete AJAX success response:", response);
                         if (response.success) {
                             showUserMessage(response.message || (LANG['delete_success'] || 'Đã xóa thành công.'), 'success');
                             if (salesOrderDataTable) salesOrderDataTable.draw(false);
@@ -722,7 +723,7 @@ function setupEventListeners() {
                         showUserMessage(errMsg, 'error');
                     }
                 });
-            } else { console.log(`User cancelled delete for ID: ${orderId}`); }
+            } else { devLog(`User cancelled delete for ID: ${orderId}`); }
         });
     }
 
@@ -732,7 +733,7 @@ function setupEventListeners() {
         clearTimeout(filterTimeout);
         filterTimeout = setTimeout(() => {
             if (salesOrderDataTable) {
-                console.log("Filter debounce timeout executed. Calling DataTables draw()...");
+                devLog("Filter debounce timeout executed. Calling DataTables draw()...");
                 salesOrderDataTable.draw();
             }
         }, 500);
@@ -740,7 +741,7 @@ function setupEventListeners() {
 
     // --- Listener cho nút Reset Filters (DataTables) ---
 $('#reset-filters-sales-orders-table').on('click', function () {
-    console.log(">>> Listener #reset-filters-sales-orders-table clicked! Resetting filters.");
+    devLog(">>> Listener #reset-filters-sales-orders-table clicked! Resetting filters.");
     if (salesOrderDataTable) {
         $('.column-filter-input, #item-details-filter-input').val('');
         $('#filterYear').val(''); 
@@ -749,10 +750,10 @@ $('#reset-filters-sales-orders-table').on('click', function () {
 
         // --- BẮT ĐẦU ĐOẠN CODE MỚI ---
         try {
-            console.log('Đang xóa bộ lọc đã lưu...');
+            devLog('Đang xóa bộ lọc đã lưu...');
             localStorage.removeItem('salesOrderFilterYear');
             localStorage.removeItem('salesOrderFilterMonth');
-            console.log('Đã xóa bộ lọc.');
+            devLog('Đã xóa bộ lọc.');
         } catch (e) {
             console.error('Không thể sử dụng localStorage.', e);
         }
@@ -762,7 +763,7 @@ $('#reset-filters-sales-orders-table').on('click', function () {
 
     // --- Listener cho bộ lọc Năm và Tháng (DataTables) ---
 $('#filterYear, #filterMonth').on('change', function () {
-    console.log("Year or Month filter changed. Redrawing DataTable.");
+    devLog("Year or Month filter changed. Redrawing DataTable.");
     if (salesOrderDataTable) {
         salesOrderDataTable.draw();
 
@@ -774,7 +775,7 @@ $('#filterYear, #filterMonth').on('change', function () {
             localStorage.setItem('salesOrderFilterYear', yearValue);
             localStorage.setItem('salesOrderFilterMonth', monthValue);
             
-            console.log('Đã lưu bộ lọc: Năm=' + yearValue + ', Tháng=' + monthValue);
+            devLog('Đã lưu bộ lọc: Năm=' + yearValue + ', Tháng=' + monthValue);
         } catch (e) {
             console.error('Không thể sử dụng localStorage.', e);
         }
@@ -784,25 +785,25 @@ $('#filterYear, #filterMonth').on('change', function () {
 
     // --- Listener cho nút Export PDF và Toggle Signature ---
     $('#btn-download-pdf').on('click', function () {
-        console.log(">>> Listener #btn-download-pdf clicked!");
+        devLog(">>> Listener #btn-download-pdf clicked!");
         if (!$(this).prop('disabled')) downloadOrderPDF();
     });
 
     toggleSignatureButton.on('click', function () {
-        console.log(">>> Listener #toggle-signature clicked!");
+        devLog(">>> Listener #toggle-signature clicked!");
         buyerSignatureImg.toggle();
         const isVisible = buyerSignatureImg.is(':visible');
         $(this).text(isVisible ? (LANG.hide_signature ?? 'Ẩn chữ ký') : (LANG.show_signature ?? 'Hiện chữ ký'));
         // Lưu trạng thái vào localStorage chỉ khi có ảnh hợp lệ
         if (webSignatureSrc) {
             localStorage.setItem(signatureLocalStorageKey, isVisible.toString());
-            console.log(`Signature visibility state saved to localStorage: ${isVisible}`);
+            devLog(`Signature visibility state saved to localStorage: ${isVisible}`);
         }
     });
 
     // --- Listener cho Expand/Collapse All Child Rows (DataTables) ---
     $('#expand-collapse-all').on('click', function () {
-        console.log(">>> Listener #expand-collapse-all clicked!");
+        devLog(">>> Listener #expand-collapse-all clicked!");
         const button = $(this);
         const icon = button.find('i');
         const isExpanding = icon.hasClass('bi-arrows-expand');
@@ -824,10 +825,10 @@ $('#filterYear, #filterMonth').on('change', function () {
                 icon.removeClass('bi-arrows-collapse me-1').addClass('bi-arrows-expand me-1');
                 button.contents().last().replaceWith(LANG['expand_all'] ?? 'Expand All');
             }
-        } else { console.warn("DataTables instance not initialized."); }
+        } else { devLog("DataTables instance not initialized."); }
     });
 
-    console.log("All event listeners set up.");
+    devLog("All event listeners set up.");
 } // End setupEventListeners
 $(document).ready(function() {
     const tableId = '#sales-orders-table';
@@ -922,7 +923,7 @@ $(document).ready(function() {
 
         $('.driver-autocomplete').autocomplete({
             source: function(request, response) {
-                console.log("Autocomplete: Đang gửi yêu cầu tìm kiếm cho từ khóa ->", request.term);
+                devLog("Autocomplete: Đang gửi yêu cầu tìm kiếm cho từ khóa ->", request.term);
                 $.ajax({
                     url: 'process/ajax_get_drivers.php',
                     dataType: "json",
@@ -930,9 +931,9 @@ $(document).ready(function() {
                         term: request.term
                     },
                     success: function(data) {
-                        console.log("Autocomplete: Đã nhận được dữ liệu từ server ->", data);
+                        devLog("Autocomplete: Đã nhận được dữ liệu từ server ->", data);
                         if (!data || !data.length) {
-                            console.log("Autocomplete: Không tìm thấy kết quả nào.");
+                            devLog("Autocomplete: Không tìm thấy kết quả nào.");
                         }
                         response(data); // Trả dữ liệu cho widget autocomplete
                     },
@@ -950,13 +951,13 @@ $(document).ready(function() {
                 input.val(ui.item.value);
                 const driverContainer = input.closest('.driver-container');
                 driverContainer.attr('data-bs-original-title', ui.item.details).tooltip('dispose').tooltip();
-                console.log(`Autocomplete: Đã chọn tài xế ID ${ui.item.id}. Đang lưu cho đơn hàng ID ${orderId}.`);
+                devLog(`Autocomplete: Đã chọn tài xế ID ${ui.item.id}. Đang lưu cho đơn hàng ID ${orderId}.`);
                 updateOrderField(orderId, 'driver_id', ui.item.id, input);
             },
             change: function(event, ui) {
                  if (!ui.item && $(this).val() === '') {
                     const orderId = $(this).data('id');
-                    console.log(`Autocomplete: Đã xóa trắng ô tài xế. Đang xóa tài xế khỏi đơn hàng ID ${orderId}.`);
+                    devLog(`Autocomplete: Đã xóa trắng ô tài xế. Đang xóa tài xế khỏi đơn hàng ID ${orderId}.`);
                     updateOrderField(orderId, 'driver_id', null, $(this));
                  }
             }

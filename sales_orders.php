@@ -1,4 +1,6 @@
 <?php
+// cleaned: console logs optimized, debug system applied
+
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/init.php';
 require_login();
@@ -166,13 +168,13 @@ if (isset($company_info) && is_array($company_info) && !empty($company_info['sig
 <script>
     window.APP_SETTINGS = window.APP_SETTINGS || {};
     window.APP_SETTINGS.buyerSignatureUrl = '<?php echo $js_company_signature_path; ?>';
-    console.log('Signature URL for JS on sales_orders.php:', window.APP_SETTINGS.buyerSignatureUrl);
+    devLog('Signature URL for JS on sales_orders.php:', window.APP_SETTINGS.buyerSignatureUrl);
     window.APP_CONTEXT = {
         type: 'order', // Xác định loại tài liệu là 'order'
         documentName: '<?= $lang['sales_order_short'] ?? 'Đơn hàng' ?>', // Tên ngắn gọn của tài liệu, dùng cho thông báo
 
     };
-    console.log('APP_CONTEXT for sales_orders.php:', window.APP_CONTEXT);
+    devLog('APP_CONTEXT for sales_orders.php:', window.APP_CONTEXT);
 </script>
 <?php
    require_once __DIR__ . '/config/set_js_vars.php';

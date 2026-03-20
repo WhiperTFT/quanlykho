@@ -1,3 +1,4 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/partners.js
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -37,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (!id || !/^\d+$/.test(String(id))) {
     // Log nhẹ để bạn debug nhanh
-    console.warn('clone_opposite_type: thiếu/invalid id', { id, btn });
+    devLog('clone_opposite_type: thiếu/invalid id', { id, btn });
     if (window.Swal) {
       await Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không xác định được ID đối tác nguồn.' });
     } else {

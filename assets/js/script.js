@@ -1,5 +1,6 @@
+// cleaned: console logs optimized, debug system applied
 // assets/js/script.js
-console.log("Custom script loaded.");
+devLog("Custom script loaded.");
 
 document.addEventListener('DOMContentLoaded', function() {
     const deleteButtons = document.querySelectorAll('.btn-delete'); // Add class="btn-delete" to your delete buttons/links

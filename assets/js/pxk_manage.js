@@ -1,3 +1,4 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/pxk_manage.js
 // Yêu cầu: jQuery, Bootstrap 5, SweetAlert2 (Swal), flatpickr đã có sẵn từ header/footer
 
@@ -276,9 +277,9 @@ async function enqueuePrintJobByPath(fileWebPath, copies = DEFAULT_COPIES, print
     }
 
     // Nếu API mới trả lỗi, ta sẽ thử API cũ (fallback) ở dưới.
-    console.warn('enqueue_print via pxk_api FAILED, fallback to print_api...', res);
+    devLog('enqueue_print via pxk_api FAILED, fallback to print_api...', res);
   } catch (e) {
-    console.warn('enqueue_print via pxk_api exception, fallback to print_api...', e);
+    devLog('enqueue_print via pxk_api exception, fallback to print_api...', e);
   }
 
   // --- Fallback API cũ (nếu bạn còn process/print_api.php hỗ trợ theo path) ---

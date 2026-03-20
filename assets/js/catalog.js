@@ -1,3 +1,4 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/catalog.js
 // Cần jQuery và Bootstrap JS đã được load trước
 
@@ -86,7 +87,7 @@ $(document).ready(function() {
                     input.closest('.mb-3').find('.invalid-feedback').text(messages[0]);
                 } else {
                     // Lỗi không gắn với field cụ thể? Hiển thị ở đâu đó chung
-                    console.warn(`Validation error for unknown field: ${fieldName}`);
+                    devLog(`Validation error for unknown field: ${fieldName}`);
                 }
             });
         }
@@ -456,9 +457,9 @@ $(document).ready(function() {
     const docFiles = $('#productDocuments')[0].files;
     const productId = $('#productId').val();
     const action = productId ? 'edit' : 'add'; // Định nghĩa action
-    console.log('Image files in input:', imageFiles.length, Array.from(imageFiles).map(f => f.name));
-    console.log('Document files in input:', docFiles.length, Array.from(docFiles).map(f => f.name));
-    console.log('FormData entries:', Array.from(formData.entries()));
+    devLog('Image files in input:', imageFiles.length, Array.from(imageFiles).map(f => f.name));
+    devLog('Document files in input:', docFiles.length, Array.from(docFiles).map(f => f.name));
+    devLog('FormData entries:', Array.from(formData.entries()));
     formData.append('action', action); // Đảm bảo action được gửi
     $.ajax({
         url: 'process/product_handler.php',
@@ -468,7 +469,7 @@ $(document).ready(function() {
         contentType: false,
         dataType: 'json',
         success: function(response) {
-            console.log('Server response:', response);
+            devLog('Server response:', response);
             if (response.success) {
                 productModal.hide();
                 showUserMessage(response.message || LANG['save_success'] || 'Saved successfully!');
@@ -870,7 +871,7 @@ document.addEventListener('DOMContentLoaded', function () {
        return new bootstrap.Tooltip(tooltipTriggerEl)
      })
 
-     console.log("catalog.js loaded and ready."); // Log để xác nhận script chạy
+     devLog("catalog.js loaded and ready."); // Log để xác nhận script chạy
 function showLargeImage(imagePath) {
     const largeImage = document.getElementById('largeImage');
     if (largeImage) {

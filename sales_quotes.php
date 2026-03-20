@@ -1,4 +1,6 @@
 <?php
+// cleaned: console logs optimized, debug system applied
+
 // File: sales_quote.php (Đã cập nhật để tích hợp PDF vào nút Lưu)
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/init.php';
@@ -132,13 +134,13 @@ if (isset($company_info) && is_array($company_info) && !empty($company_info['sig
 <script>
     window.APP_SETTINGS = window.APP_SETTINGS || {};
     window.APP_SETTINGS.buyerSignatureUrl = '<?php echo $js_company_signature_path; ?>';
-    console.log('Signature URL for JS on sales_quotes.php:', window.APP_SETTINGS.buyerSignatureUrl);
+    devLog('Signature URL for JS on sales_quotes.php:', window.APP_SETTINGS.buyerSignatureUrl);
     window.APP_CONTEXT = {
         type: 'quote', // Xác định loại tài liệu là 'quote'
         documentName: '<?= $lang['sales_quote_short'] ?? 'Báo giá' ?>', // Tên ngắn gọn của tài liệu
 
     };
-    console.log('APP_CONTEXT for sales_quotes.php:', window.APP_CONTEXT);
+    devLog('APP_CONTEXT for sales_quotes.php:', window.APP_CONTEXT);
 </script>
 <?php
     require_once __DIR__ . '/config/set_js_vars.php';

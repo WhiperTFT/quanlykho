@@ -1,3 +1,4 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sales_orders_form.js
 let loadOrderCallCounter = 0;
 
@@ -27,24 +28,24 @@ function parseInputNumber(str) {
 
 // --- Hàm Khởi Tạo Datepicker ---
 function initializeDatepicker() {
-    console.log("Initializing Flatpickr...");
+    devLog("Initializing Flatpickr...");
     if (typeof flatpickr !== 'undefined') {
         flatpickr(".datepicker", {
             dateFormat: "d/m/Y",
             locale: (typeof LANG !== 'undefined' && LANG.language === 'vi' ? 'vn' : 'default'),
             allowInput: true,
         });
-        console.log("Flatpickr initialized.");
+        devLog("Flatpickr initialized.");
     } else {
-        console.warn("Flatpickr library not found. Datepicker disabled.");
+        devLog("Flatpickr library not found. Datepicker disabled.");
         $('.datepicker').prop('disabled', true);
     }
-    console.log("Flatpickr initialization finished.");
+    devLog("Flatpickr initialization finished.");
 }
 
 // --- Hàm Khởi Tạo Autocomplete Nhà Cung Cấp (Supplier) ---
 function initializeSupplierAutocomplete() {
-    console.log("Initializing Supplier Autocomplete...");
+    devLog("Initializing Supplier Autocomplete...");
     const partnerInput = $("#partner_autocomplete");
     const partnerIdInput = $("#partner_id");
     const partnerAddressDisplay = $("#partner_address_display");
@@ -100,7 +101,7 @@ function initializeSupplierAutocomplete() {
                 partnerEmailDisplay.text(ui.item.email);
                 partnerContactDisplay.text(ui.item.contact_person);
                 partnerInput.removeClass('is-invalid').closest('.mb-2').find('.invalid-feedback').text('');
-                console.log("Supplier selected:", ui.item);
+                devLog("Supplier selected:", ui.item);
                 return false;
             },
             focus: function (event, ui) { event.preventDefault(); },
@@ -112,27 +113,27 @@ function initializeSupplierAutocomplete() {
                     partnerPhoneDisplay.text('-');
                     partnerEmailDisplay.text('-');
                     partnerContactDisplay.text('-');
-                    console.log("Supplier selection cleared.");
+                    devLog("Supplier selection cleared.");
                 }
             }
         });
-        console.log("Supplier autocomplete initialized.");
+        devLog("Supplier autocomplete initialized.");
     } else {
-        console.warn("jQuery UI Autocomplete not found. Supplier autocomplete disabled.");
+        devLog("jQuery UI Autocomplete not found. Supplier autocomplete disabled.");
         partnerInput.prop('disabled', true);
     }
-    console.log("Supplier Autocomplete initialization finished.");
+    devLog("Supplier Autocomplete initialization finished.");
 }
 
 // --- Hàm Khởi Tạo Autocomplete Sản Phẩm (Product) ---
 function initializeProductAutocomplete(containerSelector) {
-    console.log(`Initializing Product Autocomplete for: ${containerSelector}...`);
+    devLog(`Initializing Product Autocomplete for: ${containerSelector}...`);
     const targetElements = $(containerSelector).find('.product-autocomplete');
     if (typeof $.ui !== 'undefined' && typeof $.ui.autocomplete !== 'undefined') {
         targetElements.each(function () {
             const inputElement = $(this);
             if (!inputElement.data('ui-autocomplete')) {
-                console.log("Initializing NEW product autocomplete for:", this);
+                devLog("Initializing NEW product autocomplete for:", this);
                 inputElement.autocomplete({
                     source: function (request, response) {
                         const inputField = $(this.element);
@@ -174,7 +175,7 @@ function initializeProductAutocomplete(containerSelector) {
                         row.find('.unit-display').val(ui.item.unit_name);
                         row.find('input[name$="[unit_snapshot]"]').val(ui.item.unit_name);
                         $(this).removeClass('is-invalid').closest('td').find('.invalid-feedback').text('');
-                        console.log("Product selected:", ui.item);
+                        devLog("Product selected:", ui.item);
                         calculateLineTotal(row);
                         return false;
                     },
@@ -187,24 +188,24 @@ function initializeProductAutocomplete(containerSelector) {
                             row.find('input[name$="[category_snapshot]"]').val('');
                             row.find('.unit-display').val('');
                             row.find('input[name$="[unit_snapshot]"]').val('');
-                            console.log("Product selection cleared for row:", row.index());
+                            devLog("Product selection cleared for row:", row.index());
                         }
                         calculateLineTotal(row);
                     }
                 });
-            } else { console.log("Autocomplete already initialized for:", this); }
+            } else { devLog("Autocomplete already initialized for:", this); }
         });
-        console.log(`Product autocomplete initialization attempt complete for selector: ${containerSelector}`);
+        devLog(`Product autocomplete initialization attempt complete for selector: ${containerSelector}`);
     } else {
-        console.warn("jQuery UI Autocomplete not found. Product autocomplete disabled.");
+        devLog("jQuery UI Autocomplete not found. Product autocomplete disabled.");
         targetElements.prop('disabled', true);
     }
-    console.log("Product Autocomplete initialization finished.");
+    devLog("Product Autocomplete initialization finished.");
 }
 
 // --- Hàm Reset Form Đơn Hàng ---
 function resetOrderForm(isEdit = false) {
-    console.log("Resetting order form. Is Edit:", isEdit);
+    devLog("Resetting order form. Is Edit:", isEdit);
     if (orderForm && orderForm.length) orderForm[0].reset();
     if (orderForm && orderForm.length) orderForm.find('input[type="hidden"]').val('');
     $('#order_quote_id_form').val('');
@@ -230,13 +231,13 @@ function resetOrderForm(isEdit = false) {
         ckEditorInstances['notes'].setData('');
     } else {
         $('#notes').val('');
-        console.warn('CKEditor instance for "notes" not found. Cleared textarea directly.');
+        devLog('CKEditor instance for "notes" not found. Cleared textarea directly.');
     }
     if (ckEditorInstances['emailBody']) {
         ckEditorInstances['emailBody'].setData('');
     } else {
         $('#emailBody').val('');
-        console.warn('CKEditor instance for "emailBody" not found. Cleared textarea directly.');
+        devLog('CKEditor instance for "emailBody" not found. Cleared textarea directly.');
     }
 
     currencySelect.val('VND');
@@ -271,12 +272,12 @@ function resetOrderForm(isEdit = false) {
 
     updateSTT();
     $('#btn-download-pdf').prop('disabled', true);
-    console.log("Order form reset.");
+    devLog("Order form reset.");
 }
 
 // --- Hàm Thêm Dòng Item vào Form ---
 function addItemRow(data = {}) {
-    console.log("Adding item row. Data:", data);
+    devLog("Adding item row. Data:", data);
     const templateRow = $('.item-row-template').clone();
     templateRow.removeClass('item-row-template d-none').removeAttr('style');
     const newItemIndex = itemTableBody.find('tr').length;
@@ -321,7 +322,7 @@ function addItemRow(data = {}) {
    calculateLineTotal(templateRow); // giữ fallback cũ nếu cần
  }
 
-    console.log("Added item row with index:", newItemIndex, "Data:", data);
+    devLog("Added item row with index:", newItemIndex, "Data:", data);
     return templateRow;
 }
 
@@ -331,7 +332,7 @@ function addItemRow(data = {}) {
  * @param {string} orderNumber Số đơn hàng (để hiển thị trên tiêu đề).
  */
 function setOrderFormViewMode(isView, orderNumber = '') {
-    console.log(`SO Form: Setting view mode to: ${isView} for order: ${orderNumber}`);
+    devLog(`SO Form: Setting view mode to: ${isView} for order: ${orderNumber}`);
 
     if (typeof orderForm === 'undefined' || !orderForm.length) {
         console.error("setOrderFormViewMode: Biến orderForm chưa được định nghĩa hoặc không tìm thấy form.");
@@ -372,7 +373,7 @@ function loadOrderForEdit(orderId, callSource = "UnknownSO_Default") {
     loadOrderCallCounter++;
     const currentCallNumber = loadOrderCallCounter;
 
-    console.log(`SO Form: CALL #${currentCallNumber} - loadOrderForEdit initiated. Source: ${callSource}, Received orderId:`, orderId, "Type:", typeof orderId);
+    devLog(`SO Form: CALL #${currentCallNumber} - loadOrderForEdit initiated. Source: ${callSource}, Received orderId:`, orderId, "Type:", typeof orderId);
 
     let parsedOrderId = null;
     if (orderId !== false && orderId !== null && orderId !== undefined && String(orderId).trim() !== "") {
@@ -380,11 +381,11 @@ function loadOrderForEdit(orderId, callSource = "UnknownSO_Default") {
     }
 
     if (parsedOrderId === null || isNaN(parsedOrderId) || parsedOrderId <= 0) {
-        console.warn(`SO Form: CALL #${currentCallNumber} - Invalid order ID. Source: ${callSource}, Original Value:`, orderId, "Parsed Value:", parsedOrderId, "Type of Original:", typeof orderId);
+        devLog(`SO Form: CALL #${currentCallNumber} - Invalid order ID. Source: ${callSource}, Original Value:`, orderId, "Parsed Value:", parsedOrderId, "Type of Original:", typeof orderId);
         console.trace(`SO Form: CALL #${currentCallNumber} - Stack trace for invalid ID from ${callSource}`);
         return;
     } else {
-        console.log(`SO Form: CALL #${currentCallNumber} - Valid ID. Loading order for edit/view. Source: ${callSource}, ID:`, parsedOrderId);
+        devLog(`SO Form: CALL #${currentCallNumber} - Valid ID. Loading order for edit/view. Source: ${callSource}, ID:`, parsedOrderId);
     }
 
     $.ajax({
@@ -399,7 +400,7 @@ function loadOrderForEdit(orderId, callSource = "UnknownSO_Default") {
             $('#btn-save-order, #btn-cancel-order-form, #btn-download-so-pdf').prop('disabled', true);
         },
         success: function (response) {
-            console.log(`SO Form: CALL #${currentCallNumber} - Order details received (Source: ${callSource}):`, response);
+            devLog(`SO Form: CALL #${currentCallNumber} - Order details received (Source: ${callSource}):`, response);
             if (response && response.success && response.data && response.data.header) {
                 if(typeof resetOrderForm !== 'function') {
                     console.error("SO Form: resetOrderForm function is not defined!");
@@ -429,7 +430,7 @@ function loadOrderForEdit(orderId, callSource = "UnknownSO_Default") {
                         catch (e) { console.error("SO Form: Error setting datepicker with order_date (Y-m-d):", e); }
                     }
                 } else {
-                     console.warn("SO Form: Flatpickr instance for #order_date not found.");
+                     devLog("SO Form: Flatpickr instance for #order_date not found.");
                 }
 
                 // Supplier
@@ -452,7 +453,7 @@ function loadOrderForEdit(orderId, callSource = "UnknownSO_Default") {
                         $('#partner_address_display, #partner_tax_id_display, #partner_phone_display, #partner_email_display, #partner_contact_person_display').text('-');
                     }
                 } else {
-                    console.warn("SO Form: Missing supplier_id or supplier_info_snapshot");
+                    devLog("SO Form: Missing supplier_id or supplier_info_snapshot");
                     $('#partner_id').val(''); $('#partner_autocomplete').val('');
                     $('#partner_address_display, #partner_tax_id_display, #partner_phone_display, #partner_email_display, #partner_contact_person_display').text('-');
                 }
@@ -468,7 +469,7 @@ function loadOrderForEdit(orderId, callSource = "UnknownSO_Default") {
                         console.error("SO Form: populateAndSelectQuoteInDropdown function is not defined.");
                     }
                 } else {
-                     console.warn("SO Form: Dropdown #order_quote_id_form not found.");
+                     devLog("SO Form: Dropdown #order_quote_id_form not found.");
                 }
 
                 if (typeof currencySelect !== 'undefined' && currencySelect.length) {
@@ -506,7 +507,7 @@ function loadOrderForEdit(orderId, callSource = "UnknownSO_Default") {
                         else { console.error("SO Form: addItemRow function is not defined."); }
                     }
                 } else {
-                    console.warn("SO Form: itemTableBody is not defined or not found.");
+                    devLog("SO Form: itemTableBody is not defined or not found.");
                 }
 
                 if (typeof calculateSummaryTotals === "function") { calculateSummaryTotals(); } 
@@ -558,7 +559,7 @@ function loadOrderForEdit(orderId, callSource = "UnknownSO_Default") {
     // === Bridge điền items từ báo giá (nếu bạn dùng) ===
     function populateOrderItemsFromQuoteData(itemsToFill) {
         if (!itemsToFill || !Array.isArray(itemsToFill) || itemsToFill.length === 0) {
-            console.warn("[SalesOrdersForm] Không có items nào để điền từ dữ liệu báo giá.");
+            devLog("[SalesOrdersForm] Không có items nào để điền từ dữ liệu báo giá.");
             return;
         }
 
@@ -631,9 +632,9 @@ function loadOrderForEdit(orderId, callSource = "UnknownSO_Default") {
         if (typeof updateAllCalculations === 'function') {
             updateAllCalculations();
         } else {
-            console.warn("[SalesOrdersForm] Hàm updateAllCalculations() không tồn tại.");
+            devLog("[SalesOrdersForm] Hàm updateAllCalculations() không tồn tại.");
         }
-        console.info("[SalesOrdersForm] Đã điền các mục sản phẩm từ báo giá vào đơn hàng.");
+        devLog("[SalesOrdersForm] Đã điền các mục sản phẩm từ báo giá vào đơn hàng.");
     }
 
     function appendAndSelectOption($selectElement, value, text, returnOption = false) {

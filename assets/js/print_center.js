@@ -1,3 +1,4 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/print_center.js (v1.1.2, no jQuery)
 (function () {
   "use strict";
@@ -467,7 +468,7 @@
   };
   const toast = (msg, type='primary') => {
     const area = document.getElementById('toastArea');
-    if (!area || !window.bootstrap) { console.log(msg); return; }
+    if (!area || !window.bootstrap) { devLog(msg); return; }
     const id = 't' + Date.now();
     area.insertAdjacentHTML('beforeend', `
       <div id="${id}" class="toast text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">

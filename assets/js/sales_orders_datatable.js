@@ -1,11 +1,12 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sales_orders_datatable.js (GIỮ NGUYÊN CODE GỐC, CHỈ THÊM 3 CỘT MỚI)
 
 // --- Hàm Khởi tạo DataTables (SERVER-SIDE) ---
 function initializeSalesOrderDataTable() {
-    console.log("Initializing Server-Side DataTables for Sales Orders...");
+    devLog("Initializing Server-Side DataTables for Sales Orders...");
     if ($.fn.dataTable.isDataTable(orderTableElement)) {
         orderTableElement.DataTable().destroy();
-        console.log("Existing DataTable instance destroyed.");
+        devLog("Existing DataTable instance destroyed.");
     }
 
     try {
@@ -21,7 +22,7 @@ function initializeSalesOrderDataTable() {
     d.delivery_status  = $('#deliveryStatusFilter').val(); // '', not_delivered, delivered
     d.filter_year      = $('#filterYear').val();
     d.filter_month     = $('#filterMonth').val();
-    console.log("DataTables AJAX params:", d);
+    devLog("DataTables AJAX params:", d);
     return d;
   },
   error: function (jqXHR, textStatus, errorThrown) {
@@ -204,7 +205,7 @@ $(document).on('click', '.btn-view-pdf', function () {
             btn.prop('disabled', false).html(originalHtml);
         },
         error: function () {
-            console.warn(`PDF chưa tồn tại: ${pdfPath}. Gọi export_pdf.php để tạo.`);
+            devLog(`PDF chưa tồn tại: ${pdfPath}. Gọi export_pdf.php để tạo.`);
             showUserMessage("Đang tạo file PDF, vui lòng chờ...", "info");
 
             $.ajax({
@@ -239,7 +240,7 @@ $(document).on('click', '.btn-generate-letter', function () {
 });
 // Khi click vào "Chưa giao" thì biến thành input date
 $(document).on('click', '.expected-date-placeholder', function () {
-    console.log('👉 Click vào Chưa giao');
+    devLog('👉 Click vào Chưa giao');
 
     const orderId = $(this).data('id');
     const today = new Date().toISOString().split('T')[0];

@@ -1,12 +1,13 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sq_main.js
 function loadAndApplySavedQuoteFilters() {
-    console.log("--- Bắt đầu hàm loadAndApplySavedQuoteFilters ---");
+    devLog("--- Bắt đầu hàm loadAndApplySavedQuoteFilters ---");
     try {
         // Sử dụng key riêng cho trang báo giá
         const savedYear = localStorage.getItem('salesQuoteFilterYear');
         const savedMonth = localStorage.getItem('salesQuoteFilterMonth');
 
-        console.log("Đọc từ localStorage (Báo giá): Năm=" + savedYear + ", Tháng=" + savedMonth);
+        devLog("Đọc từ localStorage (Báo giá): Năm=" + savedYear + ", Tháng=" + savedMonth);
 
         if (savedYear) {
             $('#filterYear').val(savedYear);
@@ -18,11 +19,11 @@ function loadAndApplySavedQuoteFilters() {
     } catch (e) {
         console.error('Không thể tải bộ lọc Báo giá đã lưu.', e);
     }
-    console.log("--- Kết thúc hàm loadAndApplySavedQuoteFilters ---");
+    devLog("--- Kết thúc hàm loadAndApplySavedQuoteFilters ---");
 }
 const QuoteToOrderDataBridge = {
     loadData: function() {
-        console.warn("QuoteToOrderDataBridge.loadData SHIM CALLED");
+        devLog("QuoteToOrderDataBridge.loadData SHIM CALLED");
         const dataString = localStorage.getItem('quoteToOrderData');
         if (dataString) {
             try { return JSON.parse(dataString); } catch(e) { console.error("Error parsing quoteToOrderData from localStorage in SHIM", e); return null; }
@@ -30,7 +31,7 @@ const QuoteToOrderDataBridge = {
         return null;
     },
     clearData: function() {
-        console.warn("QuoteToOrderDataBridge.clearData SHIM CALLED");
+        devLog("QuoteToOrderDataBridge.clearData SHIM CALLED");
         localStorage.removeItem('quoteToOrderData');
         localStorage.removeItem('triggerCreateOrderFromQuote');
     }
@@ -48,11 +49,7 @@ function initializeCKEditor(elementId, configOptions = {}) {
                 // Cấu hình toolbar của bạn
                 toolbar: {
                     items: [
-                        'undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'strikethrough', 'underline', 'subscript', 'superscript',
-                        '|', 'fontColor', 'fontBackgroundColor', '|', 'link', 'insertImage', 'insertTable', 'blockQuote', 'mediaEmbed',
-                        '|', 'bulletedList', 'numberedList', 'outdent', 'indent', '|', 'alignment', '|', 'codeBlock', 'sourceEditing',
-                        '|', 'removeFormat', 'selectAll', 'findAndReplace', '|', 'horizontalLine', 'pageBreak'
-                        // '|', 'undo', 'redo' // Lặp lại, có thể bỏ bớt một cặp
+                        'undo', 'redo', '|', 'heading', '|', 'bold', 'italic', '|', 'link', 'insertImage', 'insertTable', 'blockQuote', 'mediaEmbed', '|', 'bulletedList', 'numberedList'
                     ],
                     shouldNotGroupWhenFull: true
                 },
@@ -64,13 +61,13 @@ function initializeCKEditor(elementId, configOptions = {}) {
             })
             .then(editor => {
     ckEditorInstances[elementId] = editor;
-    console.log('CKEditor 5 (Quote) initialized for: #' + elementId);
+    devLog('CKEditor 5 (Quote) initialized for: #' + elementId);
 
     // Thiết lập chiều cao tối thiểu
     if (editor.ui && editor.ui.view && editor.ui.view.editable && editor.ui.view.editable.element) {
         editor.ui.view.editable.element.style.minHeight = '180px';
     } else {
-        console.warn('Could not set minHeight for CKEditor (Quote) #' + elementId);
+        devLog('Could not set minHeight for CKEditor (Quote) #' + elementId);
     }
 
     // ✅ Thêm đoạn này để giảm khoảng cách giữa các dòng (line-height)
@@ -79,13 +76,13 @@ function initializeCKEditor(elementId, configOptions = {}) {
     });
 })
     } else {
-        console.warn(`Element with ID #${elementId} not found for CKEditor (Quote) initialization.`);
+        devLog(`Element with ID #${elementId} not found for CKEditor (Quote) initialization.`);
     }
 }
 
 // --- Hàm Khởi Tạo Trang Báo Giá ---
 function initializePage() {
-    console.log("Initializing Sales Quotes page...");
+    devLog("Initializing Sales Quotes page...");
     // ... (code của bạn trong initializePage giữ nguyên) ...
     quoteFormCard = $('#quote-form-card');
     quoteForm = $('#quote-form');
@@ -119,7 +116,7 @@ function initializePage() {
     }
 
     if (buyerSignatureImg.length) {
-        buyerSignatureImg.on('load', function () { console.log("Buyer signature for quote loaded."); })
+        buyerSignatureImg.on('load', function () { devLog("Buyer signature for quote loaded."); })
                          .on('error', function () { $(this).hide(); if (toggleSignatureButton.length) toggleSignatureButton.hide(); });
     }
 
@@ -144,12 +141,12 @@ function initializePage() {
 
 
     if (quoteFormCard) quoteFormCard.hide();
-    console.log("Sales Quotes page basic structure initialized.");
+    devLog("Sales Quotes page basic structure initialized.");
 }
 
 // --- Document Ready ---
 $(document).ready(function () {
-    console.log("Document ready for Sales Quotes. Starting main initialization...");
+    devLog("Document ready for Sales Quotes. Starting main initialization...");
     loadAndApplySavedQuoteFilters();
     // Khởi tạo các giá trị ban đầu, các elements, và DataTable
     initializePage();    
@@ -158,7 +155,7 @@ $(document).ready(function () {
     if (typeof setupEventListeners === 'function') {
         setupEventListeners(); 
     } else {
-        console.warn("setupEventListeners function (from sq_events.js) not found.");
+        devLog("setupEventListeners function (from sq_events.js) not found.");
     }
 
     // --- Thêm SHIM sớm (đặt gần đầu file sq_main.js nếu cần) ---
@@ -179,14 +176,14 @@ $(document).ready(function () {
     // Code này chạy sau khi initializePage() đã định nghĩa quoteTableElement 
     // và đã gọi initializeSalesQuoteDataTable() để khởi tạo bảng.
     if (typeof quoteTableElement !== 'undefined' && quoteTableElement.length && $.fn.dataTable.isDataTable(quoteTableElement)) {
-        console.log("Attaching listeners to DataTable in $(document).ready() of sq_main.js");
+        devLog("Attaching listeners to DataTable in $(document).ready() of sq_main.js");
 
         quoteTableElement.on('click', '.btn-create-order-from-quote', function() {
-            console.log("Button .btn-create-order-from-quote was clicked! (Listener in sq_main.js doc.ready)");
+            devLog("Button .btn-create-order-from-quote was clicked! (Listener in sq_main.js doc.ready)");
             const $button = $(this);
             const quoteId = $button.data('quote-id');
             const quoteNumber = $button.data('quote-number');
-            console.log(`Quote ID: ${quoteId}, Quote Number: ${quoteNumber}`);
+            devLog(`Quote ID: ${quoteId}, Quote Number: ${quoteNumber}`);
 
             // Đảm bảo LANG và PROJECT_BASE_URL đã được định nghĩa (thường từ set_js_vars.php)
             if (typeof LANG === 'undefined' || typeof PROJECT_BASE_URL === 'undefined') {
@@ -270,7 +267,7 @@ $(document).ready(function () {
 
         quoteTableElement.on('click', '.btn-view-related-order', function(e) {
             e.preventDefault();
-            console.log("Button .btn-view-related-order was clicked! (Listener in sq_main.js doc.ready)");
+            devLog("Button .btn-view-related-order was clicked! (Listener in sq_main.js doc.ready)");
             const orderId = $(this).data('order-id');
             if (orderId) {
                 localStorage.setItem('viewSpecificOrderId', orderId.toString());
@@ -289,30 +286,30 @@ $(document).ready(function () {
 
     // Khối khởi tạo CKEditor và Draggable
     if (typeof ClassicEditor !== 'undefined') {
-        console.log("Attempting to initialize CKEditors for Quote page (doc.ready)...");
+        devLog("Attempting to initialize CKEditors for Quote page (doc.ready)...");
         if ($('#notes').length) { 
             initializeCKEditor('notes');
         } else {
-            // console.warn('#notes element not found on this quote page (inside document.ready).');
+            // devLog('#notes element not found on this quote page (inside document.ready).');
         }
         if ($('#emailBody').length) { 
             initializeCKEditor('emailBody');
         } else {
-            // console.warn('#emailBody element (likely in email modal) not found (inside document.ready).');
+            // devLog('#emailBody element (likely in email modal) not found (inside document.ready).');
         }
     } else {
-        console.warn("CKEditor 5 library (ClassicEditor) not found for Quote page (inside document.ready).");
+        devLog("CKEditor 5 library (ClassicEditor) not found for Quote page (inside document.ready).");
     }
 
     if (typeof $.ui !== 'undefined' && typeof $.ui.draggable !== 'undefined' && buyerSignatureImg && buyerSignatureImg.length) {
         try {
             buyerSignatureImg.draggable({ containment: '#pdf-export-content', scroll: false }); // Đảm bảo #pdf-export-content tồn tại
-            console.log("Signature draggable for quote initialized.");
+            devLog("Signature draggable for quote initialized.");
         } catch (e) { console.error("Signature Draggable (quote) initialization error:", e); }
     } else {
         // ...
     }
-    console.log("Full quote page initialization complete.");
+    devLog("Full quote page initialization complete.");
 }); // End $(document).ready
 $('#btn-save-quote').on('click', function () {
     // Đồng bộ nội dung CKEditor về textarea (nếu có)
@@ -328,7 +325,7 @@ $('#btn-save-quote').on('click', function () {
         data: formData + '&action=save_quote', // hoặc 'add' / 'edit' tùy theo logic backend
         success: function(response) {
             // Xử lý khi lưu thành công
-            console.log('Lưu báo giá thành công:', response);
+            devLog('Lưu báo giá thành công:', response);
             // Hiển thị thông báo, đóng form, v.v.
         },
         error: function(xhr) {

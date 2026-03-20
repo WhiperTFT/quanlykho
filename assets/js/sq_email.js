@@ -1,8 +1,9 @@
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sq_email.js
 
 // --- Hàm Bắt Đầu Polling Trạng Thái Email ---
 function startEmailStatusPolling(logId, logType) {
-    console.log(`Starting email status polling for quote log ID: ${logId}, Type: ${logType}`);
+    devLog(`Starting email status polling for quote log ID: ${logId}, Type: ${logType}`);
     if (emailStatusPollingInterval !== null) {
         clearInterval(emailStatusPollingInterval);
     }
@@ -37,7 +38,7 @@ function startEmailStatusPolling(logId, logType) {
                         default: // unknown, null, empty
                             messageType = 'error'; // Coi là lỗi nếu trạng thái không xác định
                             finalMessage = `${currentDocName} ${escapeHtml(docNumber)}: Trạng thái email không xác định (${escapeHtml(response.status)}).`;
-                            console.warn(`Unknown or empty email status for log ID ${logId}: ${response.status}`);
+                            devLog(`Unknown or empty email status for log ID ${logId}: ${response.status}`);
                             clearInterval(emailStatusPollingInterval); emailStatusPollingInterval = null; // Dừng polling
                             break;
                     }
@@ -72,7 +73,7 @@ function startEmailStatusPolling(logId, logType) {
 // --- Hàm Dừng Polling Trạng Thái Email ---
 function stopEmailStatusPolling() {
     if (emailStatusPollingInterval !== null) {
-        console.log("Stopping email status polling for quote.");
+        devLog("Stopping email status polling for quote.");
         clearInterval(emailStatusPollingInterval);
         emailStatusPollingInterval = null;
     }
