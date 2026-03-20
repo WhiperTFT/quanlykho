@@ -429,7 +429,7 @@ body {
         <div class="col-12 col-lg-6">
             <div class="card content-card shadow-sm h-100">
                 <div class="card-header content-card-header bg-white">
-                    <i class="bi bi-truck-flatbed me-2 text-info"></i>Giao Việc Gần Đây
+                    <i class="bi bi-truck-flatbed me-2 text-info"></i>Các chuyến giao gần nhất
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -438,7 +438,7 @@ body {
                             <tr>
                                 <th class="ps-3">Mã Đơn</th>
                                 <th>Tài Xế</th>
-                                <th>Ngày Giao Dự Kiến</th>
+                                <th>Ngày Giao</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -477,10 +477,10 @@ body {
             <i class="bi bi-file-earmark-plus-fill"></i> Tạo Báo Giá
           </a>
           <a href="partners.php" class="btn btn-light btn-quick-action border shadow-sm text-info">
-            <i class="bi bi-person-plus-fill"></i> Thêm Khách Hàng
+            <i class="bi bi-person-plus-fill"></i> Thêm Đối Tác
           </a>
           <a href="driver_trips.php" class="btn btn-light btn-quick-action border shadow-sm text-dark">
-            <i class="bi bi-truck"></i> Giao Việc Tài Xế
+            <i class="bi bi-truck"></i> Bảng kê giao hàng
           </a>
         </div>
         
