@@ -22,9 +22,9 @@ $(document).ready(function() {
 //    const MAX_DOCS = 3;
 
     // --- Helper Functions ---
-    function showUserMessage(message, type = 'success') {
+    function showUserMessage(message, type = 'success', reload = true) {
         alert(type.toUpperCase() + ": " + message);
-        if (type === 'success') {
+        if (type === 'success' && reload) {
             location.reload();
         }
     }
@@ -245,9 +245,17 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     categoryModal.hide();
-                    showUserMessage(response.message || LANG['save_success'] || 'Saved successfully!');
-                    // Cân nhắc: Thay vì reload, cập nhật cây DOM bằng JS
-                    // updateTreeAfterCategorySave(action, response.data); // Ví dụ
+                    showUserMessage(response.message || LANG['save_success'] || 'Saved successfully!', 'success', false);
+                    if (typeof loadParents === 'function') {
+                        let pId = $('#parentId').val();
+                        if (pId && pId !== 'null' && typeof currentParentId !== 'undefined' && currentParentId === parseInt(pId)) {
+                            selectParent(currentParentId, $('.parent-item.active'));
+                        } else {
+                            loadParents();
+                        }
+                    } else {
+                        location.reload();
+                    }
                 } else {
                     // Xử lý lỗi từ server (bao gồm cả validation server-side)
                     if (response.errors) {
@@ -292,9 +300,12 @@ $(document).ready(function() {
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        showUserMessage(response.message || LANG['delete_success'] || 'Deleted successfully!');
-                       // Cập nhật cây DOM thay vì reload
-                       // button.closest('.category-item').remove();
+                        showUserMessage(response.message || LANG['delete_success'] || 'Deleted successfully!', 'success', false);
+                        if (typeof loadParents === 'function') {
+                            loadParents();
+                        } else {
+                            location.reload();
+                        }
                     } else {
                         // Hiển thị lỗi cụ thể từ server (ví dụ: không xóa được do có con)
                         showUserMessage(response.message || LANG['delete_error'] || 'Error deleting data', 'error');
@@ -472,7 +483,12 @@ $(document).ready(function() {
             devLog('Server response:', response);
             if (response.success) {
                 productModal.hide();
-                showUserMessage(response.message || LANG['save_success'] || 'Saved successfully!');
+                showUserMessage(response.message || LANG['save_success'] || 'Saved successfully!', 'success', false);
+                if (typeof loadProducts === 'function') {
+                    loadProducts(true);
+                } else {
+                    location.reload();
+                }
             } else {
                 let errorMsg = response.message || LANG['save_error'] || 'Error saving data';
                 if (response.errors) {
@@ -527,7 +543,12 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    showUserMessage(response.message || 'Deleted successfully!');
+                    showUserMessage(response.message || 'Deleted successfully!', 'success', false);
+                    if (typeof loadProducts === 'function') {
+                        loadProducts(true);
+                    } else {
+                        location.reload();
+                    }
                 } else {
                     showUserMessage(response.message || 'Delete error', 'error');
                 }

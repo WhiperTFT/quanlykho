@@ -37,6 +37,7 @@ $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 // Exception Whitelist
 $public_routes = [
     '/login.php',
+    '/process/login_process.php',
     '/share.php',
     '/assets/',
     '/driver_trips.php',
