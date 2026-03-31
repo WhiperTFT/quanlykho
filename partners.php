@@ -5,43 +5,49 @@ require_once __DIR__ . '/includes/init.php';
 require_login();
 ?>
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2"><?= $lang['manage_partners'] ?></h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#partnerModal" id="addPartnerBtn">
-            <i class="bi bi-plus-lg"></i> <?= $lang['add_partner'] ?>
+<div class="page-header">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="bi bi-people-fill me-2 text-primary"></i><?= $lang['manage_partners'] ?></h1>
+        <p class="text-muted mb-0 small">Quản lý danh sách khách hàng &amp; nhà cung cấp</p>
+    </div>
+    <div class="page-header-actions">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#partnerModal" id="addPartnerBtn">
+            <i class="bi bi-plus-lg me-1"></i> <?= $lang['add_partner'] ?>
         </button>
     </div>
 </div>
 
-<div class="row mb-3">
-    <div class="col-md-6">
-        <input type="text" id="partner-search" class="form-control" placeholder="<?= $lang['filter_partners'] ?>">
+<div class="content-card shadow-sm">
+    <div class="content-card-header">
+        <span><i class="bi bi-table me-2 text-primary"></i>Danh sách đối tác</span>
+        <div class="ms-auto">
+            <input type="text" id="partner-search" class="form-control form-control-sm" style="min-width:220px;" placeholder="<?= $lang['filter_partners'] ?>">
+        </div>
     </div>
-</div>
-
-<div class="table-responsive">
-    <table class="table table-striped table-hover" id="partner-table">
-        <thead class="table-dark"> <?php /* Hoặc table-light, hoặc không có class nào để dùng kiểu mặc định */ ?>
-            <tr>
-                <th>#</th>
-                <th><?= $lang['partner_name'] ?></th>
-                <th><?= $lang['partner_type'] ?></th>
-                <th><?= $lang['tax_id'] ?></th>
-                <th><?= $lang['phone'] ?></th>
-                <th><?= $lang['email'] ?></th>
-                <th><?= $lang['email_cc'] ?></th> <?php /* ← CỘT MỚI ĐƯỢC THÊM */ ?>
-                <th><?= $lang['contact_person'] ?></th>
-                <th><?= $lang['action'] ?></th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php /* Dòng hiển thị "Loading..." và "Không có dữ liệu" sẽ được JavaScript quản lý */ ?>
-            <tr>
-                <td colspan="9" class="text-center" id="loading-row">Đang tải...</td> <?php /* Cập nhật colspan thành 9 */ ?>
-            </tr>
-        </tbody>
-    </table>
+    <div class="content-card-body-flush">
+        <div class="table-responsive">
+            <table class="table table-hover table-custom mb-0" id="partner-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th><?= $lang['partner_name'] ?></th>
+                        <th><?= $lang['partner_type'] ?></th>
+                        <th><?= $lang['tax_id'] ?></th>
+                        <th><?= $lang['phone'] ?></th>
+                        <th><?= $lang['email'] ?></th>
+                        <th><?= $lang['email_cc'] ?></th>
+                        <th><?= $lang['contact_person'] ?></th>
+                        <th><?= $lang['action'] ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="9" class="text-center py-4" id="loading-row">Đang tải...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade" id="partnerModal" tabindex="-1" aria-labelledby="partnerModalLabel" aria-hidden="true">

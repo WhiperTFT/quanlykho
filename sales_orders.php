@@ -34,13 +34,17 @@ try {
 $initial_orders = [];
 ?>
 
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1><i class="bi bi-receipt-cutoff me-2"></i><?= $lang['sales_orders'] ?? 'Purchase Orders' ?></h1>
+<div class="page-header">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="bi bi-receipt-cutoff me-2 text-primary"></i><?= $lang['sales_orders'] ?? 'Purchase Orders' ?></h1>
+        <p class="text-muted mb-0 small">Quản lý đơn hàng mua và theo dõi giao hàng</p>
+    </div>
+    <div class="page-header-actions">
         <button class="btn btn-primary" id="btn-create-new-order">
             <i class="bi bi-plus-circle me-1"></i> <?= $lang['create_new_order'] ?? 'Create New Order' ?>
         </button>
     </div>
+</div>
 
     <div class="card shadow-sm mb-4" id="order-form-card" style="display: none;">
         <div class="card-header bg-primary text-white">
@@ -113,13 +117,13 @@ $initial_orders = [];
         </div>
     </div>
 
-    <h3 class="mt-4 mb-3" id="order-list-title"><?= $lang['orders_list'] ?? 'Orders List' ?></h3>
+<h3 class="section-title mt-4 mb-3" id="order-list-title"><?= $lang['orders_list'] ?? 'Orders List' ?></h3>
     <?php
      $list_data = $initial_orders;
      $list_type = 'sales_order';
      require __DIR__ . '/includes/document_list.php';
      ?>
-</div>
+
 
 
 <?php

@@ -118,41 +118,43 @@ if ($driver_id > 0) {
 $page_title="Bảng kê tài xế";
 include 'includes/header.php';
 ?>
-<!-- =========================
-     NÚT TÌM KIẾM NÂNG CAO (THÊM)
-========================= -->
-<div class="text-end mb-3">
-<button class="btn btn-outline-secondary"
-        data-bs-toggle="modal"
-        data-bs-target="#advancedSearchModal">
-    <i class="bi bi-search"></i> Tìm kiếm nâng cao
-</button>
+<div class="page-header">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="bi bi-truck-flatbed me-2 text-primary"></i>Bảng kê chi tiết theo tài xế</h1>
+        <p class="text-muted mb-0 small">Xết lịch, tính tiền xe và phân công giao hàng</p>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn btn-outline-secondary btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#advancedSearchModal">
+            <i class="bi bi-search me-1"></i> Tìm kiếm nâng cao
+        </button>
+    </div>
 </div>
-<!-- Thêm Flatpickr -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Bảng kê chi tiết theo tài xế</h1>
-
-    <form method="GET" action="driver_trips.php" id="driver-filter-form" class="card shadow mb-4">
-        <div class="card-body">
+<div class="content-card shadow-sm mb-4">
+    <div class="content-card-header">
+        <i class="bi bi-funnel-fill me-2 text-primary"></i>Chọn tài xế và kỳ
+    </div>
+    <div class="content-card-body">
+        <form method="GET" action="driver_trips.php" id="driver-filter-form">
             <div class="row g-3 align-items-end">
                 <div class="col-md-4"><label for="driver_id" class="form-label">Chọn tài xế:</label><select name="driver_id" id="driver_id" class="form-select" required><option value="">-- Vui lòng chọn --</option><?php foreach ($all_drivers as $d): ?><option value="<?= $d['id'] ?>" <?= ($driver_id == $d['id']) ? 'selected' : '' ?>><?= htmlspecialchars($d['ten']) ?></option><?php endforeach; ?></select></div>
                 <div class="col-md-3"><label for="year" class="form-label">Năm:</label><input type="number" name="year" id="year" class="form-control" value="<?= $year ?>"></div>
                 <div class="col-md-3"><label for="month" class="form-label">Tháng:</label><input type="number" name="month" id="month" class="form-control" value="<?= (int)$month ?>"></div>
                 <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Xem</button></div>
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
+</div>
 
-    <?php if ($driver): ?>
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-            <h6 class="m-0 font-weight-bold text-primary">Bảng kê cho tài xế: <?= htmlspecialchars($driver['ten']) ?> | Tháng <?= $month ?>/<?= $year ?></h6>
-            <button class="btn btn-sm btn-outline-secondary" id="toggle-zero-trips-btn">Hiện các chuyến đi giá trị 0</button>
-        </div>
-        <div class="card-body">
+<?php if ($driver): ?>
+<div class="content-card shadow-sm mb-4">
+    <div class="content-card-header">
+        <span><i class="bi bi-person-badge me-2 text-primary"></i>Bảng kê: <strong><?= htmlspecialchars($driver['ten']) ?></strong> &mdash; Tháng <?= $month ?>/<?= $year ?></span>
+        <button class="btn btn-sm btn-outline-secondary" id="toggle-zero-trips-btn">Hiện các chuyến đi giá trị 0</button>
+    </div>
+    <div class="content-card-body">
             <div class="table-responsive">
                 <!-- Wrapper cuộn thật -->
                 <div id="scroll-wrapper" style="overflow-x: auto;">

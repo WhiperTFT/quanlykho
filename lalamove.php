@@ -199,8 +199,8 @@ include 'includes/header.php';
         </tfoot>
     </table>
 
-    <a href="lalamove_reports.php" class="btn btn-secondary">Quản lý báo cáo</a>
 <?php endif; ?>
+    <a href="lalamove_reports.php" class="btn btn-secondary mb-3">Quản lý báo cáo đã lưu</a>
 </div>
 
 <?php include 'includes/footer.php'; ?>

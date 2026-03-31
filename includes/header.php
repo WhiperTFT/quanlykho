@@ -26,6 +26,7 @@ header('Permissions-Policy: fullscreen=(self)');
 
     <!-- Custom CSS (kèm cache busting thông minh) -->
     <link rel="stylesheet" href="<?= PROJECT_BASE_URL; ?>assets/css/style.css?v=<?= filemtime(__DIR__ . '/../assets/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= PROJECT_BASE_URL; ?>assets/css/ui-system.css?v=<?= filemtime(__DIR__ . '/../assets/css/ui-system.css') ?>">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <?php

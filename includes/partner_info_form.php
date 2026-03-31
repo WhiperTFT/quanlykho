@@ -120,7 +120,7 @@ $doc_date_input_name   = $current_config['date_input_name'];
             </fieldset>
         </div>
 
-        <div class="col-md-5 text-end">
+        <div class="col-md-5 text-md-end text-start">
             <div class="row g-3"> <div class="mb-3 fw-bold">
                     <label for="<?= htmlspecialchars($doc_date_input_id) ?>" class="form-label required"><?= htmlspecialchars($doc_date_label_text) ?></label>
                     <input type="text" class="form-control datepicker text-end" id="<?= htmlspecialchars($doc_date_input_id) ?>" name="<?= htmlspecialchars($doc_date_input_name) ?>" required placeholder="dd/mm/yyyy" autocomplete="off">

@@ -48,14 +48,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_logs'])) {
 ?>
 
 <div class="container-fluid mt-4 mb-5 user-logs">
-    
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h2 class="mb-0 fw-bold"><i class="bi bi-shield-lock me-2 text-primary"></i>Nhật ký Hệ thống</h2>
-        <div>
-            <button onclick="window.location.reload();" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
-            <button id="runCleanup" class="btn btn-warning btn-sm"><i class="bi bi-magic"></i> Dọn Log định kỳ</button>
-        </div>
+    <div class="page-header">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="bi bi-shield-lock me-2 text-primary"></i>Nhật ký Hệ thống</h1>
+        <p class="text-muted mb-0 small">Lịch sử hoạt động của người dùng trong hệ thống</p>
     </div>
+    <div class="page-header-actions">
+        <button onclick="window.location.reload();" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i> Làm mới</button>
+        <button id="runCleanup" class="btn btn-warning btn-sm"><i class="bi bi-magic me-1"></i> Dọn Log</button>
+    </div>
+</div>
 
     <!-- SUMMARY CARDS -->
     <div class="row g-3 mb-4">
@@ -109,48 +111,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_logs'])) {
     <?php endif; ?>
 
     <!-- FILTER BAR -->
-    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
-        <form id="filterForm" class="row g-2 align-items-center">
-            <div class="col-md-2">
-                <input type="date" id="f_date_start" class="form-control form-control-sm" placeholder="Từ khoảng">
-            </div>
-            <div class="col-md-2">
-                <input type="date" id="f_date_end" class="form-control form-control-sm" placeholder="Tới khoảng">
-            </div>
-            <div class="col-md-2">
-                <select id="f_user" class="form-select form-select-sm">
-                    <option value="">-- Mọi người --</option>
-                    <?php foreach($usersList as $u): ?>
-                    <option value="<?= $u['id'] ?>"><?= htmlspecialchars($u['username']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select id="f_module" class="form-select form-select-sm">
-                    <option value="">-- Mọi Phân Hệ --</option>
-                    <?php foreach($modulesList as $m): ?>
-                    <option value="<?= htmlspecialchars($m) ?>"><?= htmlspecialchars(strtoupper($m)) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select id="f_action" class="form-select form-select-sm">
-                    <option value="">-- Mọi Hành Động --</option>
-                    <option value="CREATE">Phân loại: THÊM MỚI</option>
-                    <option value="UPDATE">Phân loại: CẬP NHẬT</option>
-                    <option value="DELETE">Phân loại: XÓA BỎ</option>
-                </select>
-            </div>
-            <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-sm w-100 btn-primary"><i class="bi bi-filter"></i> Lọc dữ liệu</button>
-            </div>
-        </form>
-    </div>
+    <div class="filter-card">
+    <form id="filterForm" class="row g-2 align-items-center">
+        <div class="col-md-2">
+            <input type="date" id="f_date_start" class="form-control form-control-sm" placeholder="Từ khoảng">
+        </div>
+        <div class="col-md-2">
+            <input type="date" id="f_date_end" class="form-control form-control-sm" placeholder="Tới khoảng">
+        </div>
+        <div class="col-md-2">
+            <select id="f_user" class="form-select form-select-sm">
+                <option value="">-- Mọi người --</option>
+                <?php foreach($usersList as $u): ?>
+                <option value="<?= $u['id'] ?>"><?= htmlspecialchars($u['username']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select id="f_module" class="form-select form-select-sm">
+                <option value="">-- Mọi Phân Hệ --</option>
+                <?php foreach($modulesList as $m): ?>
+                <option value="<?= htmlspecialchars($m) ?>"><?= htmlspecialchars(strtoupper($m)) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select id="f_action" class="form-select form-select-sm">
+                <option value="">-- Mọi Hành Động --</option>
+                <option value="CREATE">Phân loại: THÊM MỚI</option>
+                <option value="UPDATE">Phân loại: CẬP NHẬT</option>
+                <option value="DELETE">Phân loại: XÓA Bỏ</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-sm w-100 btn-primary"><i class="bi bi-filter"></i> Lọc dữ liệu</button>
+        </div>
+    </form>
+</div>
 
     <!-- MAIN TABLE -->
-    <div class="card border-0 shadow-sm rounded-4 p-4 overflow-hidden">
+    <div class="content-card shadow-sm">
+    <div class="content-card-header">
+        <span><i class="bi bi-journal-text me-2 text-primary"></i>Chi tiết nhật ký</span>
+    </div>
+    <div class="content-card-body-flush">
         <div class="table-responsive">
-            <table id="auditTable" class="table table-bordered align-middle w-100" style="font-size:0.9rem;">
+            <table id="auditTable" class="table table-hover table-custom mb-0 w-100" style="font-size:0.9rem;">
                 <thead class="table-light">
                     <tr>
                         <th width="15%">Thời gian</th>
@@ -165,6 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_logs'])) {
             </table>
         </div>
     </div>
+</div>
 </div>
 
 <!-- Modal xem Data JSON -->

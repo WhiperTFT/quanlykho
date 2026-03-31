@@ -138,6 +138,12 @@ $flatChildren = $allCatStmt->fetchAll(PDO::FETCH_ASSOC);
 }
 .catalog-container { height: calc(100vh - 140px); background: #fff; border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
 .col-pane { height: 100%; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+
+@media (max-width: 767.98px) {
+    .catalog-container { height: auto; min-height: 100vh; overflow: visible; background: transparent; border: none; box-shadow: none; }
+    .col-pane { height: 50vh; min-height: 400px; border-right: none; border-bottom: 1px solid var(--border-color); border-radius: 12px; background: #fff; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); overflow: hidden; }
+    .col-pane:last-child { border-bottom: none; height: 75vh; }
+}
 .col-pane:last-child { border-right: none; }
 .pane-header { padding: 16px; background: #fff; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1030; }
 .pane-body { flex: 1; overflow-y: auto; background: var(--bg-sidebar); padding: 10px; }
@@ -162,8 +168,11 @@ $flatChildren = $allCatStmt->fetchAll(PDO::FETCH_ASSOC);
 .prod-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; background: #f8f9fa; }
 </style>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 fw-bold m-0"><i class="bi bi-grid-fill me-2 text-primary"></i>Quản lý Catalog</h1>
+<div class="page-header border-bottom pt-2 pb-3">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="bi bi-grid-fill me-2 text-primary"></i>Quản lý Catalog</h1>
+        <p class="text-muted mb-0 small">Quản lý danh mục, hàng hóa và sản phẩm</p>
+    </div>
 </div>
 
 <div class="catalog-container row g-0" id="catalogTree">

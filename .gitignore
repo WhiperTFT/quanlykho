@@ -9,3 +9,4 @@ certs/
 secrets/
 .env
 apache/conf/ssl.crt/
+pdf/

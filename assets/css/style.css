@@ -1166,3 +1166,61 @@ body {
             font-weight: 600;
             color: #d63384;
         }
+
+/* Responsive Table Cards for Mobile */
+@media (max-width: 767.98px) {
+    .table-mobile-cards thead {
+        display: none;
+    }
+    .table-mobile-cards tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 8px;
+        background-color: #fff;
+    }
+    .table-mobile-cards tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border: none !important;
+        border-bottom: 1px dashed #f0f0f0 !important;
+        text-align: right;
+    }
+    .table-mobile-cards tbody td:last-child {
+        border-bottom: none !important;
+    }
+    .table-mobile-cards tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        text-align: left;
+        margin-right: 15px;
+        color: #495057;
+    }
+    .table-mobile-cards td .form-control,
+    .table-mobile-cards td .form-select,
+    .table-mobile-cards td .input-group {
+        width: 60%;
+        max-width: 250px;
+    }
+    .table-mobile-cards .quantity, 
+    .table-mobile-cards .unit-price, 
+    .table-mobile-cards .line-total {
+        max-width: none !important;
+    }
+    .table-mobile-cards td .invalid-feedback {
+        text-align: right;
+        width: 100%;
+    }
+
+    /* Touch-friendly targets */
+    .btn, .form-control, .form-select, .input-group-text {
+        min-height: 44px;
+        font-size: 16px; /* Prevents iOS auto-zoom */
+    }
+    .btn-sm, .form-control-sm, .form-select-sm {
+        min-height: 38px;
+    }
+}

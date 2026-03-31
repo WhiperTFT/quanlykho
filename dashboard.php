@@ -345,7 +345,7 @@ body {
       </div>
       <div class="card-body p-0">
         <div class="table-responsive">
-          <table class="table table-hover table-custom mb-0">
+          <table class="table table-hover table-custom mb-0 table-mobile-cards">
             <thead class="table-light">
               <tr>
                 <th class="ps-4">Mã Đơn</th>
@@ -368,10 +368,10 @@ body {
                      elseif ($st === 'draft') $badgeCls = 'bg-warning text-dark';
                   ?>
                   <tr>
-                    <td class="ps-4 fw-semibold text-primary">#<?= htmlspecialchars($ro['order_number'] ?? $ro['id'] ?? 'N/A') ?></td>
-                    <td><?= !empty($ro['order_date']) ? date('d/m/Y', strtotime($ro['order_date'])) : '---' ?></td>
-                    <td><span class="badge badge-status <?= $badgeCls ?>"><?= htmlspecialchars(ucfirst($st)) ?></span></td>
-                    <td class="text-end pe-4 fw-bold"><?= number_format((float)($ro['grand_total'] ?? 0), 0, ',', '.') ?>₫</td>
+                    <td class="ps-4 fw-semibold text-primary" data-label="Mã Đơn">#<?= htmlspecialchars($ro['order_number'] ?? $ro['id'] ?? 'N/A') ?></td>
+                    <td data-label="Ngày Đặt"><?= !empty($ro['order_date']) ? date('d/m/Y', strtotime($ro['order_date'])) : '---' ?></td>
+                    <td data-label="Trạng Thái"><span class="badge badge-status <?= $badgeCls ?>"><?= htmlspecialchars(ucfirst($st)) ?></span></td>
+                    <td class="text-end pe-4 fw-bold" data-label="Tổng Cộng"><?= number_format((float)($ro['grand_total'] ?? 0), 0, ',', '.') ?>₫</td>
                   </tr>
                 <?php endforeach; ?>
               <?php endif; ?>
@@ -389,7 +389,7 @@ body {
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                    <table class="table table-hover table-custom mb-0">
+                    <table class="table table-hover table-custom mb-0 table-mobile-cards">
                         <thead class="table-light">
                             <tr>
                                 <th class="ps-3">Mã Báo Giá</th>
@@ -413,9 +413,9 @@ body {
                                         $dateField = !empty($rq['quote_date']) ? $rq['quote_date'] : ($rq['created_at'] ?? '');
                                     ?>
                                     <tr>
-                                        <td class="ps-3 fw-semibold">#<?= htmlspecialchars($rq['quote_number'] ?? $rq['id'] ?? 'N/A') ?></td>
-                                        <td><?= !empty($dateField) ? date('d/m/Y', strtotime($dateField)) : '---' ?></td>
-                                        <td><span class="badge badge-status <?= $badgeCls ?>"><?= htmlspecialchars(ucfirst($st)) ?></span></td>
+                                        <td class="ps-3 fw-semibold" data-label="Mã Báo Giá">#<?= htmlspecialchars($rq['quote_number'] ?? $rq['id'] ?? 'N/A') ?></td>
+                                        <td data-label="Ngày Báo"><?= !empty($dateField) ? date('d/m/Y', strtotime($dateField)) : '---' ?></td>
+                                        <td data-label="Trạng Thái"><span class="badge badge-status <?= $badgeCls ?>"><?= htmlspecialchars(ucfirst($st)) ?></span></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -433,7 +433,7 @@ body {
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                    <table class="table table-hover table-custom mb-0">
+                    <table class="table table-hover table-custom mb-0 table-mobile-cards">
                         <thead class="table-light">
                             <tr>
                                 <th class="ps-3">Mã Đơn</th>
@@ -447,9 +447,9 @@ body {
                             <?php else: ?>
                                 <?php foreach ($recentTrips as $rt): ?>
                                     <tr>
-                                        <td class="ps-3 fw-semibold text-primary">#<?= htmlspecialchars($rt['id'] ?? 'N/A') ?></td>
-                                        <td><i class="bi bi-person-circle me-1 text-secondary"></i><?= htmlspecialchars($rt['driver_name'] ?? 'N/A') ?></td>
-                                        <td><?= !empty($rt['expected_delivery_date']) ? date('d/m/Y', strtotime($rt['expected_delivery_date'])) : '<span class="text-muted fst-italic">Chưa xếp lịch</span>' ?></td>
+                                        <td class="ps-3 fw-semibold text-primary" data-label="Mã Đơn">#<?= htmlspecialchars($rt['id'] ?? 'N/A') ?></td>
+                                        <td data-label="Tài Xế"><i class="bi bi-person-circle me-1 text-secondary"></i><?= htmlspecialchars($rt['driver_name'] ?? 'N/A') ?></td>
+                                        <td data-label="Ngày Giao"><?= !empty($rt['expected_delivery_date']) ? date('d/m/Y', strtotime($rt['expected_delivery_date'])) : '<span class="text-muted fst-italic">Chưa xếp lịch</span>' ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>

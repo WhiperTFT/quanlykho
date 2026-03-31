@@ -19,67 +19,65 @@ try {
 
 ?>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1><i class="bi bi-rulers me-2"></i><?= $lang['units_management'] ?? 'Units Management' ?></h1>
+<div class="page-header">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="bi bi-rulers me-2 text-primary"></i><?= $lang['units_management'] ?? 'Units Management' ?></h1>
+        <p class="text-muted mb-0 small">Quản lý đơn vị đo lường sử dụng trong hệ thống</p>
+    </div>
+    <div class="page-header-actions">
         <button class="btn btn-primary btn-add-unit">
-            <i class="bi bi-plus-circle"></i> <?= $lang['add_unit'] ?? 'Add New Unit' ?>
+            <i class="bi bi-plus-circle me-1"></i> <?= $lang['add_unit'] ?? 'Add New Unit' ?>
         </button>
     </div>
+</div>
 
-    <?php
-    // Hiển thị lại thông báo lỗi nếu có từ bước fetch dữ liệu hoặc từ session
-    if (isset($_SESSION['error_message'])) {
-        echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">' . htmlspecialchars($_SESSION['error_message']) . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
-        unset($_SESSION['error_message']);
-    }
-    ?>
-
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col"><?= $lang['unit_name'] ?? 'Unit Name' ?></th>
-                            <th scope="col"><?= $lang['description'] ?? 'Description' ?></th>
-                            <th scope="col"><?= $lang['created_at'] ?? 'Created At' ?></th>
-                            <th scope="col" class="text-end"><?= $lang['actions'] ?? 'Actions' ?></th>
-                        </tr>
-                    </thead>
-                    <tbody id="unitsTableBody">
-                        <?php if (!empty($units)): ?>
-                            <?php $count = 1; ?>
-                            <?php foreach ($units as $unit): ?>
-                                <tr id="unit-row-<?= $unit['id'] ?>">
-                                    <th scope="row"><?= $count++ ?></th>
-                                    <td><?= htmlspecialchars($unit['name']) ?></td>
-                                    <td><?= nl2br(htmlspecialchars($unit['description'] ?? '')) // Hiển thị xuống dòng nếu có ?></td>
-                                    <td><?= date('d/m/Y H:i', strtotime($unit['created_at'])) // Format ngày giờ ?></td>
-                                    <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-warning me-1 btn-edit-unit"
-                                                data-id="<?= $unit['id'] ?>"
-                                                title="<?= $lang['edit'] ?? 'Edit' ?>">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger btn-delete-unit"
-                                                data-id="<?= $unit['id'] ?>"
-                                                data-name="<?= htmlspecialchars($unit['name']) ?>"
-                                                title="<?= $lang['delete'] ?? 'Delete' ?>">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="5" class="text-center"><?= $lang['no_units_found'] ?? 'No units found.' ?></td>
+<div class="content-card shadow-sm">
+    <div class="content-card-header">
+        <span><i class="bi bi-table me-2 text-primary"></i>Danh sách đơn vị tính</span>
+    </div>
+    <div class="content-card-body-flush">
+        <div class="table-responsive">
+            <table class="table table-hover table-custom mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col"><?= $lang['unit_name'] ?? 'Unit Name' ?></th>
+                        <th scope="col"><?= $lang['description'] ?? 'Description' ?></th>
+                        <th scope="col"><?= $lang['created_at'] ?? 'Created At' ?></th>
+                        <th scope="col" class="text-end"><?= $lang['actions'] ?? 'Actions' ?></th>
+                    </tr>
+                </thead>
+                <tbody id="unitsTableBody">
+                    <?php if (!empty($units)): ?>
+                        <?php $count = 1; ?>
+                        <?php foreach ($units as $unit): ?>
+                            <tr id="unit-row-<?= $unit['id'] ?>">
+                                <th scope="row"><?= $count++ ?></th>
+                                <td><?= htmlspecialchars($unit['name']) ?></td>
+                                <td><?= nl2br(htmlspecialchars($unit['description'] ?? '')) ?></td>
+                                <td><?= date('d/m/Y H:i', strtotime($unit['created_at'])) ?></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-warning me-1 btn-edit-unit"
+                                            data-id="<?= $unit['id'] ?>"
+                                            title="<?= $lang['edit'] ?? 'Edit' ?>">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger btn-delete-unit"
+                                            data-id="<?= $unit['id'] ?>"
+                                            data-name="<?= htmlspecialchars($unit['name']) ?>"
+                                            title="<?= $lang['delete'] ?? 'Delete' ?>">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
                             </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted"><?= $lang['no_units_found'] ?? 'No units found.' ?></td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

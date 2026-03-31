@@ -52,43 +52,50 @@ require_login();
 
 </style>
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2"><?= htmlspecialchars($page_title) ?></h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#driverModal" id="addDriverBtn">
-            <i class="bi bi-plus-lg"></i> <?= $lang['add_driver'] ?? 'Thêm Tài xế' ?>
+<div class="page-header">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="bi bi-truck me-2 text-primary"></i><?= htmlspecialchars($page_title) ?></h1>
+        <p class="text-muted mb-0 small">Quản lý thông tin tài xế và phương tiện</p>
+    </div>
+    <div class="page-header-actions">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#driverModal" id="addDriverBtn">
+            <i class="bi bi-plus-lg me-1"></i> <?= $lang['add_driver'] ?? 'Thêm Tài xế' ?>
         </button>
     </div>
 </div>
 
-<div class="row mb-3">
-    <div class="col-md-6">
-        <input type="text" id="driver-search" class="form-control" placeholder="<?= $lang['filter_drivers'] ?? 'Lọc tài xế...' ?>">
+<div class="content-card shadow-sm">
+    <div class="content-card-header">
+        <span><i class="bi bi-table me-2 text-primary"></i>Danh sách tài xế</span>
+        <div class="ms-auto">
+            <input type="text" id="driver-search" class="form-control form-control-sm" style="min-width:220px;" placeholder="<?= $lang['filter_drivers'] ?? 'Lọc tài xế...' ?>">
+        </div>
     </div>
-</div>
-
-<div class="table-responsive">
-    <table class="table table-striped table-hover" id="driver-table">
-        <thead class="table-dark">
-            <tr>
-                <th>#</th>
-                <th><?= $lang['driver_name_label'] ?? 'Tên Tài xế' ?></th>
-                <th><?= $lang['cccd_label'] ?? 'CCCD' ?></th>
-                <th><?= $lang['issue_date_label'] ?? 'Ngày cấp' ?></th>
-                <th><?= $lang['issue_place_label'] ?? 'Nơi cấp' ?></th>
-                <th><?= $lang['phone_label'] ?? 'SĐT' ?></th>
-                <th><?= $lang['license_plates_label'] ?? 'Biển số xe' ?></th>
-                <th><?= $lang['notes_label'] ?? 'Ghi chú' ?></th>
-                <th><?= $lang['action_label'] ?? 'Hành động' ?></th>
-                <th>Danh thiếp</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td colspan="10" class="text-center" id="loading-row"><?= $lang['loading_data'] ?? 'Đang tải dữ liệu...' ?></td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="content-card-body-flush">
+        <div class="table-responsive">
+            <table class="table table-hover table-custom mb-0" id="driver-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th><?= $lang['driver_name_label'] ?? 'Tên Tài xế' ?></th>
+                        <th><?= $lang['cccd_label'] ?? 'CCCD' ?></th>
+                        <th><?= $lang['issue_date_label'] ?? 'Ngày cấp' ?></th>
+                        <th><?= $lang['issue_place_label'] ?? 'Nơi cấp' ?></th>
+                        <th><?= $lang['phone_label'] ?? 'SĐT' ?></th>
+                        <th><?= $lang['license_plates_label'] ?? 'Biển số xe' ?></th>
+                        <th><?= $lang['notes_label'] ?? 'Ghi chú' ?></th>
+                        <th><?= $lang['action_label'] ?? 'Hành động' ?></th>
+                        <th>Danh thiếp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="10" class="text-center py-4" id="loading-row"><?= $lang['loading_data'] ?? 'Đang tải dữ liệu...' ?></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!-- Modal Thêm / Sửa Tài xế -->
