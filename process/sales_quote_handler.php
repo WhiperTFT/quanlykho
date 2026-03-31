@@ -215,7 +215,8 @@ try {
                             $item_detailId = filter_var($item['detail_id'] ?? null, FILTER_VALIDATE_INT) ?: null;
 
                             if (empty($item_productName) && !$item_productId) $errors["items"][$index]['item_name'] = $lang['product_name_required'] ?? 'Product name required.';
-                            if ($item_quantity === null || $item_quantity <= 0) $errors["items"][$index]['quantity'] = $lang['invalid_quantity'] ?? 'Invalid quantity.';
+                            // Báo giá: cho phép số lượng = 0 (không cần ghi số lượng khi tạo báo giá gửi KH)
+                            if ($item_quantity === null || $item_quantity < 0) $errors["items"][$index]['quantity'] = $lang['invalid_quantity_sq'] ?? 'Invalid quantity (must be >= 0).';
                             if ($item_unitPrice === null || $item_unitPrice < 0) $errors["items"][$index]['unit_price'] = $lang['invalid_unit_price'] ?? 'Invalid unit price.';
 
                             if (empty($errors["items"][$index])) {
@@ -478,9 +479,12 @@ try {
     $response = ['success' => false, 'message' => $e->getMessage()];
     $http_status_code = $e->getCode() ?: 500; // Mặc định 500 cho lỗi này
     if ($http_status_code < 400 || $http_status_code >= 600) $http_status_code = 500;
-    // Đặc biệt cho lỗi 409 Conflict (ví dụ: số báo giá trùng)
-    if ($http_status_code === 409 && method_exists($e, 'getSuggestion')) {
-        $response['suggestion'] = $e->getSuggestion();
+    // Đặc biệt cho lỗi 409 Conflict (số báo giá trùng): extract suggestion từ message
+    if ($http_status_code === 409) {
+        $msgParts = explode('. Suggestion: ', $e->getMessage());
+        if (count($msgParts) >= 2) {
+            $response['suggestion'] = rtrim(end($msgParts), '.');
+        }
     }
     error_log("RuntimeException in " . basename(__FILE__) . " (Action: $action, HTTP: $http_status_code): " . $e->getMessage());
     if (isset($pdo) && $pdo->inTransaction()) { $pdo->rollBack(); }

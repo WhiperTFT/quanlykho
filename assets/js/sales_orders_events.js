@@ -291,11 +291,15 @@ function setupEventListeners() {
                         });
                     } else { devLog("Could not trigger PDF generation: savedOrderId is missing or invalid after save. Response:", response); }
                 } else { // response.success === false từ server
-                    showUserMessage(response.message || LANG['save_error'] || 'Lỗi khi lưu đơn hàng.', 'error');
-                     if(response.errors){
+                    const errMsg = response.message || LANG['save_error'] || 'Lỗi khi lưu đơn hàng.';
+                    showUserMessage(errMsg, 'error');
+                    // Hiển thị thông báo lỗi rõ ràng trong form
+                    formErrorMessageDiv.html('<i class="bi bi-exclamation-triangle-fill me-2"></i>' + errMsg).removeClass('d-none');
+                    $('html,body').animate({ scrollTop: formErrorMessageDiv.offset().top - 20 }, 300);
+                    if (response.errors) {
                         handleFormValidationErrors(response.errors);
                     }
-                    if(response.suggestion && $('#order_number').length){
+                    if (response.suggestion && $('#order_number').length) {
                         $('#order_number').val(response.suggestion).removeClass('is-invalid').closest('.input-group').find('.invalid-feedback').text('');
                         showUserMessage((LANG['suggestion_applied'] || "Đã áp dụng gợi ý số đơn hàng."), 'info');
                     }
@@ -304,25 +308,29 @@ function setupEventListeners() {
             error: function (xhr) {
                 console.error(">>> AJAX Error saving order:", xhr.status, xhr.responseText);
                 let errorMessage = LANG['server_error_saving_order'] || 'Lỗi máy chủ khi lưu đơn hàng.';
-                formErrorMessageDiv.removeClass('d-d-none').removeClass('d-none');
                 try {
                     const res = JSON.parse(xhr.responseText);
                     if (res && res.message) {
                         errorMessage = res.message;
                         if (res.suggestion && $('#order_number').length) {
                             $('#order_number').val(res.suggestion).removeClass('is-invalid').closest('.input-group').find('.invalid-feedback').text('');
-                            errorMessage += " " + (LANG['suggestion_applied'] || "Đã áp dụng gợi ý số đơn hàng.");
-                        } else if (res.errors) {
-                            handleFormValidationErrors(res.errors); errorMessage = LANG['validation_failed'] || 'Validation failed.';
-                        } else { formErrorMessageDiv.text(errorMessage).removeClass('d-d-none').removeClass('d-none'); }
-                    } else { formErrorMessageDiv.text(errorMessage + ` (Status: ${xhr.status})`).removeClass('d-d-none').removeClass('d-none'); }
+                            errorMessage += ' ' + (LANG['suggestion_applied'] || 'Đã áp dụng gợi ý số đơn hàng.');
+                        }
+                        if (res.errors) {
+                            handleFormValidationErrors(res.errors);
+                        }
+                    } else {
+                        errorMessage += ' (Status: ' + xhr.status + ')';
+                    }
                 } catch (e) {
-                    console.error("Error parsing AJAX error responseText:", e, "Response Text:", xhr.responseText);
-                    formErrorMessageDiv.text(errorMessage + ` (Status: ${xhr.status}). Chi tiết phản hồi: ${xhr.responseText.substring(0, 200)}...`).removeClass('d-d-none').removeClass('d-none');
+                    console.error("Error parsing AJAX error responseText:", e);
+                    errorMessage += ' (Status: ' + xhr.status + ')';
                 }
+                showUserMessage(errorMessage, 'error');
+                formErrorMessageDiv.html('<i class="bi bi-exclamation-triangle-fill me-2"></i>' + errorMessage).removeClass('d-none');
                 const firstInvalidElement = orderForm.find('.is-invalid').first();
-                if (formErrorMessageDiv.is(':visible')) { $('html,body').animate({ scrollTop: formErrorMessageDiv.offset().top - 0 }, 300); }
-                else if (firstInvalidElement.length) { $('html,body').animate({ scrollTop: firstInvalidElement.offset().top - 0 }, 300); }
+                if (formErrorMessageDiv.is(':visible')) { $('html,body').animate({ scrollTop: formErrorMessageDiv.offset().top - 20 }, 300); }
+                else if (firstInvalidElement.length) { $('html,body').animate({ scrollTop: firstInvalidElement.offset().top - 80 }, 300); }
             },
             complete: function () {
                 saveButton.prop('disabled', false); saveButtonText.show(); saveButtonSpinner.addClass('d-none');

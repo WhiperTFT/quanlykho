@@ -104,7 +104,7 @@ $lang = [
     'quote_date' => 'Ngày báo giá',
     'purchase_order_title' => 'ĐƠN ĐẶT HÀNG',
     'quantity' => 'Số lượng', // Thêm key này
-    'unit_price' => 'Đơn giá',   // Thêm key này
+    'unit_price' => 'Đơn giá', // Thêm key này
     'Unit_Price' => 'Đơn giá',
     'units_of_measurement' => 'Đơn vị tính',
     'manage_units' => 'Quản lý Đơn vị tính',
@@ -205,7 +205,7 @@ $lang = [
     'current_images' => 'Ảnh hiện có', // / 'Current Images'
     'current_documents' => 'Chứng từ hiện có', // / 'Current Documents'
     'no_products_in_category' => 'Chưa có sản phẩm trong danh mục này.', // / 'No products in this category.'
-   'product_required_fields' => 'Tên sản phẩm, danh mục con và đơn vị tính là bắt buộc.', // / 'Product name, child category, and unit are required.'
+    'product_required_fields' => 'Tên sản phẩm, danh mục con và đơn vị tính là bắt buộc.', // / 'Product name, child category, and unit are required.'
     'product_must_be_in_child_category' => 'Sản phẩm chỉ có thể được thêm vào danh mục con.', // / 'Products can only be added to child categories.'
     'product_not_found' => 'Không tìm thấy sản phẩm.', // / 'Product not found.'
     'product_not_found_or_cannot_delete' => 'Không tìm thấy sản phẩm hoặc không thể xóa.', // / 'Product not found or cannot be deleted.'
@@ -399,13 +399,13 @@ $lang = [
     'enter_new_password_hint' => 'Nhập mật khẩu mới nếu bạn muốn thay đổi.', // Gợi ý chi tiết mật khẩu
     'no_users_found' => 'Không có người dùng nào.', // Thông báo danh sách user rỗng
     'no_permission' => 'Không có quyền', // Text hiển thị khi không có nút hành động do thiếu quyền
-     'error_permission_denied' => 'Lỗi: Bạn không có quyền thực hiện hành động này.', // Thông báo chung từ chối quyền
-     'error_no_permission_edit_role' => 'Bạn không có quyền sửa Vai trò.', // Thông báo quyền cụ thể
-     'error_no_permission_edit_active' => 'Bạn không có quyền sửa trạng thái Kích hoạt.', // Thông báo quyền cụ thể
+    'error_permission_denied' => 'Lỗi: Bạn không có quyền thực hiện hành động này.', // Thông báo chung từ chối quyền
+    'error_no_permission_edit_role' => 'Bạn không có quyền sửa Vai trò.', // Thông báo quyền cụ thể
+    'error_no_permission_edit_active' => 'Bạn không có quyền sửa trạng thái Kích hoạt.', // Thông báo quyền cụ thể
     'error_no_permission_edit_permissions' => 'Bạn không có quyền sửa các thiết lập quyền.', // Thông báo quyền cụ thể
-     'error_db_insert' => 'Lỗi khi thêm dữ liệu:', // Lỗi DB chung khi insert
-     'error_db_update' => 'Lỗi khi cập nhật dữ liệu:', // Lỗi DB chung khi update
-     'error_db_delete' => 'Lỗi khi xóa dữ liệu:', // Lỗi DB chung khi delete
+    'error_db_insert' => 'Lỗi khi thêm dữ liệu:', // Lỗi DB chung khi insert
+    'error_db_update' => 'Lỗi khi cập nhật dữ liệu:', // Lỗi DB chung khi update
+    'error_db_delete' => 'Lỗi khi xóa dữ liệu:', // Lỗi DB chung khi delete
 
     // --- Tên các Quyền (Tương ứng với $available_permissions trong init.php) ---
     'permission_dashboard_view' => 'Xem Bảng điều khiển',
@@ -454,7 +454,7 @@ $lang = [
     'quotation_not_found' => 'Không tìm thấy báo giá.',
     'quotations_menu' => 'Báo Giá', // Cho navbar
 
-    'sales_quote_title'    => 'BẢNG BÁO GIÁ',
+    'sales_quote_title' => 'BẢNG BÁO GIÁ',
     'customer_information' => 'Thông tin Khách hàng',
     'quotation_number_label' => 'Số báo giá',
     'quotation_date_label' => 'Ngày báo giá',
@@ -474,106 +474,49 @@ $lang = [
     'quotation_management_title' => 'Quản lý Báo giá',
     'Delivery Comparison' => 'So sánh giao hàng',
     // delivery_comparison.php
-
-'PO Status' => 'Trạng thái PO',
-'Order Comparison Details' => 'Chi Tiết Đối Soát Đơn Hàng',
-'General Information' => 'Thông Tin Chung',
-'PO Date' => 'Ngày PO',
-'Supplier Address' => 'Địa chỉ NCC',
-'Quote Date' => 'Ngày Báo Giá',
-'Customer Address' => 'Địa chỉ KH',
-'Product Comparison (PO vs Quote)' => 'Đối Soát Sản Phẩm (PO vs Báo Giá)',
-'Product Code' => 'Mã SP',
-
-'PO Qty' => 'SL PO',
-'PO Unit Price' => 'Đơn Giá PO',
-'PO Total' => 'Thành Tiền PO',
-'Quote Unit Price' => 'Đơn Giá BG',
-'Quote Total (based on PO Qty)' => 'TT BG (theo SL PO)',
-'Price Diff.' => 'Chênh Lệch Giá',
-'Total Diff.' => 'Chênh Lệch TT',
-'Delivered Qty' => 'SL Đã Giao',
-'Remaining Qty' => 'SL Còn Lại',
-'Current Stock' => 'Tồn Kho Hiện Tại',
-'Shipment Information' => 'Thông Tin Giao Hàng',
-'No shipment data available for this order yet.' => 'Chưa có dữ liệu giao hàng cho đơn này.',
-'Shipping Addresses' => 'Địa Chỉ Giao Nhận',
-'Ship From (Supplier)' => 'Giao Từ (NCC)',
-'Ship To (Customer)' => 'Giao Đến (KH)',
-'View & Compare' => 'Xem & Đối Soát', 
+    'PO Status' => 'Trạng thái PO',    'Order Comparison Details' => 'Chi Tiết Đối Soát Đơn Hàng',    'General Information' => 'Thông Tin Chung',    'PO Date' => 'Ngày PO',    'Supplier Address' => 'Địa chỉ NCC',    'Quote Date' => 'Ngày Báo Giá',    'Customer Address' => 'Địa chỉ KH',    'Product Comparison (PO vs Quote)' => 'Đối Soát Sản Phẩm (PO vs Báo Giá)',    'Product Code' => 'Mã SP',
+    'PO Qty' => 'SL PO',    'PO Unit Price' => 'Đơn Giá PO',    'PO Total' => 'Thành Tiền PO',    'Quote Unit Price' => 'Đơn Giá BG',    'Quote Total (based on PO Qty)' => 'TT BG (theo SL PO)',    'Price Diff.' => 'Chênh Lệch Giá',    'Total Diff.' => 'Chênh Lệch TT',    'Delivered Qty' => 'SL Đã Giao',    'Remaining Qty' => 'SL Còn Lại',    'Current Stock' => 'Tồn Kho Hiện Tại',    'Shipment Information' => 'Thông Tin Giao Hàng',    'No shipment data available for this order yet.' => 'Chưa có dữ liệu giao hàng cho đơn này.',    'Shipping Addresses' => 'Địa Chỉ Giao Nhận',    'Ship From (Supplier)' => 'Giao Từ (NCC)',    'Ship To (Customer)' => 'Giao Đến (KH)',    'View & Compare' => 'Xem & Đối Soát',
+    
 'Partner Information' => 'Thông Tin Đối Tác',
+    'Unknown Status' => 'Trạng thái không xác định',
 
-'Unknown Status' => 'Trạng thái không xác định',
-
-
-'Shipment Date' => 'Ngày Giao',
-'Driver' => 'Tài Xế',
-'Shipped By' => 'Người Giao',
-'Vehicle Details' => 'Thông Tin Xe',
-'Shipment Status' => 'Trạng Thái Chuyến Giao',
-'Products in this shipment:' => 'Sản phẩm trong chuyến này:',
-'Qty Shipped' => 'SL Giao',
-'Qty Ordered' => 'SL Đặt', 
+    'Shipment Date' => 'Ngày Giao',    'Driver' => 'Tài Xế',    'Shipped By' => 'Người Giao',    'Vehicle Details' => 'Thông Tin Xe',    'Shipment Status' => 'Trạng Thái Chuyến Giao',    'Products in this shipment:' => 'Sản phẩm trong chuyến này:',    'Qty Shipped' => 'SL Giao',    'Qty Ordered' => 'SL Đặt',
 
 
-'shipment_status_pending_shipment' => 'Chờ giao',
-'shipment_status_shipping' => 'Đang giao',
-'shipment_status_partially_completed' => 'Hoàn thành một phần',
-'shipment_status_fully_completed' => 'Hoàn thành đủ',
-'shipment_status_cancelled' => 'Đã hủy chuyến',
-'link_to_sales_quote' => 'Liên kết báo giá KH',
-'link_quote_note' => 'Chọn BG của KH để liên kết. Giúp theo dõi và đối chiếu.',
-'none' => 'Không chọn',
-
-'status_invoiced' => 'Đã Hóa Đơn',
-'mark_as_sent' => 'Đánh dấu Đã Gửi',
-'mark_as_accepted' => 'Đánh dấu Đã Chấp Nhận',
-'mark_as_rejected' => 'Đánh dấu Đã Từ Chối',
-'mark_as_expired' => 'Đánh dấu Hết Hạn',
-'invalid_quote_id' => 'ID Báo giá không hợp lệ.',
-'invalid_status_value' => 'Giá trị trạng thái không hợp lệ: %s.',
-'quote_not_found' => 'Không tìm thấy báo giá.',
-'invalid_status_transition' => 'Không thể thay đổi trạng thái từ %s sang %s.',
-'quote_status_updated_success' => 'Trạng thái báo giá đã được cập nhật thành %s.',
-'quote_status_not_changed' => 'Trạng thái báo giá không thay đổi hoặc không tìm thấy báo giá.',
-'error_missing_data_for_status_update' => 'Thiếu thông tin để cập nhật trạng thái.',
-'confirm_update_quote_status_to' => 'Bạn có chắc muốn cập nhật trạng thái của báo giá %s thành "%s" không?',
-'status_update_success' => 'Cập nhật trạng thái thành công!',
-'status_update_failed' => 'Cập nhật trạng thái thất bại.',
-'server_error_updating_status' => 'Lỗi máy chủ khi cập nhật trạng thái.',
-
-'trip_number' => 'Số chuyến',
-'cost_per_shipment' => 'Chi phí mỗi chuyến',
-'delivery_info' => 'Thông tin giao hàng',
-'delivery_date' => 'Ngày giao hàng',
-'driver_name' => 'Tên tài xế',
-'license_plates' => 'Biển số xe',
-'quantity_delivered' => 'Số lượng đã giao',
-'warehouses' => 'Kho hàng',
-'manage_warehouses' => 'Quản lý Kho hàng',
-'add_warehouse' => 'Thêm Kho mới',
-'edit_warehouse' => 'Chỉnh sửa Kho',
-'warehouse_name' => 'Tên Kho',
-'warehouse_address' => 'Địa chỉ Kho',
-'warehouse_contact_person' => 'Người liên hệ Kho',
-'warehouse_phone' => 'Điện thoại Kho',
-'warehouse_email' => 'Email Kho',
-'warehouse_notes' => 'Ghi chú Kho',
-'upload_documents' => 'Tải lên chứng từ',
-'uploaded_documents' => 'Chứng từ đã tải lên',
-'no_documents_uploaded' => 'Chưa có chứng từ nào được tải lên.',
-'delete_document_confirm' => 'Bạn có chắc muốn xóa chứng từ này không?',
-'currency_unit' => 'Đơn vị tiền tệ',
-'product_code' => 'Mã sản phẩm',
-'delivery_details' => 'Chi tiết giao hàng',
-'edit_delivery_details' => 'Chỉnh sửa chi tiết giao hàng',
-'save_delivery_details' => 'Lưu chi tiết giao hàng',
-'order_no_placeholder' => 'Nhập số PO',
-'quote_no_placeholder' => 'Nhập số báo giá',
-'date_range_placeholder' => 'Chọn khoảng ngày',
-'all_status' => 'Tất cả trạng thái',
-'filter' => 'Lọc',
-'reset' => 'Đặt lại',
-'remove current signature' => 'Xóa chữ ký hiện tại',
+    
+'shipment_status_pending_shipment' => 'Chờ giao',    'shipment_status_shipping' => 'Đang giao',    'shipment_status_partially_completed' => 'Hoàn thành một phần',    'shipment_status_fully_completed' => 'Hoàn thành đủ',    'shipment_status_cancelled' => 'Đã hủy chuyến',    'link_to_sales_quote' => 'Liên kết báo giá KH',    'link_quote_note' => 'Chọn BG của KH để liên kết. Giúp theo dõi và đối chiếu.',    'none' => 'Không chọn',
+    'status_invoiced' => 'Đã Hóa Đơn',    'mark_as_sent' => 'Đánh dấu Đã Gửi',    'mark_as_accepted' => 'Đánh dấu Đã Chấp Nhận',    'mark_as_rejected' => 'Đánh dấu Đã Từ Chối',    'mark_as_expired' => 'Đánh dấu Hết Hạn',    'invalid_quote_id' => 'ID Báo giá không hợp lệ.',    'invalid_status_value' => 'Giá trị trạng thái không hợp lệ: %s.',    'quote_not_found' => 'Không tìm thấy báo giá.',    'invalid_status_transition' => 'Không thể thay đổi trạng thái từ %s sang %s.',    'quote_status_updated_success' => 'Trạng thái báo giá đã được cập nhật thành %s.',    'quote_status_not_changed' => 'Trạng thái báo giá không thay đổi hoặc không tìm thấy báo giá.',    'error_missing_data_for_status_update' => 'Thiếu thông tin để cập nhật trạng thái.',    'confirm_update_quote_status_to' => 'Bạn có chắc muốn cập nhật trạng thái của báo giá %s thành "%s" không?',    'status_update_success' => 'Cập nhật trạng thái thành công!',    'status_update_failed' => 'Cập nhật trạng thái thất bại.',    'server_error_updating_status' => 'Lỗi máy chủ khi cập nhật trạng thái.',
+    'trip_number' => 'Số chuyến',    'cost_per_shipment' => 'Chi phí mỗi chuyến',    'delivery_info' => 'Thông tin giao hàng',    'delivery_date' => 'Ngày giao hàng',    'driver_name' => 'Tên tài xế',    'license_plates' => 'Biển số xe',    'quantity_delivered' => 'Số lượng đã giao',    'warehouses' => 'Kho hàng',    'manage_warehouses' => 'Quản lý Kho hàng',    'add_warehouse' => 'Thêm Kho mới',    'edit_warehouse' => 'Chỉnh sửa Kho',    'warehouse_name' => 'Tên Kho',    'warehouse_address' => 'Địa chỉ Kho',    'warehouse_contact_person' => 'Người liên hệ Kho',    'warehouse_phone' => 'Điện thoại Kho',    'warehouse_email' => 'Email Kho',    'warehouse_notes' => 'Ghi chú Kho',    'upload_documents' => 'Tải lên chứng từ',    'uploaded_documents' => 'Chứng từ đã tải lên',    'no_documents_uploaded' => 'Chưa có chứng từ nào được tải lên.',    'delete_document_confirm' => 'Bạn có chắc muốn xóa chứng từ này không?',    'currency_unit' => 'Đơn vị tiền tệ',    'product_code' => 'Mã sản phẩm',    'delivery_details' => 'Chi tiết giao hàng',    'edit_delivery_details' => 'Chỉnh sửa chi tiết giao hàng',    'save_delivery_details' => 'Lưu chi tiết giao hàng',    'order_no_placeholder' => 'Nhập số PO',    'quote_no_placeholder' => 'Nhập số báo giá',    'date_range_placeholder' => 'Chọn khoảng ngày',    'all_status' => 'Tất cả trạng thái',    'filter' => 'Lọc',    'reset' => 'Đặt lại',    'remove current signature' => 'Xóa chữ ký hiện tại',
+    // === Thêm bổ sung cho Sales Orders & Quotes ===
+    'invalid_quantity_sq' => 'Số lượng không hợp lệ (phải ≥ 0).',
+    'quote_must_have_valid_items' => 'Báo giá phải có ít nhất một dòng sản phẩm hợp lệ.',
+    'quote_number_exists_suggest' => 'Số báo giá %s đã tồn tại. Gợi ý: %s. Vui lòng tạo lại hoặc xác nhận.',
+    'invalid_date_format_expected' => 'Định dạng ngày không hợp lệ. Yêu cầu: %s.',
+    'database_error_details' => 'Lỗi cơ sở dữ liệu. Vui lòng thử lại hoặc liên hệ quản trị.',
+    'server_error_please_retry' => 'Lỗi máy chủ không mong muốn. Vui lòng thử lại.',
+    'invalid_supplier_not_found' => 'Nhà cung cấp không tồn tại hoặc không hợp lệ.',
+    'invalid_customer_not_found' => 'Khách hàng không tồn tại hoặc không hợp lệ.',
+    'invalid_order_id_for_edit' => 'ID đơn hàng không hợp lệ để chỉnh sửa.',
+    'invalid_order_id_for_delete' => 'ID đơn hàng không hợp lệ để xóa.',
+    'invalid_order_id_for_details' => 'ID đơn hàng không hợp lệ để xem chi tiết.',
+    'invalid_quote_id_for_delete' => 'ID báo giá không hợp lệ để xóa.',
+    'order_not_found_for_edit' => 'Không tìm thấy đơn hàng để chỉnh sửa.',
+    'cannot_edit_order_status_not_draft' => 'Không thể chỉnh sửa đơn hàng với trạng thái "%s". Chỉ đơn nháp mới được sửa.',
+    'cannot_delete_order_status_not_draft' => 'Không thể xóa đơn hàng với trạng thái "%s". Chỉ đơn nháp mới được xóa.',
+    'cannot_delete_quote_status_not_draft' => 'Không thể xóa báo giá với trạng thái "%s". Chỉ báo giá nháp mới được xóa.',
+    'quote_not_found_for_status_update' => 'Không tìm thấy báo giá để cập nhật trạng thái.',
+    'order_delete_failed_or_not_found' => 'Xóa đơn hàng thất bại hoặc không tìm thấy.',
+    'quote_delete_failed_or_not_found' => 'Xóa báo giá thất bại hoặc không tìm thấy.',
+    'invalid_order_number_for_edit' => 'Không được phép sửa số đơn hàng đã đặt.',
+    'invalid_request_data_format_json' => 'Định dạng dữ liệu JSON không hợp lệ.',
+    'invalid_action_specified_post' => 'Hành động POST không hợp lệ.',
+    'invalid_action_specified_get' => 'Hành động GET không hợp lệ.',
+    'method_not_allowed' => 'Phương thức HTTP không được phép.',
+    'missing_quote_id' => 'Thiếu ID báo giá hoặc ID không hợp lệ.',
+    'quote_not_accepted_cannot_create_order' => 'Báo giá chưa được chấp nhận, không thể tạo đơn hàng.',
+    'quote_has_no_items' => 'Báo giá không có sản phẩm nào.',
+    'quote_details_fetched' => 'Đã lấy chi tiết báo giá.',
+    'invalid_currency' => 'Đơn vị tiền tệ không hợp lệ.',
+    'database_connection_failed' => 'Kết nối cơ sở dữ liệu thất bại.',
 ];
 ?>

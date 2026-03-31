@@ -1,4 +1,4 @@
-// cleaned: console logs optimized, debug system applied
+﻿// cleaned: console logs optimized, debug system applied
 // File: assets/js/sq_events.js
 
 function setupEventListeners() {
@@ -127,18 +127,31 @@ function setupEventListeners() {
             else {
                 itemTableBody.find('tr').each(function() {
                     const row = $(this), prodName = row.find('.product-autocomplete'), qty = row.find('.quantity'), price = row.find('.unit-price');
-                    let rowIsValid = true, itemHasData = prodName.val() || parseFloat(qty.val()) > 0 || parseFloat(price.val()) > 0;
+                    let rowIsValid = true, itemHasData = prodName.val() || parseFloat(qty.val()) >= 0 || parseFloat(price.val()) > 0;
                     if (itemHasData || itemTableBody.find('tr').length === 1) {
                         if (!prodName.val()) { prodName.addClass('is-invalid').closest('td').find('.invalid-feedback').text(LANG['product_name_required']||'Bắt buộc').show(); isValid = false; rowIsValid = false; }
-                        if (isNaN(parseFloat(qty.val())) || parseFloat(qty.val()) <= 0) { qty.addClass('is-invalid').closest('td').find('.invalid-feedback').text(LANG['invalid_quantity']||'SL không hợp lệ').show(); isValid = false; rowIsValid = false; }
+                        // Báo giá: cho phép số lượng = 0 (không cần ghi số lượng khi gửi KH)
+                        if (isNaN(parseFloat(qty.val())) || parseFloat(qty.val()) < 0) { qty.addClass('is-invalid').closest('td').find('.invalid-feedback').text(LANG['invalid_quantity_sq']||'SL không hợp lệ (≥ 0)').show(); isValid = false; rowIsValid = false; }
                         if (isNaN(parseFloat(price.val())) || parseFloat(price.val()) < 0) { price.addClass('is-invalid').closest('td').find('.invalid-feedback').text(LANG['invalid_unit_price']||'Giá không hợp lệ').show(); isValid = false; rowIsValid = false; }
                         if (rowIsValid && itemHasData) hasValidItems = true;
                     }
                 });
-                if (hasAnyItemRow && !hasValidItems) { isValid = false; if (formErrorMessageDiv && formErrorMessageDiv.hasClass('d-none')) formErrorMessageDiv.text(LANG['quote_must_have_valid_items']||'Báo giá phải có sản phẩm hợp lệ.').removeClass('d-none');}
+                if (hasAnyItemRow && !hasValidItems) { isValid = false; if (formErrorMessageDiv && formErrorMessageDiv.hasClass('d-none')) formErrorMessageDiv.text(LANG['quote_must_have_valid_items']||'Báo giá phải có ít nhất một dòng sản phẩm hợp lệ.').removeClass('d-none');}
             }
 
             
+            // Dung lai neu validation phia client that bai
+            if (!isValid) {
+                devLog('SQ Form validation failed. Scrolling to first error.');
+                var firstInvalidEl = quoteForm.find('.is-invalid').first();
+                if (formErrorMessageDiv && formErrorMessageDiv.is(':visible')) {
+                    $('html,body').animate({ scrollTop: formErrorMessageDiv.offset().top - 20 }, 300);
+                } else if (firstInvalidEl.length) {
+                    $('html,body').animate({ scrollTop: firstInvalidEl.offset().top - 80 }, 300);
+                }
+                return;
+            }
+
             const quoteDataPayload = { // Đổi tên biến để tránh nhầm lẫn với biến salesQuoteDataTable
                 quote_id: $('#quote_id').val() || null,
                 partner_id: $('#partner_id').val(), // customer_id ở backend
@@ -152,7 +165,8 @@ function setupEventListeners() {
             };
             itemTableBody.find('tr').each(function(){
                 const row=$(this), qtyVal=parseFloat(row.find('.quantity').val()), priceVal=parseFloat(row.find('.unit-price').val()), prodNameVal=row.find('.product-autocomplete').val();
-                if(prodNameVal && !isNaN(qtyVal) && qtyVal > 0 && !isNaN(priceVal) && priceVal >= 0){
+                // Báo giá: cho phép qty >= 0
+                if(prodNameVal && !isNaN(qtyVal) && qtyVal >= 0 && !isNaN(priceVal) && priceVal >= 0){
                     quoteDataPayload.items.push({
                         detail_id: row.find('input[name$="[detail_id]"]').val() || null,
                         product_id: row.find('.product-id').val() || null,
@@ -191,7 +205,12 @@ function setupEventListeners() {
                             });
                         }
                     } else { // response.success === false
-                        showUserMessage(response.message || LANG['save_error'] || 'Lỗi lưu báo giá.', 'error');
+                        const errMsg = response.message || LANG['save_error'] || 'Lỗi lưu báo giá.';
+                        showUserMessage(errMsg, 'error');
+                        if (formErrorMessageDiv) {
+                            formErrorMessageDiv.html('<i class="bi bi-exclamation-triangle-fill me-2"></i>' + errMsg).removeClass('d-none');
+                            $('html,body').animate({ scrollTop: formErrorMessageDiv.offset().top - 20 }, 300);
+                        }
                         if(response.errors) handleFormValidationErrors(response.errors);
                         if(response.suggestion && $('#quote_number').length) {
                             $('#quote_number').val(response.suggestion).removeClass('is-invalid').closest('.input-group').find('.invalid-feedback').text('');
@@ -199,7 +218,22 @@ function setupEventListeners() {
                         }
                     }
                 },
-                error: (xhr) => { /* Xử lý lỗi AJAX tương tự sales_orders */ handleFormValidationErrors( (JSON.parse(xhr.responseText || "{}")).errors || {} ); },
+                error: (xhr) => {
+                    let errMsg = LANG['server_error_saving_order'] || 'Lỗi máy chủ khi lưu báo giá.';
+                    try {
+                        const res = JSON.parse(xhr.responseText || '{}');
+                        if (res && res.message) errMsg = res.message;
+                        if (res && res.errors) handleFormValidationErrors(res.errors);
+                        if (res && res.suggestion && $('#quote_number').length) {
+                            $('#quote_number').val(res.suggestion).removeClass('is-invalid').closest('.input-group').find('.invalid-feedback').text('');
+                        }
+                    } catch(e) { errMsg += ' (Status: ' + xhr.status + ')'; }
+                    showUserMessage(errMsg, 'error');
+                    if (formErrorMessageDiv) {
+                        formErrorMessageDiv.html('<i class="bi bi-exclamation-triangle-fill me-2"></i>' + errMsg).removeClass('d-none');
+                        $('html,body').animate({ scrollTop: formErrorMessageDiv.offset().top - 20 }, 300);
+                    }
+                },
                 complete: () => { if (saveButton) saveButton.prop('disabled',false); if (saveButtonText) saveButtonText.show(); if (saveButtonSpinner) saveButtonSpinner.addClass('d-none'); }
             });
         });
