@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 
 try {
     // 1. Base Query Components
-    $selectQuery = "SELECT l.id, l.user_id, u.username, l.action, l.module, l.log_type, l.description, l.data, l.ip_address, l.user_agent, l.created_at FROM user_logs l LEFT JOIN users u ON l.user_id = u.id";
+    $selectQuery = "SELECT l.id, l.user_id, u.username, l.action, l.module, l.log_type, l.description, l.data, l.ip_address, l.user_agent, l.device_id, l.created_at FROM user_logs l LEFT JOIN users u ON l.user_id = u.id";
     $countQuery = "SELECT COUNT(*) FROM user_logs l LEFT JOIN users u ON l.user_id = u.id";
     
     $whereConditions = [];
@@ -36,7 +36,7 @@ try {
     // 3. Global Search (DataTables)
     $searchValue = $_POST['search']['value'] ?? '';
     if (!empty($searchValue)) {
-        $whereConditions[] = "(l.description LIKE :search OR u.username LIKE :search OR l.action LIKE :search OR l.module LIKE :search)";
+        $whereConditions[] = "(l.description LIKE :search OR u.username LIKE :search OR l.action LIKE :search OR l.module LIKE :search OR l.device_id LIKE :search)";
         $params[':search'] = '%' . $searchValue . '%';
     }
 

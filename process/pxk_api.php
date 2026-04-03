@@ -343,7 +343,7 @@ switch ($action) {
         $notes           = trim((string)($j['notes'] ?? ''));
         $partner_name    = trim((string)($j['partner_name'] ?? ''));
         $partner_address = trim((string)($j['partner_address'] ?? ''));
-        $contact_person  = trim((string)($j['contact_person'] ?? ($j['contact_name'] ?? '')));
+        $contact_person  = trim((string)($j['contact_person'] ?? ($j['partner_contact_person'] ?? ($j['contact_name'] ?? ''))));
         $partner_phone   = trim((string)($j['partner_phone']  ?? ($j['phone'] ?? '')));
         $items           = is_array($j['items'] ?? null) ? $j['items'] : [];
 
@@ -469,51 +469,94 @@ switch ($action) {
     }
     /* ---- Danh sách máy in (Windows) ---- */
 case 'printers_list': {
-    $printers = [];
-    $winDefault = '';
+    $force = !empty($_GET['force']);
+    $cacheFile = __DIR__ . '/../logs/printers_cache.json';
     $appDefault = trim((string)get_setting($pdo, 'printer_default', ''));
-
-    // Ưu tiên PowerShell (ra JSON đẹp)
-    $ps = $__POWERSHELL_EXE ?? 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
-    $cmd = '"'.$ps.'" -NoProfile -ExecutionPolicy Bypass -Command ' .
-           escapeshellarg('Get-Printer | Select-Object Name,DriverName,Default | ConvertTo-Json -Compress');
-
-    @exec($cmd.' 2>&1', $out, $rc);
-    if ($rc === 0) {
-        $json = implode("\n", $out);
-        $arr  = json_decode($json, true);
-        if (is_array($arr)) {
-            // PS trả về object nếu chỉ có 1 máy in
-            if (isset($arr['Name'])) $arr = [$arr];
-            foreach ($arr as $p) {
-                $printers[] = [
-                    'name'    => (string)($p['Name'] ?? ''),
-                    'driver'  => (string)($p['DriverName'] ?? ''),
-                    'default' => (bool)($p['Default'] ?? false),
-                ];
-            }
-            foreach ($printers as $p) if ($p['default']) { $winDefault = $p['name']; break; }
+    $winDefault = '';
+    
+    // Đọc cache nếu còn hạn (5 phút) và không ép buộc làm mới
+    if (!$force && file_exists($cacheFile) && time() - filemtime($cacheFile) < 300) {
+        $data = json_decode(file_get_contents($cacheFile), true);
+        if (is_array($data) && isset($data['printers'])) {
+            $data['app_default'] = $appDefault; // Luôn lấy app default mới nhất từ DB
+            jexit(true, $data);
         }
     }
 
-    // Fallback WMIC nếu PowerShell không được
-    if (!$printers) {
-        @exec('wmic printer get Name,Default,DriverName /format:csv 2>&1', $out2, $rc2);
-        if ($rc2 === 0 && $out2) {
-            foreach ($out2 as $line) {
-                if (preg_match('/^[^,]*,(.+),(.+),(.+)$/', trim($line), $m)) {
-                    $name = trim($m[1]); $def = trim($m[2]); $drv = trim($m[3]);
-                    if ($name && $name!=='Name') {
-                        $isDef = stripos($def,'TRUE')!==false || $def==='TRUE' || $def==='True';
-                        $printers[] = ['name'=>$name, 'driver'=>$drv, 'default'=>$isDef];
-                        if ($isDef && !$winDefault) $winDefault = $name;
+    $printers = [];
+    @exec('wmic path Win32_Printer get Name,Default,PrinterStatus,WorkOffline /format:csv 2>NUL', $out, $rc);
+    
+    if ($rc === 0 && !empty($out)) {
+        $headers = [];
+        foreach ($out as $line) {
+            $line = trim($line);
+            if ($line === '') continue;
+            
+            // WMIC format CSV thường có 1 khoảng trắng/tab phía sau cột cuổi cùng, trim kĩ
+            $parts = array_map('trim', explode(',', $line));
+            
+            if (empty($headers)) {
+                // Đọc dòng Header để index cột (sửa triệt để lỗi "TRUE")
+                foreach ($parts as $idx => $h) {
+                    $headers[strtolower($h)] = $idx;
+                }
+                continue;
+            }
+            
+            if (!empty($headers)) {
+                $idxName = $headers['name'] ?? -1;
+                $idxDefault = $headers['default'] ?? -1;
+                $idxStatus = $headers['printerstatus'] ?? -1;
+                $idxOffline = $headers['workoffline'] ?? -1;
+
+                if ($idxName !== -1 && isset($parts[$idxName])) {
+                    $name = $parts[$idxName];
+                    if ($name === '' || strtolower($name) === 'name') continue; // Skip redundant headers
+                    
+                    $def = ($idxDefault !== -1 && isset($parts[$idxDefault])) ? $parts[$idxDefault] : 'FALSE';
+                    $isDef = (stripos($def, 'TRUE') !== false || $def === '1');
+                    if ($isDef && !$winDefault) { $winDefault = $name; }
+                    
+                    $pStatus = ($idxStatus !== -1 && isset($parts[$idxStatus])) ? (int)$parts[$idxStatus] : 3;
+                    $wOffline = ($idxOffline !== -1 && isset($parts[$idxOffline])) ? $parts[$idxOffline] : 'FALSE';
+                    $isOffline = (stripos($wOffline, 'TRUE') !== false);
+                    
+                    // Phân loại trạng thái máy in dựa trên Win32_Printer Status Codes
+                    $statusCode = $pStatus;
+                    $statusText = 'Sẵn sàng';
+                    
+                    if ($isOffline || $pStatus === 7) {
+                        $statusText = 'Máy in Offine / Chặn kết nối';
+                        $statusCode = 7;
+                    } elseif ($pStatus === 4 || $pStatus === 5 || $pStatus === 8 || $pStatus === 9) {
+                        $statusText = 'Đang bận in';
+                        $statusCode = 4;
+                    } elseif ($pStatus === 1 || $pStatus === 2 || $pStatus === 6) {
+                        $statusText = 'Lỗi / Không xác định';
+                        $statusCode = 1;
                     }
+
+                    $printers[] = [
+                        'name' => $name,
+                        'default' => $isDef,
+                        'status_code' => $statusCode,
+                        'status_text' => $statusText
+                    ];
                 }
             }
         }
     }
 
-    jexit(true, ['printers'=>$printers, 'windows_default'=>$winDefault, 'app_default'=>$appDefault]);
+    $res = [
+        'printers' => $printers,
+        'windows_default' => $winDefault,
+        'app_default' => $appDefault,
+        'updated_at' => date('Y-m-d H:i:s')
+    ];
+
+    // Cấp quyền và lưu cache
+    @file_put_contents($cacheFile, json_encode($res, JSON_UNESCAPED_UNICODE));
+    jexit(true, $res);
 }
 /* ---- Lưu máy in mặc định của ứng dụng ---- */
 case 'printer_save': {
@@ -521,6 +564,11 @@ case 'printer_save': {
     $name = trim((string)($j['name'] ?? '')); // '' = xoá -> dùng Windows Default
     $ok = set_setting($pdo, 'printer_default', $name);
     jexit($ok, ['saved'=>$ok, 'app_default'=>$name]);
+}
+
+case 'printer_get': {
+    $appDefault = trim((string)get_setting($pdo, 'printer_default', ''));
+    jexit(true, ['app_default'=>$appDefault]);
 }
 /* ---- Dọn hàng đợi: fail job kẹt ---- */
 case 'print_cleanup': {
@@ -786,7 +834,7 @@ case 'export_pdf': {
         <tr>
           <td class="center"><?= $i++ ?></td>
           <td><?= h($it['category'] ?? '') ?></td>
-          <td><?= h($it['product_name'] ?? '') ?></td>
+          <td class="product-name"><?= h($it['product_name'] ?? '') ?></td>
           <td class="center"><?= h($it['unit'] ?? '') ?></td>
           <td class="num"><?= h((string)($it['quantity'] ?? '')) ?></td>
           <td><?= h($it['note'] ?? '') ?></td>
@@ -797,16 +845,20 @@ case 'export_pdf': {
     </tbody>
   </table>
 
-  <table class="signatures" style="width: 100%;">
+  <table class="signatures" style="width: 100%; table-layout: fixed; text-align: center; page-break-inside: avoid;">
     <tr>
-      <td style="width: 33.33%;" class="title">Người lập phiếu</td>
-      <td style="width: 33.33%;" class="title">Người nhận hàng</td>
-      <td style="width: 33.33%;" class="title">Thủ kho</td>
-    </tr>
-    <tr>
-      <td class="note">(Ký, họ tên)</td>
-      <td class="note">(Ký, họ tên)</td>
-      <td class="note">(Ký, họ tên)</td>
+      <td style="width: 33.33%; vertical-align: top;">
+        <div class="title">NGƯỜI LẬP PHIẾU</div>
+        <div class="note">(Ký, họ tên)</div>
+      </td>
+      <td style="width: 33.33%; vertical-align: top;">
+        <div class="title">NGƯỜI NHẬN HÀNG</div>
+        <div class="note">(Ký, họ tên)</div>
+      </td>
+      <td style="width: 33.33%; vertical-align: top;">
+        <div class="title">THỦ KHO</div>
+        <div class="note">(Ký, họ tên)</div>
+      </td>
     </tr>
     <tr>
       <td class="space"></td>

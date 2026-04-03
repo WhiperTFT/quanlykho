@@ -18,22 +18,33 @@ if (!$is_cli) {
     } catch(Exception $e) { exit("DB Connection Fail"); }
 }
 
-$LOG_RETENTION_DAYS = 30;
+$LOG_RETENTION_DAYS = isset($_GET['days']) ? $_GET['days'] : 30;
 
 try {
-    $threshold_date = date('Y-m-d H:i:s', strtotime("-{$LOG_RETENTION_DAYS} days"));
-    
-    $stmt = $pdo->prepare("DELETE FROM user_logs WHERE created_at < :thresh");
-    $stmt->execute([':thresh' => $threshold_date]);
-    $deleted = $stmt->rowCount();
+    if ($LOG_RETENTION_DAYS === 'all') {
+        $stmt = $pdo->prepare("DELETE FROM user_logs");
+        $stmt->execute();
+        $deleted = $stmt->rowCount();
+        $message = "Đã xóa TOÀN BỘ nhật ký hệ thống ($deleted bản ghi).";
+    } else {
+        $days = (int)$LOG_RETENTION_DAYS;
+        if ($days <= 0) $days = 30;
+        
+        $threshold_date = date('Y-m-d H:i:s', strtotime("-{$days} days"));
+        
+        $stmt = $pdo->prepare("DELETE FROM user_logs WHERE created_at < :thresh");
+        $stmt->execute([':thresh' => $threshold_date]);
+        $deleted = $stmt->rowCount();
+        $message = "Đã loại bỏ $deleted bản ghi cũ hơn $days ngày.";
+    }
     
     if (!$is_cli) {
         // Record trace of manual invocation
         require_once __DIR__ . '/includes/logging.php';
-        write_user_log('DELETE', 'system', "Chạy dọn dẹp Log tự động: $deleted file đã bị loại bỏ.", ['reclaimed_rows' => $deleted], 'warning');
+        write_user_log('DELETE', 'system', "Dọn dẹp nhật ký: " . $message, ['reclaimed_rows' => $deleted, 'mode' => $LOG_RETENTION_DAYS], 'warning');
     }
     
-    echo json_encode(['success' => true, 'message' => "Extracted $deleted legacy rows exceeding $LOG_RETENTION_DAYS Days."]);
+    echo json_encode(['success' => true, 'message' => $message]);
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

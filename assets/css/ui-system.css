@@ -243,3 +243,27 @@ body {
     gap: 0.5rem;
   }
 }
+
+/* ------------------------------------------------------------------
+   11. LOG SYSTEM SPECIFICS
+   ------------------------------------------------------------------ */
+#auditTable {
+  min-width: 1000px !important; /* Prevent squeezing on small screens */
+}
+
+.log-device-badge {
+  font-family: var(--bs-font-monospace);
+  font-size: 0.75rem;
+  letter-spacing: -0.2px;
+}
+
+.log-description-cell {
+  word-break: break-word;
+  white-space: normal !important;
+  line-height: 1.4 !important;
+}
+
+.table-responsive-custom {
+  overflow-x: auto;
+  border-radius: 0 0 var(--ui-card-radius) var(--ui-card-radius);
+}

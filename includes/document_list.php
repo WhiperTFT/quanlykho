@@ -142,7 +142,7 @@ for ($month = 1; $month <= 12; $month++) {
      <div class="modal-content">
          <form id="sendEmailForm">
              <div class="modal-header">
-                 <h5 class="modal-title" id="sendEmailModalLabel">Soạn và Gửi Email Đơn Hàng: <span id="modal-send-email-order-number-display"></span></h5>
+                 <h5 class="modal-title" id="sendEmailModalLabel">Soạn và Gửi Email <span id="modal-document-type-label"></span>: <span id="modal-send-email-order-number-display"></span></h5>
                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
              </div>
              <div class="modal-body">

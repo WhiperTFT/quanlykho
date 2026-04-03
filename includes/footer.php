@@ -26,6 +26,7 @@ if (isset($conn) && $conn instanceof mysqli) {
 ?>
 <script>window.PROJECT_BASE_URL = "<?= rtrim(PROJECT_BASE_URL, '/').'/'; ?>";</script>
 <script src="<?= PROJECT_BASE_URL ?>assets/js/auth_guard.js"></script>
+<script src="<?= PROJECT_BASE_URL ?>assets/js/script.js?v=<?= filemtime(__DIR__ . '/../assets/js/script.js') ?>"></script>
 <script>
 // 3.1 Gắn endpoint nếu thiếu
 document.addEventListener('DOMContentLoaded', function () {

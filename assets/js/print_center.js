@@ -1,5 +1,5 @@
 // cleaned: console logs optimized, debug system applied
-// File: assets/js/print_center.js (v1.1.2, no jQuery)
+// File: assets/js/print_center.js (v1.2.0, no jQuery)
 (function () {
   "use strict";
 
@@ -269,83 +269,8 @@
   }
 
   function loadPrintersBasic() {
-  if (printerSel) {
-    printerSel.disabled = true;
-    printerSel.innerHTML = '<option>Đang nạp máy in…</option>';
+    // legacy or unused
   }
-  if (defBadge) defBadge.textContent = '';
-
-  const esc = (s) => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-
-  fetch(api + "?action=list_printers", { cache: "no-store", credentials: "same-origin" })
-    .then(r => r.json())
-    .then(res => {
-      if (!res.success) {
-        toast(res.message || "Không đọc được danh sách máy in", "error");
-        if (printerSel) printerSel.innerHTML = '<option value="">(Lỗi đọc máy in)</option>';
-        return;
-      }
-
-      const { data, preferredPrinter, defaultPrinter, autoSelected } = res;
-      printers = Array.isArray(data) ? data : [];
-
-      if (!printers.length) {
-        if (printerSel) {
-          printerSel.innerHTML = '<option value="">(Không có máy in nào)</option>';
-        }
-        if (defBadge) defBadge.textContent = '';
-        return;
-      }
-
-      // Render option có nhãn hiện đại
-      const opts = printers.map(p => {
-        const tags = [
-          p.isDefault ? 'Mặc định' : null,
-          (preferredPrinter && preferredPrinter === p.name) ? 'Ưa thích' : null
-        ].filter(Boolean);
-        const label = p.name + (tags.length ? ` — ${tags.join(' · ')}` : '');
-        return `<option value="${esc(p.name)}">${esc(label)}</option>`;
-      }).join("");
-
-      if (printerSel) {
-        printerSel.innerHTML = opts;
-        // Ưu tiên: preferred → default → phần tử đầu
-        const want = autoSelected || defaultPrinter || printers[0]?.name || '';
-        if (want) printerSel.value = want;
-      }
-
-      // Badge: chip trạng thái
-      if (defBadge) {
-        const sel = printerSel ? printerSel.value : '';
-        const chips = [];
-        if (sel) chips.push(`<span class="badge rounded-pill text-bg-secondary me-1"><i class="bi bi-printer me-1"></i>${esc(sel)}</span>`);
-        if (preferredPrinter && sel === preferredPrinter) chips.push(`<span class="badge rounded-pill text-bg-success me-1"><i class="bi bi-star-fill me-1"></i>Ưa thích</span>`);
-        if (defaultPrinter && sel === defaultPrinter) chips.push(`<span class="badge rounded-pill text-bg-info"><i class="bi bi-check2-circle me-1"></i>Mặc định Windows</span>`);
-        if (defaultPrinter && preferredPrinter && sel === preferredPrinter && defaultPrinter !== preferredPrinter) {
-          chips.push(`<span class="badge rounded-pill text-bg-light text-dark ms-2"><i class="bi bi-info-circle me-1"></i>Mặc định: ${esc(defaultPrinter)}</span>`);
-        }
-        defBadge.innerHTML = chips.join('');
-        defBadge.classList.add('printer-badge');
-      }
-
-      // Phát sự kiện cho phần khác (nếu cần)
-      window.dispatchEvent(new CustomEvent('printer:list-loaded', {
-        detail: {
-          printers,
-          selected: printerSel ? printerSel.value : '',
-          preferred: preferredPrinter || '',
-          defaultPrinter: defaultPrinter || ''
-        }
-      }));
-    })
-    .catch(() => {
-      toast("Lỗi khi đọc máy in", "error");
-      if (printerSel) printerSel.innerHTML = '<option value="">(Lỗi đọc máy in)</option>';
-    })
-    .finally(() => {
-      if (printerSel) printerSel.disabled = false;
-    });
-}
 
   function doPrint() {
     const selected = qsa(".file-select:checked", fileListEl).map(cb => cb.getAttribute("data-id"));
@@ -437,7 +362,8 @@
   }
 
 })();
-// ==== Printer dropdown auto-select & remember (v1.1.1) ======================
+
+// ==== Printer dropdown auto-select & remember (v1.2.0 Hybrid Cache) =========
 (function () {
   const API = 'process/print_center_api.php';
 
@@ -468,7 +394,7 @@
   };
   const toast = (msg, type='primary') => {
     const area = document.getElementById('toastArea');
-    if (!area || !window.bootstrap) { devLog(msg); return; }
+    if (!area || !window.bootstrap) { return; }
     const id = 't' + Date.now();
     area.insertAdjacentHTML('beforeend', `
       <div id="${id}" class="toast text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
@@ -492,7 +418,6 @@
     if (preferred && preferred === selected) chips.push(`<span class="badge rounded-pill text-bg-success me-1"><i class="bi bi-star-fill me-1"></i>Ưa thích</span>`);
     if (def && def === selected)           chips.push(`<span class="badge rounded-pill text-bg-info"><i class="bi bi-check2-circle me-1"></i>Mặc định Windows</span>`);
     if (def && preferred && selected === preferred && def !== preferred) {
-      // đang chọn ưa thích, nhưng mặc định Win là máy khác → show thêm info
       chips.push(`<span class="badge rounded-pill text-bg-light text-dark ms-2"><i class="bi bi-info-circle me-1"></i>Mặc định: ${esc(def)}</span>`);
     }
     el.badge.innerHTML = chips.join('');
@@ -500,36 +425,42 @@
   }
 
   // ---------- Core load ----------
-  async function load() {
+  async function load(force = false) {
     try {
       setBusy(true);
-      const res = await fetch(`${API}?action=list_printers`, { cache: 'no-store', credentials: 'same-origin' });
+      const url = force ? `${API}?action=list_printers&force=1` : `${API}?action=list_printers`;
+      const res = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
       const j = await res.json();
       if (!j.success) throw new Error(j.message || 'Không đọc được máy in');
 
-      const { data: printers, preferredPrinter, defaultPrinter, autoSelected } = j;
+      const { printers, preferredPrinter, windows_default, autoSelected } = j;
 
-      // Build options — gắn nhãn đẹp ngay trong option
+      // Build options — gắn nhãn đẹp kèm Icon trạng thái (Hybrid)
       el.select.innerHTML = (printers || []).map(p => {
+        let icon = '🟢';
+        if (p.status_code === 7) icon = '🔴';
+        else if (p.status_code === 4) icon = '🟡';
+        else if (p.status_code === 1) icon = '⚪';
+
         const tags = [
-          p.isDefault ? 'Mặc định' : null,
+          p.isDefault ? 'Mặc định Win' : null,
           (preferredPrinter && preferredPrinter === p.name) ? 'Ưa thích' : null
         ].filter(Boolean);
-        const label = p.name + (tags.length ? ` — ${tags.join(' · ')}` : '');
-        return `<option value="${esc(p.name)}">${esc(label)}</option>`;
+        const label = `[${p.status_text}] - ${p.name}` + (tags.length ? ` (${tags.join(' · ')})` : '');
+        return `<option value="${esc(p.name)}">${icon} ${esc(label)}</option>`;
       }).join('') || '<option value="">(Không có máy in nào)</option>';
 
-      // Chọn đúng theo server (cookie → default)
       if (printers?.length) {
-        const want = autoSelected || defaultPrinter || printers[0].name;
-        el.select.value = want;               // <<< GIỮ NGUYÊN khi reload
+        // Ưu tiên chọn: autoSelected (cookie) -> windows_default -> máy in đầu tiên
+        const want = autoSelected || windows_default || printers[0].name;
+        el.select.value = want;
       }
 
-      renderBadge({ selected: el.select.value || '', preferred: preferredPrinter || '', def: defaultPrinter || '' });
+      renderBadge({ selected: el.select.value || '', preferred: preferredPrinter || '', def: windows_default || '' });
 
-      // Phát sự kiện cho phần khác nếu cần
+      // Phát sự kiện cho phần khác
       window.dispatchEvent(new CustomEvent('printer:list-loaded', {
-        detail: { printers, selected: el.select.value, preferred: preferredPrinter, defaultPrinter }
+        detail: { printers, selected: el.select.value, preferred: preferredPrinter, defaultPrinter: windows_default }
       }));
     } catch (e) {
       console.error(e);
@@ -564,7 +495,7 @@
 
   // ---------- Wire up ----------
   el.select.addEventListener('change', onChange);
-  el.btnReload?.addEventListener('click', load);
+  el.btnReload?.addEventListener('click', () => load(true));
 
   // ---------- Public API ----------
   window.Printers = {
@@ -572,10 +503,10 @@
     getSelected: () => el.select.value || ''
   };
 
-  // First load (sau khi DOM sẵn sàng)
+  // First load
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', load);
+    document.addEventListener('DOMContentLoaded', () => load(false));
   } else {
-    load();
+    load(false);
   }
 })();

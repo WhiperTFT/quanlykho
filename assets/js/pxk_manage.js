@@ -96,6 +96,7 @@ async function sendUserLog(action, description='', level='info') {
 }
 
 // --- STATE dùng chung cho list ---
+let bsModal = null;
 const state = {
   kw: '',        // từ khóa lọc
   page: 1,       // trang hiện tại
@@ -122,15 +123,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function refreshSearchUI() {
     if (!kwInput || !searchWrap) return;
     const v = (kwInput.value || '').trim();
-    searchWrap.classList.toggle('has-value', v.length > 0);
+    if(v.length > 0) {
+      if (clearBtn) clearBtn.style.display = 'block';
+    } else {
+      if (clearBtn) clearBtn.style.display = 'none';
+    }
   }
-
-  // Debounce tiện dụng (gõ 1 lúc mới bắn load)
-  function debounce(fn, ms=250) {
-    let t = null;
-    return function(...args){ clearTimeout(t); t = setTimeout(()=>fn.apply(this,args), ms); };
-  }
-  const debouncedLoad = debounce(()=>loadList(), 250);
 
   // Khởi tạo giao diện ban đầu
   refreshSearchUI();
@@ -140,6 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (totalEl) {
     totalEl.textContent = String(state.total || 0);
   }
+
+  const debouncedLoad = debounce(()=>{
+    state.kw = (kwInput ? kwInput.value||'' : '').trim();
+    state.page = 1;
+    loadList();
+  }, 250);
 
   // Sự kiện gõ trong ô tìm kiếm
   if (kwInput) {
@@ -184,51 +188,29 @@ document.addEventListener('DOMContentLoaded', () => {
   // Datepicker
   const dp = document.getElementById('pxk_date_display');
   if (window.flatpickr) { flatpickr(dp, {dateFormat:'d/m/Y', defaultDate:new Date()}); }
-  else { dp.value = todayDMY(); }
-  document.getElementById('pxk_date').value = dmyToYmd(dp.value);
-  dp.addEventListener('change', ()=> document.getElementById('pxk_date').value = dmyToYmd(dp.value));
+  else { if(dp) dp.value = todayDMY(); }
+  if (dp) {
+    document.getElementById('pxk_date').value = dmyToYmd(dp.value);
+    dp.addEventListener('change', ()=> document.getElementById('pxk_date').value = dmyToYmd(dp.value));
+  }
 
   // Buttons
-  document.getElementById('btn-new').addEventListener('click', showFormNew);
-  document.getElementById('btn-cancel').addEventListener('click', hideForm);
-  document.getElementById('btn-reload').addEventListener('click', ()=> { state.page=1; loadList(); });
-  document.getElementById('btn-add-item').addEventListener('click', addItemRow);
-  document.getElementById('btn-save').addEventListener('click', async ()=>{
+  document.getElementById('btn-new')?.addEventListener('click', showFormNew);
+  document.getElementById('btn-reload')?.addEventListener('click', ()=> { state.page=1; loadList(); });
+  document.getElementById('btn-add-item')?.addEventListener('click', addItemRow);
+  document.getElementById('btn-save')?.addEventListener('click', async ()=>{
     const ok = await savePXK(false);
     if (ok) swalInfo('Đã lưu PXK!', '', 'success');
   });
-  document.getElementById('btn-save-export').addEventListener('click', async ()=>{
+  document.getElementById('btn-save-export')?.addEventListener('click', async ()=>{
     const toast = showLoadingToast('Đang lưu và xuất PDF, vui lòng chờ...');
     const ok = await savePXK(true);
     toast.close();
     if (ok) swalInfo('Đã lưu và xuất PDF!', '', 'success');
   });
-  document.getElementById('btn-generate-number').addEventListener('click', async ()=>{
+  document.getElementById('btn-generate-number')?.addEventListener('click', async ()=>{
     const done = await generateNumber();
     if (done) swalInfo('Đã tạo số PXK tự động!', '', 'success');
-  });
-
-  // Filter + Show entries
-  const $kw = document.getElementById('filter-keyword');
-  const debounced = debounce(()=>{
-    state.kw = ($kw.value||'').trim();
-    state.page = 1;
-    loadList();
-  }, 250);
-  $kw.addEventListener('input', ()=>{
-    if (($kw.value||'').trim()==='') { state.kw=''; state.page=1; loadList(); }
-    else debounced();
-  });
-  $kw.addEventListener('keydown', (e)=>{
-    if (e.key==='Enter'){ e.preventDefault(); state.kw = ($kw.value||'').trim(); state.page=1; loadList(); }
-  });
-
-  const sel = document.getElementById('pageSizeSelect');
-  sel.value = String(state.per_page);
-  sel.addEventListener('change', ()=>{
-    state.per_page = parseInt(sel.value,10);
-    state.page = 1;
-    loadList();
   });
 
   // Nút chẩn đoán in
@@ -236,6 +218,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Delegation nút in
   document.addEventListener('click', onPrintButtonClick);
+
+  // Khởi tạo Offcanvas
+  const offcanvasEl = document.getElementById('pxkOffcanvas');
+  if (offcanvasEl && typeof bootstrap !== 'undefined') {
+    bsModal = new bootstrap.Modal(offcanvasEl);
+  }
+
+  // Ctrl+S và Ctrl+Enter shortcuts
+  document.addEventListener('keydown', e => {
+    // Phím tắt F2 để mở form thêm mới
+    if (e.key === 'F2') {
+      e.preventDefault();
+      showFormNew();
+      return;
+    }
+
+    if (offcanvasEl && offcanvasEl.classList.contains('show')) {
+      if ((e.ctrlKey && e.key === 's') || (e.ctrlKey && e.key === 'S')) {
+        e.preventDefault();
+        document.getElementById('btn-save')?.click();
+      }
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('btn-save-export')?.click();
+      }
+    }
+  });
 
   // Autocomplete ĐỐI TÁC (4 trường)
   setupPartnerAutocomplete();
@@ -271,15 +280,12 @@ async function enqueuePrintJobByPath(fileWebPath, copies = DEFAULT_COPIES, print
     }).then(r => r.json());
 
     if (res && res.success) {
-      // res.spawned === true: đã đá worker thành công.
-      // res.spawned === false: đã tạo job nhưng chưa spawn được (xem logs/print_spawn.log)
       return res;
     }
 
-    // Nếu API mới trả lỗi, ta sẽ thử API cũ (fallback) ở dưới.
-    devLog('enqueue_print via pxk_api FAILED, fallback to print_api...', res);
+    console.log('enqueue_print via pxk_api FAILED, fallback to print_api...', res);
   } catch (e) {
-    devLog('enqueue_print via pxk_api exception, fallback to print_api...', e);
+    console.log('enqueue_print via pxk_api exception, fallback to print_api...', e);
   }
 
   // --- Fallback API cũ (nếu bạn còn process/print_api.php hỗ trợ theo path) ---
@@ -413,7 +419,7 @@ async function loadList() {
   try {
     const params = new URLSearchParams();
     params.set('action', 'list');
-    params.set('kw', state.kw || '');                // luôn gửi kw
+    params.set('kw', state.kw || '');
     params.set('page', String(state.page || 1));
     params.set('per_page', String(state.per_page || 10));
 
@@ -432,41 +438,49 @@ async function loadList() {
     if (data && data.success && Array.isArray(data.rows)) {
       for (const row of data.rows) {
         const pdfBtns = row.pdf_web_path
-          ? `<div class="d-flex flex-wrap gap-1">
+          ? `<div class="d-flex gap-1" onclick="event.stopPropagation();">
                <a href="${escapeAttr(buildPdfHref(row.pdf_web_path))}" target="_blank"
-                  class="btn btn-sm btn-outline-secondary">
-                 <i class="bi bi-file-earmark-pdf"></i> Mở PDF
+                  class="btn btn-sm btn-outline-secondary" title="Mở PDF">
+                 <i class="bi bi-file-earmark-pdf"></i>
                </a>
                <button type="button" class="btn btn-sm btn-primary btn-print-server"
-                       data-path="${escapeAttr(row.pdf_web_path)}">
-                 <i class="bi bi-printer"></i> Gửi lệnh In
+                       data-path="${escapeAttr(row.pdf_web_path)}" title="Gửi lệnh in">
+                 <i class="bi bi-printer"></i>
                </button>
              </div>`
-          : '<span class="text-muted">Chưa có</span>';
+          : '<span class="text-muted small">Chưa có</span>';
 
         tb.insertAdjacentHTML('beforeend', `
           <tr data-id="${row.id}">
-            <td>${row.id}</td>
-            <td>${escapeHtml(row.pxk_number||'')}</td>
+            <td class="text-center fw-medium text-muted">${row.id}</td>
+            <td class="fw-bold text-primary">${escapeHtml(row.pxk_number||'')}</td>
             <td>${escapeHtml(row.pxk_date_display||'')}</td>
             <td>${escapeHtml(row.partner_name||'-')}</td>
             <td>${pdfBtns}</td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-primary btn-edit">Sửa</button>
-              <button class="btn btn-sm btn-outline-danger btn-del">Xóa</button>
+            <td class="text-center col-action w-auto px-1">
+              <button class="btn btn-sm btn-light text-danger btn-del" title="Xóa"><i class="bi bi-trash"></i></button>
             </td>
           </tr>
         `);
       }
-      tb.querySelectorAll('.btn-edit').forEach(btn => {
-    btn.addEventListener('click', e => {
-    const id = e.target.closest('tr').dataset.id;
-    editPXK(id);
-    window.PXK && PXK.waitAndScroll();
-  });
-});
+      
+      // Gán sự kiện click cho row
+      tb.querySelectorAll('tr').forEach(tr => {
+        tr.addEventListener('click', e => {
+          // Bỏ qua nếu click vào nút, link hay cột action
+          if (e.target.closest('button, a, .col-action, input')) return;
+          editPXK(tr.dataset.id);
+        });
+      });
+
+      // Lệnh in máy chủ
+      tb.querySelectorAll('.btn-print-server').forEach(btn => {
+        btn.addEventListener('click', onPrintButtonClick);
+      });
+
       tb.querySelectorAll('.btn-del').forEach(btn=>{
         btn.addEventListener('click', async e=>{
+          e.stopPropagation();
           const id = e.target.closest('tr').dataset.id;
           const rs = await swalConfirm({
             title:'Bạn có chắc muốn xóa PXK này?',
@@ -494,7 +508,6 @@ function setBtnLoading($btn, isLoading, loadingText) {
     if ($btn.data('loading') === '1') return; // đã loading
     $btn.data('loading', '1');
     $btn.data('orig-html', $btn.html());
-    // Nếu dùng Bootstrap 4/5 có spinner-border:
     $btn.prop('disabled', true).html(
       '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' +
       (loadingText || 'Đang tải...')
@@ -508,62 +521,83 @@ function setBtnLoading($btn, isLoading, loadingText) {
 }
 
 $(function(){
-  // Chọn máy in
-  $('#btnSelectPrinter').on('click', async function(){
-  const $btn = $(this);
-  setBtnLoading($btn, true, 'Đang tải máy in...');
-  try{
-    const data = await fetch('process/pxk_api.php?action=printers_list').then(r=>r.json());
-    if(!data || !data.success) { Swal.fire('Lỗi', 'Không đọc được danh sách máy in', 'error'); return; }
-    const list = data.printers || [];
-    const appDef = data.app_default || '';
-    const winDef = data.windows_default || '';
+  // Mở giao diện cấu hình Thiết bị In (Kèm Cache & Trạng thái Offline)
+  window.openPrinterDialog = async function(forceRefresh = false) {
+    const $btn = $('#btnSelectPrinter');
+    setBtnLoading($btn, true, forceRefresh ? 'Đang ép quét phần cứng...' : 'Đang nạp bộ đệm...');
+    try {
+      const url = forceRefresh ? 'process/pxk_api.php?action=printers_list&force=1' : 'process/pxk_api.php?action=printers_list';
+      const data = await fetch(url).then(r=>r.json());
+      if(!data || !data.success) { Swal.fire('Lỗi', 'Không giao tiếp được với Engine Hệ điều hành.', 'error'); return; }
+      
+      const list = data.printers || [];
+      const appDef = data.app_default || '';
+      const winDef = data.windows_default || '';
+      const updatedAt = data.updated_at || '';
 
-    let html = '<div class="mb-2 small text-muted">Máy in mặc định của Windows: <b>'
-               + (winDef || '(không xác định)') + '</b></div>';
-    html += '<select id="printerSelect" class="form-select">';
-    html += '<option value="">(Dùng Windows Default)</option>';
-    for (const p of list) {
-      const sel = (p.name === appDef) ? ' selected' : '';
-      html += `<option value="${p.name.replaceAll('"','&quot;')}"${sel}>${p.name} ${p.default?'(Windows Default)':''}</option>`;
+      let html = `<div class="mb-2 small text-muted text-start">Têp Cache làm mới lúc: <b>${updatedAt}</b>
+                    <button class="btn btn-sm btn-link text-decoration-none py-0 px-2" onclick="Swal.close(); setTimeout(()=>window.openPrinterDialog(true), 300);"><i class="bi bi-arrow-clockwise"></i> Quét lại phần cứng</button>
+                  </div>` +
+                 `<div class="mb-3 small text-muted text-start">Máy in mặc định của hệ điều hành Windows đang trỏ về: <b>${winDef || '(Trống)'}</b></div>` +
+                 `<div class="text-start mb-1 fw-bold text-dark">Hãy lựa chọn cố định Máy / Cổng in mong muốn:</div>` +
+                 `<select id="printerSelect" class="form-select border-primary cursor-pointer shadow-sm" style="font-size: 14.5px;">`;
+                 
+      html += '<option value="">(Tự động dùng ngầm Máy In Mặc Định của Windows)</option>';
+      for (const p of list) {
+        const sel = (p.name === appDef) ? ' selected' : '';
+        let icon = '🟢';
+        if (p.status_code === 7) icon = '🔴';
+        else if (p.status_code === 4) icon = '🟡';
+        else if (p.status_code === 1) icon = '⚪';
+        
+        let label = `[${p.status_text}] - ${p.name}`;
+        if (p.default) label += ' (Mặc định Win)';
+        
+        html += `<option value="${p.name.replaceAll('"','&quot;')}"${sel}>${icon} ${escapeHtml(label)}</option>`;
+      }
+      html += '</select>';
+
+      const sel = await Swal.fire({
+        title: 'Cấu Hình Cổng Print Server',
+        html: html,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'Lưu thay đổi',
+        cancelButtonText: 'Đóng',
+        didOpen: () => { document.getElementById('printerSelect')?.focus(); }
+      });
+
+      if (!sel.isConfirmed) return;
+      const name = document.getElementById('printerSelect').value || '';
+
+      const saveRes = await fetch('process/pxk_api.php?action=printer_save', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ name })
+      }).then(r=>r.json());
+
+      if (saveRes && saveRes.success) {
+        Swal.fire('Thành công', `Cấu hình in ấn nội bộ đã chuyển sang bộ đệm của cổng: <b>${name || 'Mặc định (Windows)'}</b>`, 'success');
+      } else {
+        Swal.fire('Lỗi', saveRes && saveRes.message ? saveRes.message : 'Không lưu thiết lập vào database.', 'error');
+      }
+    } catch(e) {
+      console.error(e);
+      Swal.fire('Lỗi hệ thống', 'Mất kết nối với Router mạng LAN nội bộ.', 'error');
+    } finally {
+      setBtnLoading($btn, false);
     }
-    html += '</select>';
+  };
 
-    const sel = await Swal.fire({
-      title: 'Chọn máy in mặc định (Ứng dụng)',
-      html: html,
-      icon: 'info',
-      showCancelButton: true,
-      confirmButtonText: 'Lưu',
-      cancelButtonText: 'Hủy',
-      didOpen: () => { document.getElementById('printerSelect')?.focus(); }
-    });
-
-    if (!sel.isConfirmed) return;
-    const name = document.getElementById('printerSelect').value || '';
-
-    const saveRes = await fetch('process/pxk_api.php?action=printer_save', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ name })
-    }).then(r=>r.json());
-
-    if (saveRes && saveRes.success) {
-      Swal.fire('Đã lưu', `Máy in mặc định (app): ${name || '(Windows Default)'}`, 'success');
-    } else {
-      Swal.fire('Lỗi', saveRes && saveRes.message ? saveRes.message : 'Không lưu được.', 'error');
-    }
-  } catch(e){
-    console.error(e);
-    Swal.fire('Lỗi', 'Không đọc/ghi được cấu hình máy in.', 'error');
-  } finally {
-    setBtnLoading($btn, false);
-  }
-});
+  $('#btnSelectPrinter').on('click', function(e){
+    e.preventDefault();
+    window.openPrinterDialog(false);
+  });
 
 
   // Dọn hàng đợi
-  $('#btnPrintCleanup').on('click', async function(){
+  $('#btnPrintCleanup').on('click', async function(e){
+    e.preventDefault();
     const q = await Swal.fire({
       title: 'Dọn hàng đợi in',
       html: `
@@ -609,6 +643,7 @@ $(function(){
 
 function renderPagingInfo(){
   const info = document.getElementById('pagingInfo');
+  if(!info) return;
   const total = state.total || 0;
   const pp = parseInt(state.per_page,10);
   if (total===0){ info.textContent = 'Hiển thị 0–0 trong tổng 0 bản ghi'; return; }
@@ -621,11 +656,12 @@ function renderPagingInfo(){
 
 function renderPaging(){
   const ul = document.getElementById('pager');
+  if(!ul) return;
   ul.innerHTML = '';
 
   const total = state.total || 0;
   const pp = parseInt(state.per_page,10);
-  if (pp===0 || total<=pp){ return; } // không cần phân trang
+  if (pp===0 || total<=pp){ return; }
 
   const totalPages = Math.max(1, Math.ceil(total/pp));
   const cur = Math.min(Math.max(1, state.page), totalPages);
@@ -647,10 +683,9 @@ function renderPaging(){
     return li;
   }
 
-  ul.appendChild(li('« First', 1, cur===1));
-  ul.appendChild(li('‹ Prev', Math.max(1, cur-1), cur===1));
+  ul.appendChild(li('«', 1, cur===1));
+  ul.appendChild(li('‹', Math.max(1, cur-1), cur===1));
 
-  // range pages
   const windowSize = 5;
   let start = Math.max(1, cur - Math.floor(windowSize/2));
   let end = Math.min(totalPages, start + windowSize - 1);
@@ -662,30 +697,8 @@ function renderPaging(){
     ul.appendChild(li(String(p), p, false, p===cur));
   }
 
-  ul.appendChild(li('Next ›', Math.min(totalPages, cur+1), cur===totalPages));
-  ul.appendChild(li('Last »', totalPages, cur===totalPages));
-}
-
-async function onDeleteRow(e){
-  const id = e.target.closest('tr').dataset.id;
-  const rs = await swalConfirm({
-    title:'Bạn có chắc muốn xóa PXK này?',
-    text:'Dữ liệu sẽ không thể phục hồi!',
-    confirmButtonText:'Xóa',
-    cancelButtonText:'Hủy'
-  });
-  if (!rs.isConfirmed) return;
-  try {
-    const r = await fetch('process/pxk_api.php?action=delete', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({id})
-    });
-    const j = await r.json();
-    if (j && j.success) { loadList(); swalInfo('Đã xóa PXK!', '', 'success'); }
-    else swalError('Xóa thất bại', j && j.message ? j.message : '');
-  } catch (err) {
-    swalError('Xóa thất bại', err && err.message ? err.message : '');
-  }
+  ul.appendChild(li('›', Math.min(totalPages, cur+1), cur===totalPages));
+  ul.appendChild(li('»', totalPages, cur===totalPages));
 }
 
 // ====== FORM ======
@@ -694,39 +707,39 @@ function showFormNew() {
   document.getElementById('formTitle').textContent = 'Thêm Phiếu Xuất Kho';
   document.getElementById('pxkForm').reset();
   const dp = document.getElementById('pxk_date_display');
-  dp.value = todayDMY();
-  document.getElementById('pxk_date').value = dmyToYmd(dp.value);
+  if(dp) dp.value = todayDMY();
+  document.getElementById('pxk_date').value = dmyToYmd(dp?.value);
   document.getElementById('itemsBody').innerHTML = '';
   addItemRow();
-  document.getElementById('pxkFormCard').style.display = '';
+  if (typeof bsModal !== 'undefined' && bsModal) bsModal.show();
 }
-function hideForm(){ document.getElementById('pxkFormCard').style.display='none'; }
+function hideForm(){
+  if (typeof bsModal !== 'undefined' && bsModal) bsModal.hide();
+}
 
 function itemRowTemplate(index) {
   return `
   <tr>
-    <td class="text-center stt">${index}</td>
+    <td class="text-center stt text-muted small">${index}</td>
     <td>
-      <input type="text" class="form-control form-control-sm category-display bg-light" readonly tabindex="-1">
+      <input type="text" class="form-control form-control-sm category-display bg-light text-muted" readonly tabindex="-1">
       <input type="hidden" class="category-snapshot">
     </td>
     <td>
-      <input type="text" class="form-control form-control-sm product-autocomplete" placeholder="Nhập tên sản phẩm..." required autocomplete="off">
+      <input type="text" class="form-control form-control-sm product-autocomplete fw-medium text-primary" placeholder="Nhập tên..." required autocomplete="off">
       <input type="hidden" class="product-id">
-      <div class="invalid-feedback"></div>
     </td>
     <td>
-      <input type="text" class="form-control form-control-sm unit-display bg-light text-center" readonly tabindex="-1">
+      <input type="text" class="form-control form-control-sm unit-display bg-light text-center text-muted" readonly tabindex="-1">
       <input type="hidden" class="unit-snapshot">
     </td>
     <td>
-      <input type="text" class="form-control form-control-sm text-end quantity" placeholder="0" value="0" inputmode="decimal">
-      <div class="invalid-feedback"></div>
+      <input type="text" class="form-control form-control-sm text-end quantity fw-bold" placeholder="0" value="0" inputmode="decimal">
     </td>
     <td>
       <input type="text" class="form-control form-control-sm item-note" placeholder="Ghi chú...">
     </td>
-    <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger btn-remove"><i class="bi bi-trash"></i></button></td>
+    <td class="text-center"><button type="button" class="btn btn-sm btn-link text-danger btn-remove opacity-50 px-0" title="Xóa"><i class="bi bi-x-circle"></i></button></td>
   </tr>`;
 }
 function renumberRows(){ [...document.querySelectorAll('#itemsBody tr')].forEach((tr,i)=> tr.querySelector('.stt').textContent=i+1 ); }
@@ -738,6 +751,30 @@ function addItemRow() {
   tr.querySelector('.quantity').addEventListener('input', e=>{
     e.target.value = e.target.value.replace(/[^0-9.,-]/g, '');
   });
+  
+  tr.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const isNote = e.target.classList.contains('item-note');
+      const isQuantity = e.target.classList.contains('quantity');
+      if (isNote || isQuantity) {
+        if (!tr.nextElementSibling) {
+            addItemRow();
+        }
+        const nextTr = tr.nextElementSibling;
+        if (nextTr) {
+          nextTr.querySelector('.product-autocomplete').focus();
+        }
+      }
+    }
+  });
+
+  if (body.children.length > 1) {
+    setTimeout(() => {
+      const el = tr.querySelector('.product-autocomplete');
+      if (el) el.focus();
+    }, 50);
+  }
 }
 
 async function editPXK(id) {
@@ -747,8 +784,8 @@ async function editPXK(id) {
     if (!j || !j.success || !j.row) { swalError('Không tải được PXK', j && j.message ? j.message : ''); return; }
     const row = j.row;
     editingId = row.id;
-    document.getElementById('formTitle').textContent = 'Sửa Phiếu Xuất Kho #' + row.id;
-    document.getElementById('pxkFormCard').style.display = '';
+    document.getElementById('formTitle').textContent = 'Sửa Phiếu Xuất #' + row.pxk_number;
+    if (typeof bsModal !== 'undefined' && bsModal) bsModal.show();
 
     document.getElementById('pxk_id').value = row.id;
     document.getElementById('pxk_number').value = row.pxk_number || '';
@@ -846,6 +883,7 @@ async function savePXK(exportPdf=false) {
 
 async function generateNumber() {
   const btn = document.getElementById('btn-generate-number');
+  if(!btn) return false;
   btn.disabled = true;
   const original = btn.innerHTML;
   btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang tạo...';
@@ -878,7 +916,7 @@ function setupPartnerAutocomplete(){
     let box = inputEl.nextElementSibling;
     if (!box || !box.classList.contains('ac-box')) {
       box = document.createElement('div');
-      box.className = 'ac-box';
+      box.className = 'ac-box shadow border rounded bg-white';
       inputEl.parentElement.style.position = 'relative';
       inputEl.insertAdjacentElement('afterend', box);
     }
@@ -893,13 +931,13 @@ function setupPartnerAutocomplete(){
       const phone   = escapeHtml(p.phone || '');
       const meta = [contact, phone, address].filter(Boolean).join(' — ');
       return `
-        <div class="ac-item"
+        <div class="ac-item p-2 border-bottom"
              data-id="${p.id||''}"
              data-name="${name}"
              data-address="${address}"
              data-contact="${contact}"
-             data-phone="${phone}">
-          ${name}${meta ? ` <small class="text-muted">— ${meta}</small>` : ''}
+             data-phone="${phone}" style="cursor:pointer;">
+          <div class="fw-bold">${name}</div>${meta ? `<small class="text-muted">${meta}</small>` : ''}
         </div>
       `;
     }).join('');
@@ -920,14 +958,15 @@ function setupPartnerAutocomplete(){
     const address = itemEl.dataset.address || '';
     const contact = itemEl.dataset.contact || '';
     const phone   = itemEl.dataset.phone   || '';
-    fldName.value    = name;
-    fldAddr.value    = address;
-    fldContact.value = contact;
-    fldPhone.value   = phone;
+    if(fldName) fldName.value    = name;
+    if(fldAddr) fldAddr.value    = address;
+    if(fldContact) fldContact.value = contact;
+    if(fldPhone) fldPhone.value   = phone;
     [fldName, fldAddr, fldContact, fldPhone].forEach(hideBox);
   }
   function hideBox(inputEl) {
-    const b = inputEl && inputEl.nextElementSibling;
+    if(!inputEl) return;
+    const b = inputEl.nextElementSibling;
     if (b && b.classList.contains('ac-box')) { b.style.display = 'none'; }
   }
   function attachPickHandler(box) {
@@ -940,6 +979,7 @@ function setupPartnerAutocomplete(){
     });
   }
   function installPartnerAC(inputEl) {
+    if(!inputEl) return;
     const box = ensureBox(inputEl);
     attachPickHandler(box);
     let timer = null;
@@ -973,6 +1013,7 @@ function setupPartnerAutocomplete(){
 
 // ====== Autocomplete SẢN PHẨM (dùng jQuery) ======
 function setupProductAutocomplete(){
+  if(typeof jQuery === 'undefined') return;
   (function($) {
     let acTimer = null;
 
@@ -986,8 +1027,8 @@ function setupProductAutocomplete(){
       let $box = $inp.siblings('.ac-box');
       if ($box.length === 0) {
         $inp.parent().css('position','relative');
-        $box = $('<div class="ac-box"></div>').css({
-          position:'absolute', zIndex:9999, background:'#fff', border:'1px solid #ccc',
+        $box = $('<div class="ac-box shadow border rounded bg-white"></div>').css({
+          position:'absolute', zIndex:9999,
           minWidth: $inp.outerWidth(), maxHeight:'240px', overflowY:'auto'
         }).insertAfter($inp);
       }
@@ -1006,15 +1047,14 @@ function setupProductAutocomplete(){
             const name = it.name || '';
             const unit = it.unit_name ? ' ['+it.unit_name+']' : '';
             const cat  = it.category_name ? ' — '+it.category_name : '';
-            return '<div class="ac-item" data-id="'+(it.id||'')+'" data-name="'+(it.name||'')+'" data-unit="'+(it.unit_name||'')+'" data-cat="'+(it.category_name||'')+'" style="padding:6px 8px; cursor:pointer;">'
-                   + name + cat + unit + '</div>';
+            return '<div class="ac-item p-2 border-bottom" data-id="'+(it.id||'')+'" data-name="'+(it.name||'')+'" data-unit="'+(it.unit_name||'')+'" data-cat="'+(it.category_name||'')+'" style="cursor:pointer;">'
+                   + '<div class="fw-bold">' + name + '</div><small class="text-muted">' + cat + unit + '</small></div>';
           }).join('');
           $box.html(html).show();
         })
         .fail(function(){ $box.hide(); });
     }
 
-    // mousedown để nhận trước blur
     $(document).on('mousedown', '.ac-box .ac-item', function(){
       const $it  = $(this);
       const $box = $it.closest('.ac-box');

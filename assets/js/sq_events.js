@@ -1,4 +1,4 @@
-﻿// cleaned: console logs optimized, debug system applied
+// cleaned: console logs optimized, debug system applied
 // File: assets/js/sq_events.js
 
 function setupEventListeners() {
@@ -412,10 +412,14 @@ if (ckEditorInstances['emailBody']) {
             if (!docId || !docNum) { /* alert error */ return; }
 
             $('#sendEmailModal').data({ 'current-document-id': docId, 'current-document-type': APP_CONTEXT.type, 'current-document-number': docNum });
-            $('#sendEmailModal #modal-send-email-quote-number-display').text(`${APP_CONTEXT.documentName} ${docNum}`); // ID title modal cho báo giá
+            $('#sendEmailModal #modal-send-email-quote-number-display').text(`${docNum}`);
+            $('#modal-document-type-label').text(APP_CONTEXT.documentName);
 
-            $.post(PROJECT_BASE_URL + 'includes/get_partner_email.php', { id: docId, type: APP_CONTEXT.type }, (res) => {
+            $.post(PROJECT_BASE_URL + 'ajax/get_partner_email.php', { id: docId, type: APP_CONTEXT.type }, (res) => {
                 if (res.success) {
+                    if (!res.email) {
+                        showUserMessage('Khách hàng hiện chưa có thông tin email. Vui lòng cập nhật tại mục Đối tác.', 'warning');
+                    }
                     $('#emailTo').val(res.email || ''); $('#emailCc').val(res.cc_emails || '');
                     $('#emailSubject').val(`${APP_CONTEXT.documentName} STV - ${docNum}`);
                     const bodyDefault = `Kính gửi Quý công ty,\n\nCông ty STV xin gửi ${APP_CONTEXT.documentName} số: ${docNum}.\nVui lòng xem file đính kèm.\n\nTrân trọng!`;

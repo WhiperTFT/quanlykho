@@ -124,11 +124,11 @@ function handle_print($CFG, $SESSION_DIR, $JSON_BODY) {
     }
 
     // --- Lấy danh sách máy in hiện tại
-    $lp = core_list_printers();
+    $lp = list_printers($CFG);
     if ($lp['success'] !== true) {
-        return ['success' => false, 'message' => 'Không thể đọc danh sách máy in (PowerShell).'];
+        return ['success' => false, 'message' => 'Không thể đọc danh sách máy in (WMI/Cache).'];
     }
-    $printers = $lp['data'];
+    $printers = $lp['printers'];
     $names = array_map(fn($p) => $p['name'], $printers);
 
     // --- Quyết định máy in nếu thiếu
@@ -235,36 +235,94 @@ function handle_delete($SESSION_DIR) {
 
 // ---------- Danh sách máy in (kèm preferred & autoSelected) ----------
 function list_printers($CFG) {
-    $lp = core_list_printers();
-    if ($lp['success'] !== true) return $lp;
-
-    $printers = $lp['data'];
+    global $pdo; // if available from init.php
+    $force = !empty($_GET['force']);
+    $cacheFile = __DIR__ . '/../logs/printers_cache.json';
+    
+    // Cookie-based preferred
     $preferred = get_cookie_printer($CFG);
-    $defaultName = get_default_printer_name($printers);
-
-    // Nếu preferred không còn tồn tại → bỏ qua
-    $names = array_map(fn($p) => $p['name'], $printers);
-    if ($preferred && !in_array($preferred, $names, true)) {
-        $preferred = '';
+    $winDefault = '';
+    
+    // 1) Đọc cache (5 phút)
+    if (!$force && file_exists($cacheFile) && time() - filemtime($cacheFile) < 300) {
+        $cacheData = json_decode(file_get_contents($cacheFile), true);
+        if (is_array($cacheData) && isset($cacheData['printers'])) {
+            $cacheData['preferredPrinter'] = $preferred;
+            // Xác thực preferred tồn tại trong cache
+            $names = array_map(fn($p) => $p['name'], $cacheData['printers']);
+            if ($preferred && !in_array($preferred, $names, true)) $preferred = '';
+            $cacheData['autoSelected'] = $preferred ?: $cacheData['windows_default'];
+            return $cacheData;
+        }
     }
 
-    // Quy tắc auto-selected: preferred > default
-    $autoSelected = $preferred ?: $defaultName;
+    // 2) Quét thực tế (WMIC với Header Mapping)
+    $printers = [];
+    @exec('wmic path Win32_Printer get Name,Default,PrinterStatus,WorkOffline /format:csv 2>NUL', $out, $rc);
+    
+    if ($rc === 0 && !empty($out)) {
+        $headers = [];
+        foreach ($out as $line) {
+            $line = trim($line);
+            if ($line === '') continue;
+            $parts = array_map('trim', explode(',', $line));
+            
+            if (empty($headers)) {
+                foreach ($parts as $idx => $h) $headers[strtolower($h)] = $idx;
+                continue;
+            }
+            
+            $idxName = $headers['name'] ?? -1;
+            $idxDefault = $headers['default'] ?? -1;
+            $idxStatus = $headers['printerstatus'] ?? -1;
+            $idxOffline = $headers['workoffline'] ?? -1;
 
-    return [
+            if ($idxName !== -1 && isset($parts[$idxName])) {
+                $name = $parts[$idxName];
+                if ($name === '' || strtolower($name) === 'name') continue;
+                
+                $defArr = ($idxDefault !== -1 && isset($parts[$idxDefault])) ? $parts[$idxDefault] : 'FALSE';
+                $isDef = (stripos($defArr, 'TRUE') !== false || $defArr === '1');
+                if ($isDef && !$winDefault) $winDefault = $name;
+                
+                $pStatus = ($idxStatus !== -1 && isset($parts[$idxStatus])) ? (int)$parts[$idxStatus] : 3;
+                $wOffline = ($idxOffline !== -1 && isset($parts[$idxOffline])) ? $parts[$idxOffline] : 'FALSE';
+                $isOffline = (stripos($wOffline, 'TRUE') !== false);
+                
+                $statusText = 'Sẵn sàng';
+                $statusCode = $pStatus;
+                if ($isOffline || $pStatus === 7) { $statusText = 'Ngoại tuyến'; $statusCode = 7; }
+                elseif (in_array($pStatus, [4,5,8,9])) { $statusText = 'Đang bận'; $statusCode = 4; }
+                elseif (in_array($pStatus, [1,2,6])) { $statusText = 'Lỗi/Cảnh báo'; $statusCode = 1; }
+
+                $printers[] = [
+                    'name' => $name,
+                    'isDefault' => $isDef,
+                    'status_code' => $statusCode,
+                    'status_text' => $statusText
+                ];
+            }
+        }
+    }
+
+    $res = [
         'success' => true,
-        'data' => $printers,
+        'printers' => $printers,
+        'windows_default' => $winDefault,
         'preferredPrinter' => $preferred,
-        'defaultPrinter' => $defaultName,
-        'autoSelected' => $autoSelected
+        'autoSelected' => $preferred ?: $winDefault,
+        'updated_at' => date('Y-m-d H:i:s')
     ];
+
+    @file_put_contents($cacheFile, json_encode($res, JSON_UNESCAPED_UNICODE));
+    return $res;
 }
 
 // ---------- Đọc hàng chờ ----------
 function list_queue($printer) {
     $printer = trim((string)$printer);
     if ($printer === '') return ['success' => false, 'message' => 'Chưa chọn máy in.'];
-    $ps = <<<PS
+    $ps = <<<'PS'
 Get-PrintJob -PrinterName "#{PRN}" | Select-Object Id,Document,UserName,PagesPrinted,TotalPages,TimeSubmitted,JobStatus |
 ForEach-Object {
   [PSCustomObject]@{
@@ -301,9 +359,9 @@ function api_set_preferred_printer($CFG, $JSON_BODY) {
     }
 
     // Xác thực tên có tồn tại
-    $lp = core_list_printers();
+    $lp = list_printers($CFG);
     if ($lp['success'] !== true) return ['success' => false, 'message' => 'Không thể đọc danh sách máy in.'];
-    $printers = $lp['data'];
+    $printers = $lp['printers'];
     $names = array_map(fn($p) => $p['name'], $printers);
     if (!in_array($name, $names, true)) {
         return ['success' => false, 'message' => 'Máy in không tồn tại: ' . $name];
@@ -314,27 +372,6 @@ function api_set_preferred_printer($CFG, $JSON_BODY) {
 }
 
 // ==== Utilities ====
-
-// --- Core gọi PowerShell để lấy DS máy in
-function core_list_printers() {
-    // Windows PowerShell: Get-Printer
-    // Dùng ConvertTo-Json để luôn về JSON chuẩn
-    $cmd = 'powershell -NoProfile -Command "Get-Printer | Select-Object Name,Default | ConvertTo-Json"';
-    exec($cmd, $out, $code);
-    if ($code !== 0) {
-        return ['success' => false, 'message' => 'Không thể đọc danh sách máy in. Kiểm tra PowerShell quyền thực thi.'];
-    }
-    $json = json_decode(implode("\n", $out), true);
-    $arr = [];
-    if (is_array($json)) {
-        // Khi chỉ có 1 phần tử, PowerShell trả object thay vì array
-        $list = isset($json['Name']) ? [$json] : $json;
-        foreach ($list as $p) {
-            $arr[] = ['name' => $p['Name'] ?? '', 'isDefault' => (bool)($p['Default'] ?? false)];
-        }
-    }
-    return ['success' => true, 'data' => $arr];
-}
 
 function get_default_printer_name(array $printers) {
     foreach ($printers as $p) {

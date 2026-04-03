@@ -578,12 +578,16 @@ function setupEventListeners() {
             $('#sendEmailModal').data('current-document-number', documentNumber);
 
             const $modalTitleSpan = $('#sendEmailModal').find('#modal-send-email-order-number-display');
-            if ($modalTitleSpan.length) $modalTitleSpan.text(`${APP_CONTEXT.documentName} ${documentNumber}`);
+            if ($modalTitleSpan.length) $modalTitleSpan.text(`${documentNumber}`);
+            $('#modal-document-type-label').text(APP_CONTEXT.documentName);
 
             devLog(`Requesting default email info for ${APP_CONTEXT.type} ID: ${documentId}...`);
-            $.post(PROJECT_BASE_URL + 'includes/get_partner_email.php', { id: documentId, type: APP_CONTEXT.type }, function (response) {
+            $.post(PROJECT_BASE_URL + 'ajax/get_partner_email.php', { id: documentId, type: APP_CONTEXT.type }, function (response) {
                 devLog(">>> get_partner_email.php success response:", response);
                 if (response && response.success) {
+                    if (!response.email) {
+                        showUserMessage('NCC hiện chưa có thông tin email. Vui lòng cập nhật tại mục Đối tác.', 'warning');
+                    }
                     const emailModalEl = document.getElementById('sendEmailModal');
                     // ... (Lấy các element input trong modal như file gốc) ...
                     $('#emailTo').val(response.email || '');

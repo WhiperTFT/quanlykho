@@ -8,7 +8,7 @@ header('Content-Type: application/json'); // Đảm bảo trả về JSON
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/init.php';
 // === THÊM DÒNG NÀY ĐỂ GỌI HÀM KẾT NỐI ===
-$conn = db_connect();
+$pdo = db_connect();
 // ========================================
 
 // === THÊM ĐOẠN KIỂM TRA KẾT NỐI ===

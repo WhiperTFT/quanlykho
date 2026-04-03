@@ -291,4 +291,60 @@ if (!function_exists('log_user_safe')) {
         }
     }
 }
+
+// ==========================
+// 🧹 11. TỰ ĐỘNG DỌN DẸP LOG (Auto Cleanup)
+// ==========================
+if (is_admin() && isset($pdo)) {
+    $cleanup_dir = __DIR__ . '/../storage/logs';
+    $settings_file = $cleanup_dir . '/settings.json';
+    
+    // Đọc cấu hình số ngày từ file settings.json
+    $auto_days = 30; // Mặc định 30 ngày
+    if (file_exists($settings_file)) {
+        $config_json = @file_get_contents($settings_file);
+        if ($config_json) {
+            $config_data = json_decode($config_json, true);
+            $auto_days = isset($config_data['auto_cleanup_days']) ? (int)$config_data['auto_cleanup_days'] : 30;
+        }
+    }
+
+    // Chỉ chạy nếu tính năng tự động được bật (auto_days > 0)
+    if ($auto_days > 0) {
+        if (!is_dir($cleanup_dir)) {
+            @mkdir($cleanup_dir, 0755, true);
+        }
+        $cleanup_log_file = $cleanup_dir . '/last_cleanup.txt';
+        $today_date = date('Y-m-d');
+        $needs_run = false;
+        
+        if (!file_exists($cleanup_log_file)) {
+            $needs_run = true;
+        } else {
+            $last_run = trim(@file_get_contents($cleanup_log_file));
+            if ($last_run !== $today_date) {
+                $needs_run = true;
+            }
+        }
+        
+        if ($needs_run) {
+            try {
+                $threshold = date('Y-m-d H:i:s', strtotime("-{$auto_days} days"));
+                $stmt_cleanup = $pdo->prepare("DELETE FROM user_logs WHERE created_at < ?");
+                $stmt_cleanup->execute([$threshold]);
+                $deleted_rows = $stmt_cleanup->rowCount();
+                
+                @file_put_contents($cleanup_log_file, $today_date);
+                
+                if ($deleted_rows > 0) {
+                    // Ghi log nhẹ nhàng về việc tự động dọn dẹp
+                    $stmt_log = $pdo->prepare("INSERT INTO user_logs (user_id, action, module, description, log_type, device_id) VALUES (?, 'DELETE', 'system', ?, 'info', 'system-auto')");
+                    $stmt_log->execute([$_SESSION['user_id'] ?? 0, "Auto Cleanup: Đã dọn dẹp $deleted_rows bản ghi cũ hơn $auto_days ngày."]);
+                }
+            } catch (Exception $e) {
+                error_log("Auto cleanup failed: " . $e->getMessage());
+            }
+        }
+    }
+}
 ?>

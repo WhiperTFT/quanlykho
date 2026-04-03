@@ -36,10 +36,30 @@ if (!function_exists('write_user_log')) {
         try {
             $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
             $agent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+            
+            // Get device_id from request (Ưu tiên Cookie vì độ tin cậy cao nhất)
+            $device_id = $_COOKIE['device_id'] ?? 'unknown';
+
+            // Fallback sang các phương thức khác nếu Cookie chưa được set
+            if ($device_id === 'unknown') {
+                if (isset($_POST['device_id'])) {
+                    $device_id = $_POST['device_id'];
+                } elseif (isset($_GET['device_id'])) {
+                    $device_id = $_GET['device_id'];
+                } else {
+                    $input = file_get_contents('php://input');
+                    if ($input) {
+                        $json = json_decode($input, true);
+                        if (isset($json['device_id']) && !empty($json['device_id'])) {
+                            $device_id = $json['device_id'];
+                        }
+                    }
+                }
+            }
 
             $stmt = $pdo->prepare("
-                INSERT INTO user_logs (user_id, action, module, log_type, description, data, ip_address, user_agent)
-                VALUES (:user_id, :action, :module, :log_type, :description, :data, :ip, :agent)
+                INSERT INTO user_logs (user_id, action, module, log_type, description, data, ip_address, user_agent, device_id)
+                VALUES (:user_id, :action, :module, :log_type, :description, :data, :ip, :agent, :device_id)
             ");
             $stmt->execute([
                 ':user_id' => $user_id,
@@ -49,7 +69,8 @@ if (!function_exists('write_user_log')) {
                 ':description' => $description,
                 ':data' => $data,
                 ':ip' => $ip,
-                ':agent' => $agent
+                ':agent' => $agent,
+                ':device_id' => $device_id
             ]);
         } catch (Exception $e) {
             // Graceful Check: if failure is due to missing new columns ('42S22' Column not found), fallback safely
