@@ -33,6 +33,8 @@ try {
         ':delivery_date' => $delivery_date
     ]);
 
+    write_user_log('UPDATE', 'delivery', "Đã cập nhật ngày giao cho đơn hàng #$order_id: $delivery_date", $input, 'info');
+
     echo json_encode(['success' => true, 'message' => 'Ngày giao đã được lưu thành công!']);
 } catch (Exception $e) {
     error_log("Save Delivery Date Error: " . $e->getMessage());

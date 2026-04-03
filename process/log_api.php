@@ -38,12 +38,8 @@ try {
     $ip     = $_SERVER['REMOTE_ADDR'] ?? '';
     $ua     = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
-    // bảng user_logs: (user_id, action, description, ip_address, user_agent, created_at)
-    $level = in_array(($j['level'] ?? 'info'), ['info','warn','error']) ? $j['level'] : 'info';
-    $st = $pdo->prepare("INSERT INTO user_logs(user_id, action, description, ip_address, user_agent, level, created_at)
-                        VALUES(?,?,?,?,?,?,NOW())");
-    $st->execute([$userId, $act, $desc, $ip, $ua, $level]);
-
+    // Ghi log bằng hàm chuẩn để đảm bảo có device_id từ Cookie/Session
+    write_user_log($act, 'system', $desc, $j, $level);
 
     jexit(true);
   }

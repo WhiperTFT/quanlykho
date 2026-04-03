@@ -115,8 +115,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $_SESSION['success_message'] = $lang['company_info_updated'] ?? 'Thông tin công ty đã được cập nhật thành công.';
 
-        // ✅ Ghi log
-        write_user_log($pdo, $_SESSION['user_id'] ?? 0, 'update', 'company_info', $id, 'Cập nhật thông tin công ty');
+        // ✅ Ghi log (Modern Signature)
+        write_user_log('UPDATE', 'system', 'Cập nhật thông tin công ty', $_POST, 'info');
 
     } catch (PDOException $e) {
         error_log("Error updating company info: " . $e->getMessage());

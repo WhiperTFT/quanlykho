@@ -52,6 +52,9 @@ try {
     }
 
     $pdo->commit();
+
+    write_user_log('UPDATE', 'driver', "Cập nhật điều chỉnh lương/thưởng cho tài xế ID: $driver_id (Kỳ: $month/$year)", $input, 'info');
+
     echo json_encode(['success' => true, 'message' => 'Đã lưu các điều chỉnh thành công!']);
 
 } catch (Exception $e) {

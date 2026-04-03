@@ -111,24 +111,12 @@ try {
   </div>
 </div>
 <script>
-// ==== Logger tiện dụng cho trang Đơn vị tính ====
-
-function sendUserLog(action, description = '', level = 'info') {
-  try {
-    return fetch('process/log_api.php?action=log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, description, level })
-    }).catch(()=>{});
-  } catch(_) {}
-}
-// Khi DOM ready => log lần vào trang
+// Ghi lại lần vào trang (Dùng hàm toàn cục từ script.js)
 document.addEventListener('DOMContentLoaded', () => {
-  sendUserLog('units_view', 'Người dùng mở trang Quản lý Đơn vị tính', 'info');
+  if (typeof window.sendUserLog === 'function') {
+    window.sendUserLog('units_view', 'Người dùng mở trang Quản lý Đơn vị tính', 'info');
+  }
 });
-
-// Expose cho units.js gọi được
-window.sendUserLog = sendUserLog;
 </script>
 
 

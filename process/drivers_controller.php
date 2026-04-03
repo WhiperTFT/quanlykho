@@ -155,7 +155,11 @@ function handle_add_driver(PDO $pdo) {
         $stmt->bindParam(':ghi_chu', $ghi_chu);
 
         if ($stmt->execute()) {
-            send_json_response(true, 'Thêm mới tài xế thành công.', ['id' => $pdo->lastInsertId()]);
+            $newId = $pdo->lastInsertId();
+            
+            write_user_log('CREATE', 'driver', "Thêm mới tài xế: $ten", $_POST, 'success');
+            
+            send_json_response(true, 'Thêm mới tài xế thành công.', ['id' => $newId]);
         } else {
             send_json_response(false, 'Lỗi khi thêm tài xế.');
         }
@@ -200,6 +204,7 @@ function handle_update_driver(PDO $pdo) {
 
         if ($stmt->execute()) {
             if ($stmt->rowCount() > 0) {
+                write_user_log('UPDATE', 'driver', "Cập nhật thông tin tài xế: $ten (ID: $id)", $_POST, 'info');
                 send_json_response(true, 'Cập nhật thông tin tài xế thành công.');
             } else {
                 send_json_response(true, 'Không có thay đổi nào được thực hiện hoặc không tìm thấy tài xế.');
@@ -223,6 +228,7 @@ function handle_delete_driver(PDO $pdo) {
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         if ($stmt->execute()) {
             if ($stmt->rowCount() > 0) {
+                write_user_log('DELETE', 'driver', "Xóa tài xế (ID: $id)", ['id' => $id], 'danger');
                 send_json_response(true, 'Xóa tài xế thành công.');
             } else {
                 send_json_response(false, 'Không tìm thấy tài xế để xóa hoặc đã được xóa.');

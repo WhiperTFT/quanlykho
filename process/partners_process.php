@@ -218,18 +218,15 @@ try {
 
         $stmt = $pdo->prepare($sql);
         if ($stmt->execute($params)) {
-            if ($user_id) {
-                write_user_log($pdo, $user_id, 'save_partner', "Cập nhật đối tác: $name (ID: $id, type: $type)");
-            }
+            write_user_log('UPDATE', 'partner', "Cập nhật đối tác: $name (ID: $id)", $params, 'info');
+
             $response['success']  = true;
             $response['message']  = $lang['partner_updated_success'] ?? 'Cập nhật đối tác thành công.';
             $response['id']       = $id;
             $response['duplicate_warning'] = $dup_info;
         } else {
             $response['message'] = 'Database error during save.';
-            if ($user_id) {
-                write_user_log($pdo, $user_id, 'error_partner', "Lỗi khi lưu đối tác (update): " . implode(', ', $stmt->errorInfo()));
-            }
+            write_user_log('ERROR', 'partner', "Lỗi cập nhật đối tác: " . implode(', ', $stmt->errorInfo()), $params, 'danger');
         }
     } else {
         $sql = "INSERT INTO partners (name, type, tax_id, address, phone, email, cc_emails, contact_person)
@@ -237,9 +234,9 @@ try {
         $stmt = $pdo->prepare($sql);
         if ($stmt->execute($params)) {
             $new_id = (int)$pdo->lastInsertId();
-            if ($user_id) {
-                write_user_log($pdo, $user_id, 'save_partner', "Thêm đối tác mới: $name (ID: $new_id, type: $type)");
-            }
+            
+            write_user_log('CREATE', 'partner', "Thêm đối tác mới: $name (ID: $new_id)", $params, 'success');
+
             $response['success']  = true;
             $response['message']  = $lang['partner_added_success'] ?? 'Thêm đối tác thành công.';
             $response['data']     = ['new_id' => $new_id];
@@ -247,9 +244,7 @@ try {
             $response['duplicate_warning'] = $dup_info;
         } else {
             $response['message'] = 'Database error during save.';
-            if ($user_id) {
-                write_user_log($pdo, $user_id, 'error_partner', "Lỗi khi lưu đối tác (insert): " . implode(', ', $stmt->errorInfo()));
-            }
+            write_user_log('ERROR', 'partner', "Lỗi thêm mới đối tác: " . implode(', ', $stmt->errorInfo()), $params, 'danger');
         }
     }
     break;
@@ -325,14 +320,7 @@ case 'clone_opposite_type': {
     if ($ins->execute($params)) {
         $new_id = (int)$pdo->lastInsertId();
 
-        if ($user_id) {
-            write_user_log(
-                $pdo,
-                $user_id,
-                'clone_partner',
-                "Nhân bản đối tác ID $src_id ({$src['name']}) sang loại $dst_type -> ID mới $new_id"
-            );
-        }
+        write_user_log('CREATE', 'partner', "Nhân bản đối tác ID $src_id ({$src['name']}) sang loại $dst_type -> ID mới $new_id", $params, 'success');
 
         $response = [
             'success' => true,
@@ -391,9 +379,7 @@ case 'clone_opposite_type': {
 
                 $stmt = $pdo->prepare("DELETE FROM partners WHERE id = ?");
                 if ($stmt->execute([$id])) {
-                    if ($user_id) {
-                        write_user_log($pdo, $user_id, 'delete_partner', "Xóa đối tác: $partner_name (ID: $id)");
-                    }
+                    write_user_log('DELETE', 'partner', "Xóa đối tác: $partner_name (ID: $id)", ['id' => $id, 'name' => $partner_name], 'danger');
                     $response = ['success' => true, 'message' => $lang['partner_deleted_success']];
                 } else {
                     if (($stmt->errorInfo()[1] ?? null) == 1451) {

@@ -128,9 +128,14 @@ try {
                          $returnData = ['id' => $inputData['unit_id'], 'name' => $inputData['name'], 'description' => $inputData['description']]; // Return updated data
                     }
                     $pdo->commit();
-                    // Ghi log
-                    write_user_log($pdo, (int)$_SESSION['user_id'], 'unit_edit', 'Đã cập nhật đơn vị ID=' . $inputData['unit_id'] . ', tên: ' . $inputData['name']);
-                    write_user_log($pdo, (int)$_SESSION['user_id'], 'unit_add', 'Đã thêm đơn vị: ' . $inputData['name']);
+
+                    // Ghi log (Sử dụng modern signature)
+                    if ($action === 'add') {
+                        write_user_log('CREATE', 'unit', "Thêm đơn vị tính mới: {$inputData['name']} (ID: $newId)", $inputData, 'success');
+                    } else {
+                        write_user_log('UPDATE', 'unit', "Cập nhật đơn vị tính: {$inputData['name']} (ID: {$inputData['unit_id']})", $inputData, 'info');
+                    }
+
                     echo json_encode(['success' => true, 'message' => $message, 'data' => $returnData]);
 
                 } catch (Exception $e) {
@@ -157,7 +162,8 @@ try {
 
                     if ($stmt->rowCount() > 0) {
                         $pdo->commit();
-                        write_user_log($pdo, (int)$_SESSION['user_id'], 'unit_delete', 'Đã xóa đơn vị ID=' . $id);
+                        
+                        write_user_log('DELETE', 'unit', "Xóa đơn vị tính (ID: $id)", ['id' => $id], 'danger');
 
                         echo json_encode(['success' => true, 'message' => $lang['unit_deleted_success'] ?? 'Unit deleted successfully.']);
                     } else {

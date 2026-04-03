@@ -140,3 +140,31 @@ if (typeof jQuery !== 'undefined') {
         }
     });
 }
+
+/**
+ * Unified Logging Function for Frontend
+ * Automatically attaches device_id and sends to log_api.php
+ */
+window.sendUserLog = function(action, description = '', level = 'info') {
+    const deviceId = getDeviceId(); // From current file
+    const payload = { 
+        action: action, 
+        description: description, 
+        level: level, 
+        device_id: deviceId 
+    };
+
+    try {
+        // Use fetch with 'keepalive' to ensure log is sent even if page closes
+        return fetch(window.PROJECT_BASE_URL + 'process/log_api.php?action=log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            keepalive: true 
+        }).catch(err => {
+            if (typeof devLog === 'function') devLog('[log_api] fallback fetch error:', err);
+        });
+    } catch (e) {
+        if (typeof devLog === 'function') devLog('[log_api] critical fetch error:', e);
+    }
+};

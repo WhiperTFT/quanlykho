@@ -47,6 +47,12 @@ if (!empty($_SESSION['user_id'])) {
         exit;
     }
     $_SESSION['LAST_ACTIVITY'] = $now;
+
+    // --- Sync device_id from Cookie to Session for logging ---
+    if (!empty($_COOKIE['device_id'])) {
+        $_SESSION['device_id'] = (string)$_COOKIE['device_id'];
+    }
+
     $now = time();
 if (!empty($_SESSION['user_id'])) {
     $last = (int)($_SESSION['LAST_ACTIVITY'] ?? $now);
@@ -269,26 +275,8 @@ if (!function_exists('log_user_safe')) {
     function log_user_safe($action, $message = '') {
         if (!function_exists('write_user_log') || !isset($GLOBALS['pdo'])) return;
         $pdo = $GLOBALS['pdo'];
-        $uid = (int)($_SESSION['user_id'] ?? 0);
-        try {
-            $rf = new ReflectionFunction('write_user_log');
-            $num = $rf->getNumberOfParameters();
-            if ($num >= 4) {
-                write_user_log($pdo, $uid, (string)$action, (string)$message);
-            } else {
-                write_user_log($pdo, (string)$action, (string)$message);
-            }
-        } catch (Throwable $ex) {
-            try {
-                write_user_log($pdo, $uid, (string)$action, (string)$message);
-            } catch (Throwable $ex2) {
-                try {
-                    write_user_log($pdo, (string)$action, (string)$message);
-                } catch (Throwable $ex3) {
-                    // bỏ qua
-                }
-            }
-        }
+        // Sử dụng chữ ký linh hoạt của write_user_log
+        write_user_log($pdo, (string)$action, (string)$message);
     }
 }
 

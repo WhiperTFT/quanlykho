@@ -31,6 +31,8 @@ try {
             ':path' => $file_name
         ]);
 
+        write_user_log('CREATE', 'delivery', "Tải lên bằng chứng giao hàng (loại: $type) cho đơn #$order_id", ['order_id' => $order_id, 'type' => $type, 'file' => $file_name], 'info');
+
         echo json_encode(['success' => true, 'message' => 'File đã được tải lên thành công!']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Không thể tải lên file.']);

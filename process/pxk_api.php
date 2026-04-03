@@ -319,6 +319,9 @@ switch ($action) {
 
         $st = $pdo->prepare("DELETE FROM pxk_slips WHERE id=?");
         $st->execute([$id]);
+        
+        write_user_log('DELETE', 'pxk_slip', "Đã xóa phiếu xuất kho ID: $id", ['id' => $id], 'danger');
+        
         jexit(true);
     }
 
@@ -375,6 +378,9 @@ switch ($action) {
                 $pxk_number, $pxk_date, $partner_name, $partner_address, $partner_phone,
                 $contact_person, $notes, $items_json, $id
             ]);
+
+            write_user_log('UPDATE', 'pxk_slip', "Cập nhật phiếu xuất kho #$pxk_number", ['id' => $id, 'number' => $pxk_number], 'info');
+
             jexit(true, ['id'=>$id, 'pxk_number'=>$pxk_number]);
         }
 
@@ -389,6 +395,9 @@ switch ($action) {
                     $contact_person, $notes, $items_json, 0.00
                 ]);
                 $newId = (int)$pdo->lastInsertId();
+
+                write_user_log('CREATE', 'pxk_slip', "Tạo mới phiếu xuất kho #$pxk_number", ['id' => $newId, 'number' => $pxk_number], 'success');
+
                 jexit(true, ['id'=>$newId, 'pxk_number'=>$pxk_number]);
             } catch (PDOException $e) {
                 if ($e->errorInfo[0] === '23000' && (strpos($e->getMessage(), '1062') !== false || (int)($e->errorInfo[1] ?? 0) === 1062)) {
@@ -563,6 +572,11 @@ case 'printer_save': {
     $j = body_json();
     $name = trim((string)($j['name'] ?? '')); // '' = xoá -> dùng Windows Default
     $ok = set_setting($pdo, 'printer_default', $name);
+    
+    if ($ok) {
+        write_user_log('UPDATE', 'system', "Thay đổi máy in mặc định sang: " . ($name ?: 'Mặc định Windows'), ['printer' => $name], 'info');
+    }
+
     jexit($ok, ['saved'=>$ok, 'app_default'=>$name]);
 }
 
@@ -643,6 +657,8 @@ case 'enqueue_print': {
 
         // Đá worker NGAY tại đây
         $spawned = kickJobDetached($jobId, $__PRINT_PHP_EXE, $__PRINT_SCRIPT, $__PRINT_WORKDIR, $__POWERSHELL_EXE);
+
+        write_user_log('PRINT', 'pxk_slip', "Ra lệnh in phiếu: $pdfWebPath", ['job_id' => $jobId, 'printer' => $printerName], 'info');
 
         jexit(true, [
             'job_id'   => $jobId,

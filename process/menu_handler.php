@@ -67,12 +67,14 @@ switch ($action) {
                 $stmt = $pdo->prepare("UPDATE menus SET name = ?, name_en = ?, url = ?, icon = ?, permission_key = ? WHERE id = ?");
                 $stmt->execute([$name, $name_en, $url, $icon, $permission_key, $id]);
                 $message = 'Cập nhật menu thành công.';
+                write_user_log('UPDATE', 'menu', "Cập nhật menu: $name (ID: $id)", $_POST, 'info');
             } else { // Thêm mới
                 $stmt = $pdo->prepare("INSERT INTO menus (name, name_en, url, icon, permission_key, parent_id, sort_order) VALUES (?, ?, ?, ?, ?, 0, 999)");
                 $stmt->execute([$name, $name_en, $url, $icon, $permission_key]);
                 $message = 'Thêm menu thành công.';
                 // Ghi log
-                write_user_log($pdo, (int)$_SESSION['user_id'], 'menu_add', 'Đã thêm menu: ' . $name);
+                $newId = $pdo->lastInsertId();
+                write_user_log('CREATE', 'menu', "Thêm menu mới: $name (ID: $newId)", $_POST, 'success');
             }
             echo json_encode(['status' => 'success', 'message' => $message]);
         } catch (Exception $e) {
@@ -87,7 +89,7 @@ switch ($action) {
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM menus WHERE parent_id = ?");
             $stmt->execute([$id]);
             // ghi log
-            write_user_log($pdo, (int)$_SESSION['user_id'], 'menu_delete', 'Đã xóa menu ID=' . $id);
+            write_user_log('DELETE', 'menu', "Xóa menu (ID: $id)", ['id' => $id], 'danger');
             if ($stmt->fetchColumn() > 0) {
                  throw new Exception("Không thể xóa menu có chứa menu con. Vui lòng di chuyển hoặc xóa các menu con trước.");
             }
@@ -124,7 +126,7 @@ switch ($action) {
 
             $pdo->commit();
             // Ghi log
-            write_user_log($pdo, (int)$_SESSION['user_id'], 'menu_reorder', 'Đã thay đổi thứ tự menu.');
+            write_user_log('UPDATE', 'menu', 'Thay đổi thứ tự menu hệ thống', $_POST, 'info');
             echo json_encode(['status' => 'success', 'message' => 'Đã lưu thứ tự menu.']);
         } catch (Exception $e) {
             $pdo->rollBack();

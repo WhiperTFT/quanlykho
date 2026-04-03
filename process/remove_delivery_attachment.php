@@ -27,6 +27,8 @@ try {
     $stmt = $pdo->prepare("DELETE FROM delivery_attachments WHERE id = :id");
     $stmt->execute([':id' => $attachment_id]);
 
+    write_user_log('DELETE', 'delivery', "Xóa tệp đính kèm giao hàng (ID: $attachment_id)", ['id' => $attachment_id], 'danger');
+
     echo json_encode(['success' => true, 'message' => 'Attachment đã được xóa thành công!']);
 } catch (Exception $e) {
     error_log("Remove Attachment Error: " . $e->getMessage());

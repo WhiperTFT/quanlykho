@@ -123,21 +123,11 @@ require_login();
 require_once __DIR__ . '/includes/footer.php';
 ?>
 <script>
-// ==== Logger dùng chung cho trang Đối tác (partners) ====
-
-function sendUserLog(action, description = '', level = 'info') {
-  try {
-    return fetch('process/log_api.php?action=log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, description, level })
-    }).catch(()=>{});
-  } catch(_) {}
-}
-
-// Ghi lại lần vào trang
+// Ghi lại lần vào trang (Dùng hàm toàn cục từ script.js)
 document.addEventListener('DOMContentLoaded', () => {
-  sendUserLog('partners_view', 'Người dùng mở trang Quản lý Đối tác', 'info');
+  if (typeof window.sendUserLog === 'function') {
+    window.sendUserLog('partners_view', 'Người dùng mở trang Quản lý Đối tác', 'info');
+  }
 });
 </script>
 
