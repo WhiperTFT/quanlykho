@@ -59,6 +59,7 @@ switch ($action) {
         $items = $_POST['items'] ?? []; // Array of items
         $total_amount = $_POST['total_amount'] ?? 0;
         $total_remark = $_POST['total_remark'] ?? '';
+        $invoice_seq = $_POST['invoice_seq'] ?? null;
         $packing = $_POST['packing'] ?? '';
         $net_weight = $_POST['net_weight'] ?? '';
 
@@ -75,12 +76,16 @@ switch ($action) {
 
             if ($id) {
                 // Update
+                $invoice_no = sprintf("%s/%s-%02d", $invoice_prefix, $invoice_year, (int)$invoice_seq);
+
                 $stmt = $pdo->prepare("UPDATE invoices SET 
+                    invoice_no = ?, invoice_prefix = ?, invoice_year = ?, invoice_seq = ?,
                     invoice_date = ?, partner_bill_id = ?, partner_ship_id = ?, 
                     items = ?, total_amount = ?, total_text = ?, total_remark = ?, 
                     packing = ?, net_weight = ? 
                     WHERE id = ?");
                 $stmt->execute([
+                    $invoice_no, $invoice_prefix, $invoice_year, (int)$invoice_seq,
                     $invoice_date, $partner_bill_id, $partner_ship_id, 
                     json_encode($items), $total_amount, $total_text, $total_remark,
                     $packing, $net_weight, $id
@@ -89,12 +94,14 @@ switch ($action) {
                 log_user_safe("UPDATE_INVOICE", "Updated invoice ID: $id");
             } else {
                 // Create
-                // Re-calculate sequence to avoid collisions
-                $stmt_seq = $pdo->prepare("SELECT MAX(invoice_seq) as max_seq FROM invoices WHERE invoice_prefix = ? AND invoice_year = ?");
-                $stmt_seq->execute([$invoice_prefix, $invoice_year]);
-                $row_seq = $stmt_seq->fetch();
-                $invoice_seq = ($row_seq['max_seq'] ?? 0) + 1;
-                $invoice_no = sprintf("%s/%s-%02d", $invoice_prefix, $invoice_year, $invoice_seq);
+                if (empty($invoice_seq) || (int)$invoice_seq <= 0) {
+                    // Re-calculate sequence to avoid collisions if not provided
+                    $stmt_seq = $pdo->prepare("SELECT MAX(invoice_seq) as max_seq FROM invoices WHERE invoice_prefix = ? AND invoice_year = ?");
+                    $stmt_seq->execute([$invoice_prefix, $invoice_year]);
+                    $row_seq = $stmt_seq->fetch();
+                    $invoice_seq = ($row_seq['max_seq'] ?? 0) + 1;
+                }
+                $invoice_no = sprintf("%s/%s-%02d", $invoice_prefix, $invoice_year, (int)$invoice_seq);
 
                 $stmt = $pdo->prepare("INSERT INTO invoices 
                     (invoice_no, invoice_prefix, invoice_year, invoice_seq, invoice_date, 

@@ -302,7 +302,7 @@ if (ckEditorInstances['emailBody']) {
         if (emailModalInstance) emailModalInstance.hide();
 
         $.ajax({
-            url: PROJECT_BASE_URL + 'includes/send_email_custom.php', type: 'POST', data: formData,
+            url: PROJECT_BASE_URL + 'ajax/send_email_custom.php', type: 'POST', data: formData,
             processData: false, contentType: false, dataType: 'json',
             success: function (response) {
                 if (response.success && response.log_id && response.log_type) {

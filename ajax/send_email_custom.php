@@ -4,7 +4,7 @@ header('Content-Type: application/json');
 
 // Composer autoload (Chỉ cần cho các thư viện khác nếu có, PHPMailer được dùng ở script nền)
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/init.php';
+require_once __DIR__ . '/../includes/init.php';
 
 // Gọi hàm kết nối CSDL
 $pdo = db_connect();

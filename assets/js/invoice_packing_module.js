@@ -135,7 +135,7 @@ $(document).ready(function() {
 
         $.getJSON(API_URL, { action: 'generate_number', prefix: prefix }, function(res) {
             if (res.success) {
-                $("#invoice_seq_display").val(res.next_seq.toString().padStart(2, '0'));
+                $("#invoice_seq").val(res.next_seq.toString().padStart(2, '0'));
             }
         });
     });
@@ -260,7 +260,7 @@ $(document).ready(function() {
     function resetForm() {
         $("#invoice-form")[0].reset();
         $("#invoice_id").val('');
-        $("#invoice_seq_display").val('XX');
+        $("#invoice_seq").val('XX');
         $("#total_remark").val('');
         $("#items-body").empty();
         $("#bill_to_address_display, #bill_to_phone_display, #bill_to_tax_display").text('-');
@@ -329,7 +329,7 @@ $(document).ready(function() {
                 $("#invoice_id").val(d.id);
                 $("#invoice_prefix").val(d.invoice_prefix);
                 $("#invoice_year").val(d.invoice_year);
-                $("#invoice_seq_display").val(d.invoice_seq.toString().padStart(2, '0'));
+                $("#invoice_seq").val(d.invoice_seq.toString().padStart(2, '0'));
                 $("#invoice_date").val(d.invoice_date);
                 
                 $("#partner_bill_id").val(d.partner_bill_id);

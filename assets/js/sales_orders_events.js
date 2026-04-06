@@ -469,7 +469,7 @@ function setupEventListeners() {
         else { devLog("Email modal instance not found to hide."); }
 
         $.ajax({
-            url: PROJECT_BASE_URL + 'includes/send_email_custom.php', // Hoặc create_email_log.php
+            url: PROJECT_BASE_URL + 'ajax/send_email_custom.php', // Hoặc create_email_log.php
             type: 'POST', data: formData, processData: false, contentType: false, dataType: 'json',
             success: function (response) {
                 devLog(">>> send_email_custom.php success response:", response);

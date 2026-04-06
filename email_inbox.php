@@ -26,25 +26,58 @@ try {
     $list = $service->users_messages->listUsersMessages('me', $params);
 
     if ($list->getMessages()) {
-        foreach ($list->getMessages() as $m) {
-            $msg = $service->users_messages->get('me', $m->getId(), [
-                'format'          => 'metadata',
-                'metadataHeaders' => ['From', 'Subject', 'Date'],
-            ]);
+        $client = $service->getClient();
+        $tokenArray = $client->getAccessToken();
+        $accessToken = $tokenArray['access_token'] ?? '';
 
-            $headers = $msg->getPayload()->getHeaders();
+        $mh = curl_multi_init();
+        $curls = [];
+
+        foreach ($list->getMessages() as $m) {
+            $id = $m->getId();
+            $url = "https://gmail.googleapis.com/gmail/v1/users/me/messages/{$id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date";
+            $curls[$id] = curl_init($url);
+            curl_setopt($curls[$id], CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curls[$id], CURLOPT_HTTPHEADER, [
+                "Authorization: Bearer {$accessToken}",
+                "Accept: application/json"
+            ]);
+            // SSL settings to avoid local XAMPP CA issues if any
+            curl_setopt($curls[$id], CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($curls[$id], CURLOPT_SSL_VERIFYHOST, false);
+            curl_multi_add_handle($mh, $curls[$id]);
+        }
+
+        $running = null;
+        do {
+            curl_multi_exec($mh, $running);
+            curl_multi_select($mh);
+        } while ($running > 0);
+
+        foreach ($list->getMessages() as $m) {
+            $id = $m->getId();
+            $c = $curls[$id];
+            $response = curl_multi_getcontent($c);
+            curl_multi_remove_handle($mh, $c);
+
+            $data = json_decode($response, true);
+            if (!isset($data['payload'])) {
+                continue;
+            }
+
+            $headersArray = $data['payload']['headers'] ?? [];
             $from = $subject = $dateRaw = '';
 
-            foreach ($headers as $h) {
-                switch ($h->getName()) {
+            foreach ($headersArray as $h) {
+                switch ($h['name']) {
                     case 'From':
-                        $from = $h->getValue();
+                        $from = $h['value'];
                         break;
                     case 'Subject':
-                        $subject = $h->getValue();
+                        $subject = $h['value'];
                         break;
                     case 'Date':
-                        $dateRaw = $h->getValue();
+                        $dateRaw = $h['value'];
                         break;
                 }
             }
@@ -62,13 +95,14 @@ try {
             }
 
             $messages[] = [
-                'id'       => $m->getId(),
-                'threadId' => $msg->getThreadId(),
+                'id'       => $id,
+                'threadId' => $data['threadId'] ?? '',
                 'from'     => $from,
                 'subject'  => $subject,
                 'date'     => $dateDisplay,
             ];
         }
+        curl_multi_close($mh);
     }
 } catch (Throwable $e) {
     $gmailError = $e->getMessage();

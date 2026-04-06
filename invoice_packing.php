@@ -70,7 +70,7 @@ try {
                         <div class="input-group">
                             <input type="text" class="form-control fw-bold" name="invoice_prefix" id="invoice_prefix" placeholder="Prefix (VD: STV-AMON)" required>
                             <span class="input-group-text">/<?= date('Y') ?>-</span>
-                            <input type="text" class="form-control text-center bg-light" id="invoice_seq_display" readonly placeholder="XX">
+                            <input type="text" class="form-control text-center" name="invoice_seq" id="invoice_seq" placeholder="XX">
                             <input type="hidden" name="invoice_year" id="invoice_year" value="<?= date('Y') ?>">
                         </div>
                         <small class="text-muted">Nhập prefix để hệ thống tự tạo số thứ tự</small>

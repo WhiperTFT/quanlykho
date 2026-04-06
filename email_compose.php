@@ -187,18 +187,19 @@ if (!$gmailError && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 // multipart/mixed
                 $boundary = 'b_' . uniqid();
 
+                $encodedSubject = "=?utf-8?B?" . base64_encode($subject) . "?=";
                 $rawMessage =
                     "To: $to\r\n" .
                     ($cc !== '' ? "Cc: $cc\r\n" : '') .
-                    "Subject: $subject\r\n" .
+                    "Subject: $encodedSubject\r\n" .
                     "MIME-Version: 1.0\r\n" .
                     "Content-Type: multipart/mixed; boundary=\"$boundary\"\r\n\r\n";
 
                 // Part 1: text
                 $rawMessage .= "--$boundary\r\n";
                 $rawMessage .= "Content-Type: text/plain; charset=\"utf-8\"\r\n";
-                $rawMessage .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
-                $rawMessage .= $body . "\r\n\r\n";
+                $rawMessage .= "Content-Transfer-Encoding: base64\r\n\r\n";
+                $rawMessage .= chunk_split(base64_encode($body)) . "\r\n";
 
                 // Đính kèm từ email gốc (nếu forward)
                 if ($hasOrigAttachments) {
@@ -216,10 +217,11 @@ if (!$gmailError && $_SERVER['REQUEST_METHOD'] === 'POST') {
                         $fileDataB64 = base64_encode($fileData);
                         $fileDataB64 = chunk_split($fileDataB64, 76, "\r\n");
 
+                        $encodedFilename = "=?utf-8?B?" . base64_encode($filename) . "?=";
                         $rawMessage .= "--$boundary\r\n";
-                        $rawMessage .= "Content-Type: $mimeType; name=\"" . addslashes($filename) . "\"\r\n";
+                        $rawMessage .= "Content-Type: $mimeType; name=\"$encodedFilename\"\r\n";
                         $rawMessage .= "Content-Transfer-Encoding: base64\r\n";
-                        $rawMessage .= "Content-Disposition: attachment; filename=\"" . addslashes($filename) . "\"\r\n\r\n";
+                        $rawMessage .= "Content-Disposition: attachment; filename=\"$encodedFilename\"\r\n\r\n";
                         $rawMessage .= $fileDataB64 . "\r\n";
                     }
                 }
@@ -233,10 +235,11 @@ if (!$gmailError && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     $fileDataB64 = base64_encode($fileData);
                     $fileDataB64 = chunk_split($fileDataB64, 76, "\r\n");
 
+                    $encodedFilename = "=?utf-8?B?" . base64_encode($filename) . "?=";
                     $rawMessage .= "--$boundary\r\n";
-                    $rawMessage .= "Content-Type: $mimeType; name=\"" . addslashes($filename) . "\"\r\n";
+                    $rawMessage .= "Content-Type: $mimeType; name=\"$encodedFilename\"\r\n";
                     $rawMessage .= "Content-Transfer-Encoding: base64\r\n";
-                    $rawMessage .= "Content-Disposition: attachment; filename=\"" . addslashes($filename) . "\"\r\n\r\n";
+                    $rawMessage .= "Content-Disposition: attachment; filename=\"$encodedFilename\"\r\n\r\n";
                     $rawMessage .= $fileDataB64 . "\r\n";
                 }
 
@@ -244,13 +247,15 @@ if (!$gmailError && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
             } else {
                 // new / reply không có file: gửi text-only
+                $encodedSubject = "=?utf-8?B?" . base64_encode($subject) . "?=";
                 $rawMessage =
                     "To: $to\r\n" .
                     ($cc !== '' ? "Cc: $cc\r\n" : '') .
-                    "Subject: $subject\r\n" .
-                    "Content-Type: text/plain; charset=utf-8\r\n" .
+                    "Subject: $encodedSubject\r\n" .
+                    "Content-Type: text/plain; charset=\"utf-8\"\r\n" .
+                    "Content-Transfer-Encoding: base64\r\n" .
                     "MIME-Version: 1.0\r\n\r\n" .
-                    $body;
+                    chunk_split(base64_encode($body));
             }
 
             // Encode URL-safe cho Gmail API
