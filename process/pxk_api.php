@@ -277,7 +277,7 @@ switch ($action) {
 
         $sql = "SELECT id, pxk_number,
                        DATE_FORMAT(pxk_date,'%d/%m/%Y') AS pxk_date_display,
-                       partner_name,
+                       partner_name, driver_name, is_printed,
                        pdf_path AS pdf_web_path
                 FROM pxk_slips" . $whereSql . " ORDER BY id DESC";
 
@@ -348,6 +348,7 @@ switch ($action) {
         $partner_address = trim((string)($j['partner_address'] ?? ''));
         $contact_person  = trim((string)($j['contact_person'] ?? ($j['partner_contact_person'] ?? ($j['contact_name'] ?? ''))));
         $partner_phone   = trim((string)($j['partner_phone']  ?? ($j['phone'] ?? '')));
+        $driver_name     = trim((string)($j['driver_name'] ?? ''));
         $items           = is_array($j['items'] ?? null) ? $j['items'] : [];
 
         if ($pxk_date==='' || $partner_name==='' || count($items)===0) {
@@ -371,12 +372,12 @@ switch ($action) {
             }
 
             $sql = "UPDATE pxk_slips
-                    SET pxk_number=?, pxk_date=?, partner_name=?, partner_address=?, partner_phone=?, contact_person=?, notes=?, items_json=?, updated_at=NOW()
+                    SET pxk_number=?, pxk_date=?, partner_name=?, partner_address=?, partner_phone=?, contact_person=?, notes=?, items_json=?, driver_name=?, updated_at=NOW()
                     WHERE id=?";
             $st = $pdo->prepare($sql);
             $st->execute([
                 $pxk_number, $pxk_date, $partner_name, $partner_address, $partner_phone,
-                $contact_person, $notes, $items_json, $id
+                $contact_person, $notes, $items_json, $driver_name, $id
             ]);
 
             write_user_log('UPDATE', 'pxk_slip', "Cập nhật phiếu xuất kho #$pxk_number", ['id' => $id, 'number' => $pxk_number], 'info');
@@ -387,12 +388,12 @@ switch ($action) {
         $maxRetry = 3;
         for ($try=1; $try <= $maxRetry; $try++) {
             try {
-                $sql = "INSERT INTO pxk_slips(pxk_number, pxk_date, partner_name, partner_address, partner_phone, contact_person, notes, items_json, total_amount, created_at)
-                        VALUES(?,?,?,?,?,?,?,?,?,NOW())";
+                $sql = "INSERT INTO pxk_slips(pxk_number, pxk_date, partner_name, partner_address, partner_phone, contact_person, notes, items_json, driver_name, total_amount, created_at)
+                        VALUES(?,?,?,?,?,?,?,?,?,?,NOW())";
                 $st = $pdo->prepare($sql);
                 $st->execute([
                     $pxk_number, $pxk_date, $partner_name, $partner_address, $partner_phone,
-                    $contact_person, $notes, $items_json, 0.00
+                    $contact_person, $notes, $items_json, $driver_name, 0.00
                 ]);
                 $newId = (int)$pdo->lastInsertId();
 
@@ -657,6 +658,10 @@ case 'enqueue_print': {
 
         // Đá worker NGAY tại đây
         $spawned = kickJobDetached($jobId, $__PRINT_PHP_EXE, $__PRINT_SCRIPT, $__PRINT_WORKDIR, $__POWERSHELL_EXE);
+
+        // Đánh dấu pxk_slips là đã in dựa vào pdf_path
+        $st_upd = $pdo->prepare("UPDATE pxk_slips SET is_printed = 1 WHERE pdf_path = ?");
+        $st_upd->execute([$pdfWebPath]);
 
         write_user_log('PRINT', 'pxk_slip', "Ra lệnh in phiếu: $pdfWebPath", ['job_id' => $jobId, 'printer' => $printerName], 'info');
 

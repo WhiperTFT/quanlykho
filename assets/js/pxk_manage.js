@@ -252,6 +252,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Autocomplete SẢN PHẨM (jQuery)
   setupProductAutocomplete();
 
+  // Autocomplete TÀI XẾ
+  setupDriverAutocomplete();
+
   // Load danh sách đầu tiên
   loadList();
 });
@@ -362,6 +365,12 @@ async function onPrintButtonClick(ev){
     swalInfo('Đã gửi lệnh in', `Mã lệnh: #${jobId}\nTệp: ${fileWebPath}\nĐang chờ máy in xử lý...`, 'success');
     await sendUserLog('pxk_print_enqueue', `Đã gửi lệnh in #${jobId}. Tệp: ${fileWebPath}`, 'info');
 
+    // Cập nhật cột "Đã in" ngay lập tức mà không cần reload
+    const tr = btn.closest('tr');
+    if (tr && tr.children.length > 5) {
+      tr.children[5].innerHTML = '<i class="bi bi-check-lg text-success fs-5"></i>';
+    }
+
     // Theo dõi kết quả (90s)
     pollPrintJob(
       jobId,
@@ -450,12 +459,15 @@ async function loadList() {
              </div>`
           : '<span class="text-muted small">Chưa có</span>';
 
+        const tickIn = row.is_printed == 1 ? '<i class="bi bi-check-lg text-success fs-5"></i>' : '<span class="text-muted opacity-50">-</span>';
         tb.insertAdjacentHTML('beforeend', `
           <tr data-id="${row.id}">
             <td class="text-center fw-medium text-muted">${row.id}</td>
             <td class="fw-bold text-primary">${escapeHtml(row.pxk_number||'')}</td>
             <td>${escapeHtml(row.pxk_date_display||'')}</td>
             <td>${escapeHtml(row.partner_name||'-')}</td>
+            <td class="text-primary fw-medium">${escapeHtml(row.driver_name||'-')}</td>
+            <td class="text-center">${tickIn}</td>
             <td>${pdfBtns}</td>
             <td class="text-center col-action w-auto px-1">
               <button class="btn btn-sm btn-light text-danger btn-del" title="Xóa"><i class="bi bi-trash"></i></button>
@@ -499,6 +511,9 @@ async function loadList() {
         });
       });
     }
+
+    renderPaging();
+    renderPagingInfo();
   } catch (err) {
     console.error('loadList error', err);
   }
@@ -796,6 +811,7 @@ async function editPXK(id) {
     document.getElementById('partner_address').value = row.partner_address || '';
     document.getElementById('partner_contact_person').value = (row.partner_contact_person || row.contact_person || '');
     document.getElementById('partner_phone').value = (row.partner_phone || row.phone || '');
+    document.getElementById('driver_name').value = row.driver_name || '';
 
     const body = document.getElementById('itemsBody');
     body.innerHTML = '';
@@ -839,7 +855,8 @@ function collectFormData() {
     const note = tr.querySelector('.item-note').value.trim();
     if (product_name) items.push({product_id, product_name, category, unit, quantity, note});
   });
-  return { id, pxk_number, pxk_date, notes, partner_name, partner_address, partner_contact_person, partner_phone, items };
+  const driver_name = document.getElementById('driver_name').value.trim();
+  return { id, pxk_number, pxk_date, notes, partner_name, partner_address, partner_contact_person, partner_phone, driver_name, items };
 }
 
 async function savePXK(exportPdf=false) {
@@ -1082,3 +1099,61 @@ function setupProductAutocomplete(){
 
   })(jQuery);
 }
+
+// ====== Autocomplete TÀI XẾ (dùng jQuery) ======
+function setupDriverAutocomplete() {
+  if(typeof jQuery === 'undefined') return;
+  (function($) {
+    let acTimer = null;
+
+    $(document).on('input focus', '#driver_name', function() {
+      const $inp = $(this);
+      clearTimeout(acTimer);
+      acTimer = setTimeout(()=> runSuggest($inp), 150);
+    });
+
+    function ensureBox($inp){
+      let $box = $('#driver_ac_box');
+      if ($box.length === 0) {
+        $inp.parent().css('position','relative');
+        $box = $('<div id="driver_ac_box" class="ac-box shadow border rounded bg-white"></div>').css({
+          position:'absolute', zIndex:9999,
+          minWidth: $inp.outerWidth(), maxHeight:'240px', overflowY:'auto'
+        }).insertAfter($inp);
+      }
+      return $box;
+    }
+
+    function runSuggest($inp){
+      const term = ($inp.val() || '').trim();
+      const $box = ensureBox($inp);
+      if (!term) { $box.hide(); return; }
+
+      $.getJSON('process/ajax_get_drivers.php', { term: term })
+        .done(function(list){
+          if (!Array.isArray(list) || list.length === 0) { $box.hide(); return; }
+          const html = list.map(function(it){
+            return '<div class="ac-item p-2 border-bottom" data-name="'+(it.value||'')+'" style="cursor:pointer;">'
+                   + '<div class="fw-bold text-primary">' + (it.value||'') + '</div><small class="text-muted">' + (it.details||'') + '</small></div>';
+          }).join('');
+          $box.html(html).show();
+        })
+        .fail(function(){ $box.hide(); });
+    }
+
+    $(document).on('mousedown', '#driver_ac_box .ac-item', function(e){
+      e.preventDefault();
+      const $it  = $(this);
+      const $inp = $('#driver_name');
+
+      $inp.val($it.data('name') || '');
+      $('#driver_ac_box').hide();
+    });
+
+    $(document).on('blur', '#driver_name', function(){
+      setTimeout(()=> $('#driver_ac_box').hide(), 150);
+    });
+
+  })(jQuery);
+}
+

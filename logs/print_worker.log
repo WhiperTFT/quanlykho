@@ -60,3 +60,39 @@ Finished printing, exitCode: 0
 Exiting with exit code: 0
 [2026-04-03 11:00:30] DONE #52: Đã in: pdf/pxk/PXK0304202600.pdf → Brother HL-L2320D series (Copy 1) (bản: 1)
 [2026-04-03 11:00:30] FATAL -> mark failed job #52: Worker died: parse_url(): Passing null to parameter #1 ($url) of type string is deprecated @ C:\xampp\htdocs\quanlykho\includes\auth_check.php:35
+[2026-04-07 09:50:02] CLAIMED job #53
+[2026-04-07 09:50:02] PRINT file=C:\xampp\htdocs\quanlykho\pdf\pxk\PXK0704202602.pdf printer=Brother HL-L2320D series (Copy 1) copies=1
+[2026-04-07 09:50:02] CMD: "C:\Program Files\SumatraPDF\SumatraPDF.exe" -silent -exit-when-done -print-to "Brother HL-L2320D series (Copy 1)" -print-settings "copies=1" "C:\xampp\htdocs\quanlykho\pdf\pxk\PXK0704202602.pdf" 2>&1
+[2026-04-07 09:50:05] RET=0 OUT=Starting SumatraPDF 3.5.2, GetCommandLineW():
+"C:\Program Files\SumatraPDF\SumatraPDF.exe"  -silent -exit-when-done -print-to "Brother HL-L2320D series (Copy 1)" -print-settings "copies=1" "C:\xampp\htdocs\quanlykho\pdf\pxk\PXK0704202602.pdf"
+OpenEmbeddedFilesArchive: opened archive
+LoadSettings() took 0.67 ms
+ParseTranslationsTxt: 17632 lines, nStrings: 372
+PrintFile: file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK0704202602.pdf', printer: 'Brother HL-L2320D series (Copy 1)'
+PrintFile2: file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK0704202602.pdf', printer: 'Brother HL-L2320D series (Copy 1)'
+PrintToDevice: printer: 'Brother HL-L2320D series (Copy 1)', file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK0704202602.pdf'
+PrintToDevice: finished ok
+PrintFile2: finished ok
+PrintFile: finished ok
+Finished printing, exitCode: 0
+Exiting with exit code: 0
+[2026-04-07 09:50:05] DONE #53: Đã in: pdf/pxk/PXK0704202602.pdf → Brother HL-L2320D series (Copy 1) (bản: 1)
+[2026-04-07 09:50:05] FATAL -> mark failed job #53: Worker died: parse_url(): Passing null to parameter #1 ($url) of type string is deprecated @ C:\xampp\htdocs\quanlykho\includes\auth_check.php:35
+[2026-04-07 11:25:25] CLAIMED job #54
+[2026-04-07 11:25:25] PRINT file=C:\xampp\htdocs\quanlykho\pdf\pxk\PXK0704202603.pdf printer=Brother HL-L2320D series (Copy 1) copies=1
+[2026-04-07 11:25:25] CMD: "C:\Program Files\SumatraPDF\SumatraPDF.exe" -silent -exit-when-done -print-to "Brother HL-L2320D series (Copy 1)" -print-settings "copies=1" "C:\xampp\htdocs\quanlykho\pdf\pxk\PXK0704202603.pdf" 2>&1
+[2026-04-07 11:25:28] RET=0 OUT=Starting SumatraPDF 3.5.2, GetCommandLineW():
+"C:\Program Files\SumatraPDF\SumatraPDF.exe"  -silent -exit-when-done -print-to "Brother HL-L2320D series (Copy 1)" -print-settings "copies=1" "C:\xampp\htdocs\quanlykho\pdf\pxk\PXK0704202603.pdf"
+OpenEmbeddedFilesArchive: opened archive
+LoadSettings() took 1.46 ms
+ParseTranslationsTxt: 17632 lines, nStrings: 372
+PrintFile: file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK0704202603.pdf', printer: 'Brother HL-L2320D series (Copy 1)'
+PrintFile2: file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK0704202603.pdf', printer: 'Brother HL-L2320D series (Copy 1)'
+PrintToDevice: printer: 'Brother HL-L2320D series (Copy 1)', file: 'C:\xampp\htdocs\quanlykho\pdf\pxk\PXK0704202603.pdf'
+PrintToDevice: finished ok
+PrintFile2: finished ok
+PrintFile: finished ok
+Finished printing, exitCode: 0
+Exiting with exit code: 0
+[2026-04-07 11:25:28] DONE #54: Đã in: pdf/pxk/PXK0704202603.pdf → Brother HL-L2320D series (Copy 1) (bản: 1)
+[2026-04-07 11:25:28] FATAL -> mark failed job #54: Worker died: parse_url(): Passing null to parameter #1 ($url) of type string is deprecated @ C:\xampp\htdocs\quanlykho\includes\auth_check.php:35

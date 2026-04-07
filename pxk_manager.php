@@ -90,15 +90,6 @@ $page_title = $lang['pxk_manager'] ?? 'Quản lý Phiếu Xuất Kho';
     <div class="d-flex align-items-center gap-2 flex-wrap">
       <!-- Search & Filter Left -->
       <div class="d-flex align-items-center gap-2 bg-white px-2 py-1 rounded shadow-sm border">
-        <label for="pageSizeSelect" class="form-label mb-0 small text-muted text-nowrap">Hiển thị:</label>
-        <select id="pageSizeSelect" class="form-select form-select-sm border-0 bg-light" style="width:auto; cursor:pointer;">
-          <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-          <option value="0">Tất cả</option>
-        </select>
-        <div class="vr mx-1"></div>
         <div class="search-group position-relative">
           <i class="bi bi-search"></i>
           <input type="text" id="filter-keyword" class="form-control form-control-sm border-0 bg-light" style="width:250px;" placeholder="Tìm số PXK, biên nhận...">
@@ -139,17 +130,29 @@ $page_title = $lang['pxk_manager'] ?? 'Quản lý Phiếu Xuất Kho';
         <h6 class="mb-0 fw-bold">Danh sách bản ghi</h6>
         <span class="badge bg-primary-subtle text-primary border rounded-pill px-2" id="totalCount">0</span>
       </div>
+      <div class="d-flex align-items-center gap-2">
+        <label for="pageSizeSelect" class="form-label mb-0 small text-muted text-nowrap" style="display:none;">Hiển thị:</label>
+        <select id="pageSizeSelect" class="form-select form-select-sm border-0 bg-light shadow-sm" style="width:auto; cursor:pointer;" title="Số dòng hiển thị">
+          <option value="10">10 dòng</option>
+          <option value="25">25 dòng</option>
+          <option value="50">50 dòng</option>
+          <option value="100">100 dòng</option>
+          <option value="0">Tất cả</option>
+        </select>
+      </div>
     </div>
     <div class="card-body p-0 erp-table-container">
       <table id="pxkTable" class="table table-hover erp-table table-sm align-middle mb-0">
         <thead>
           <tr>
             <th style="width:60px;" class="text-center">ID</th>
-            <th style="width:160px;">Số PXK</th>
-            <th style="width:120px;">Ngày</th>
+            <th style="width:140px;">Số PXK</th>
+            <th style="width:100px;">Ngày</th>
             <th>Tên đơn vị nhận</th>
-            <th style="width:180px;">Tệp PDF / In</th>
-            <th style="width:100px;" class="text-center col-action">Hành động</th>
+            <th style="width:150px;">Tài xế</th>
+            <th style="width:70px;" class="text-center">Đã in</th>
+            <th style="width:150px;">Tệp PDF / In</th>
+            <th style="width:90px;" class="text-center col-action">Hành động</th>
           </tr>
         </thead>
         <tbody id="pxkTableBody">
@@ -203,9 +206,15 @@ $page_title = $lang['pxk_manager'] ?? 'Quản lý Phiếu Xuất Kho';
             </div>
           </div>
           
-          <div class="mb-0">
+          <div class="mb-2">
             <label class="form-label small fw-semibold text-muted mb-1">Ghi chú</label>
             <input type="text" class="form-control form-control-sm" id="notes" name="notes" placeholder="Nội dung ghi chú...">
+          </div>
+          
+          <div class="mb-0 position-relative">
+            <label class="form-label small fw-semibold text-muted mb-1">Tài xế</label>
+            <input type="text" class="form-control form-control-sm text-primary fw-medium" id="driver_name" name="driver_name" placeholder="Chọn tài xế (hoặc nhập)..." autocomplete="off">
+            <div id="driver_ac_box" class="ac-box shadow border rounded" style="display:none; position:absolute; z-index:9999; background:#fff; max-height:240px; overflow-y:auto; width:100%;"></div>
           </div>
         </div>
         
