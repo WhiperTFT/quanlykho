@@ -21,6 +21,9 @@
   --ui-text-muted:    #6c757d;
   --ui-text-dark:     #343a40;
   --ui-text-body:     #495057;
+  /* Navbar */
+  --ui-navbar-bg:     #1a1f3a;
+  --ui-navbar-accent: #4361ee;
 }
 
 /* ------------------------------------------------------------------
@@ -266,4 +269,115 @@ body {
 .table-responsive-custom {
   overflow-x: auto;
   border-radius: 0 0 var(--ui-card-radius) var(--ui-card-radius);
+}
+
+/* ------------------------------------------------------------------
+   12. NAVBAR — Brand-colored dark navbar
+   ------------------------------------------------------------------ */
+.main-navbar {
+  background: var(--ui-navbar-bg) !important;
+  border-bottom: 3px solid var(--ui-navbar-accent);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+}
+
+.main-navbar .navbar-brand {
+  font-size: 1.15rem;
+  letter-spacing: 0.3px;
+}
+
+.main-navbar .navbar-brand i {
+  color: var(--ui-navbar-accent);
+}
+
+.main-navbar .nav-link {
+  color: rgba(255,255,255,0.8) !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  transition: background 0.18s, color 0.18s;
+}
+
+.main-navbar .nav-link:hover {
+  color: #fff !important;
+  background: rgba(255,255,255,0.1);
+}
+
+.main-navbar .dropdown-menu {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  padding: 0.5rem;
+}
+
+.main-navbar .dropdown-item {
+  border-radius: 8px;
+  font-size: 0.9rem;
+  padding: 0.45rem 0.85rem;
+  transition: background 0.15s;
+}
+
+.main-navbar .dropdown-item:hover {
+  background: rgba(67,97,238,0.08);
+  color: var(--ui-primary);
+}
+
+.main-navbar .dropdown-item.text-danger:hover {
+  background: rgba(231,29,54,0.07);
+  color: var(--ui-danger) !important;
+}
+
+/* ------------------------------------------------------------------
+   13. MODAL — Standardized header
+   ------------------------------------------------------------------ */
+.modal-header-primary {
+  background: linear-gradient(135deg, var(--ui-primary) 0%, #3a0ca3 100%);
+  color: #fff;
+  border-radius: calc(var(--ui-card-radius) - 1px) calc(var(--ui-card-radius) - 1px) 0 0;
+}
+
+.modal-header-primary .btn-close {
+  filter: invert(1) grayscale(1);
+}
+
+/* Standard modal content rounding */
+.modal-content {
+  border-radius: var(--ui-card-radius);
+  border: none;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+
+/* ------------------------------------------------------------------
+   14. FORM CARD — unified form container style
+   Used in sales_orders, sales_quotes form sections
+   ------------------------------------------------------------------ */
+.form-card {
+  border-radius: var(--ui-card-radius);
+  border: var(--ui-card-border);
+  background: #fff;
+  box-shadow: var(--ui-card-shadow);
+  margin-bottom: 1.5rem;
+}
+
+.form-card-header {
+  background: linear-gradient(135deg, var(--ui-primary) 0%, #3a0ca3 100%);
+  color: #fff;
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+  border-radius: var(--ui-card-radius) var(--ui-card-radius) 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ------------------------------------------------------------------
+   15. FOOTER — Refined
+   ------------------------------------------------------------------ */
+.footer {
+  background: #fff !important;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  color: var(--ui-text-muted);
+  font-size: 0.85rem;
+  padding: 1rem 0 !important;
 }

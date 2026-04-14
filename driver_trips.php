@@ -158,8 +158,8 @@ include 'includes/header.php';
             <div class="table-responsive">
                 <!-- Wrapper cuộn thật -->
                 <div id="scroll-wrapper" style="overflow-x: auto;">
-                    <table class="table table-bordered" id="driver-trips-table" cellspacing="0" style="width:100%;">
-                        <thead>
+                    <table class="table table-hover table-custom" id="driver-trips-table" cellspacing="0" style="width:100%;">
+                        <thead class="table-light">
                             <tr>
                                 <th></th>
                                 <th>Ngày đặt</th>
@@ -237,16 +237,16 @@ include 'includes/header.php';
                 </div>
             </div>
 
-            <hr class="my-4">
-            <div id="salary-calculation-section" class="row">
-                <div class="col-12">
-                    <div class="row">
-                        <div class="col-lg-8">
-                            <div class="card h-100">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">Các khoản điều chỉnh (Phụ cấp, Tạm ứng,...)</h6>
-                                </div>
-                                <div class="card-body p-2">
+                <hr class="my-4">
+                <div id="salary-calculation-section" class="row g-4">
+                    <div class="col-12">
+                        <div class="row g-3">
+                            <div class="col-lg-8">
+                                <div class="content-card h-100">
+                                    <div class="content-card-header">
+                                        <span><i class="bi bi-sliders me-2 text-primary"></i>Các khoản điều chỉnh (Phụ cấp, Tạm ứng,...)</span>
+                                    </div>
+                                    <div class="content-card-body p-2">
                                     <div id="adjustments-list" class="mb-2">
                                         <?php foreach ($adjustments as $adj): ?>
                                         <div class="adjustment-row row g-2 align-items-center p-2">
@@ -259,17 +259,22 @@ include 'includes/header.php';
                                     <?php if (is_logged_in()): ?>
                                     <button class="btn btn-link text-success text-decoration-none" id="add-adjustment-btn"><i class="bi bi-plus-circle"></i> Thêm điều chỉnh</button>
                                     <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-lg-4">
-                            <div class="d-flex justify-content-between align-items-center p-3 border rounded mb-3">
-                                <h5 class="mb-0">Tổng tiền xe:</h5>
-                                <h5 class="mb-0 text-primary" id="total-shipping-cost"><?= number_format($total_shipping_cost, 0, ',', '.') ?></h5>
-                            </div>
-                            <div class="bg-dark text-white rounded p-3 d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">Thực lãnh:</h5>
-                                <h4 class="mb-0" id="final-payout">0</h4>
+                            <div class="col-lg-4">
+                                <div class="content-card mb-3">
+                                    <div class="content-card-body p-3 d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="bi bi-truck me-2 text-primary"></i>Tổng tiền xe:</h5>
+                                        <h5 class="mb-0 text-primary fw-bold" id="total-shipping-cost"><?= number_format($total_shipping_cost, 0, ',', '.') ?></h5>
+                                    </div>
+                                </div>
+                                <div class="content-card" style="background: linear-gradient(135deg,#4361ee,#3a0ca3); color:#fff;">
+                                    <div class="content-card-body p-3 d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">Thực lãnh:</h5>
+                                        <h4 class="mb-0 fw-bold" id="final-payout">0</h4>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

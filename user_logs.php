@@ -58,8 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_logs'])) {
 }
 ?>
 
-<div class="container-fluid mt-4 mb-5 user-logs">
-    <div class="page-header">
+<div class="page-header">
     <div>
         <h1 class="h3 fw-bold mb-1"><i class="bi bi-shield-lock me-2 text-primary"></i>Nhật ký Hệ thống</h1>
         <p class="text-muted mb-0 small">Lịch sử hoạt động của người dùng trong hệ thống</p>
@@ -70,49 +69,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_logs'])) {
     </div>
 </div>
 
-    <!-- SUMMARY CARDS -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 text-center bg-primary text-white">
-                <div class="card-body">
-                    <h6 class="text-uppercase mb-1 opacity-75">Tương tác hôm nay</h6>
-                    <h2 class="fw-bold mb-0"><?= number_format($stats['total_today']) ?></h2>
-                </div>
+<!-- SUMMARY CARDS -->
+<div class="row g-4 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card kpi-card shadow-sm h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="kpi-title">Tương tác hôm nay</div>
+                <div class="kpi-icon-box icon-primary"><i class="bi bi-activity"></i></div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 bg-light">
-                <div class="card-body d-flex border-bottom border-success">
-                    <div class="me-auto text-success fw-bold"><i class="bi bi-plus-circle"></i> THÊM MỚI</div>
-                    <h5 class="fw-bold mb-0"><?= number_format($stats['creations']) ?></h5>
-                </div>
-                <div class="card-body d-flex py-2 border-bottom border-info">
-                    <div class="me-auto text-info fw-bold"><i class="bi bi-pencil-square"></i> CẬP NHẬT</div>
-                    <h5 class="fw-bold mb-0"><?= number_format($stats['updates']) ?></h5>
-                </div>
-                <div class="card-body d-flex pt-2 text-danger">
-                    <div class="me-auto fw-bold"><i class="bi bi-trash"></i> XÓA BỎ</div>
-                    <h5 class="fw-bold mb-0"><?= number_format($stats['deletions']) ?></h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 text-center">
-                <div class="card-body">
-                    <h6 class="text-uppercase text-muted mb-2">Nhân viên năng nổ nhất</h6>
-                    <span class="badge bg-secondary p-2 px-3 fw-bold fs-6"><i class="bi bi-person-fill"></i> <?= htmlspecialchars($stats['top_user']) ?></span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 text-center">
-                <div class="card-body">
-                    <h6 class="text-uppercase text-muted mb-2">Phân hệ dùng nhiều nhất</h6>
-                    <span class="badge bg-dark p-2 px-3 fw-bold fs-6"><i class="bi bi-cpu-fill"></i> <?= htmlspecialchars(strtoupper($stats['top_module'])) ?></span>
-                </div>
-            </div>
+            <h3 class="kpi-value text-primary"><?= number_format($stats['total_today']) ?></h3>
+            <div class="mt-2 text-muted small"><i class="bi bi-calendar-day me-1"></i>Trong ngày hôm nay</div>
         </div>
     </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card kpi-card shadow-sm h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="kpi-title">Thêm mới</div>
+                <div class="kpi-icon-box icon-success"><i class="bi bi-plus-circle-fill"></i></div>
+            </div>
+            <h3 class="kpi-value text-success"><?= number_format($stats['creations']) ?></h3>
+            <div class="mt-2 text-muted small"><i class="bi bi-database-add me-1"></i>Tổng bản ghi CREATE</div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card kpi-card shadow-sm h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="kpi-title">Cập nhật</div>
+                <div class="kpi-icon-box icon-info"><i class="bi bi-pencil-square"></i></div>
+            </div>
+            <h3 class="kpi-value text-info"><?= number_format($stats['updates']) ?></h3>
+            <div class="mt-2 text-muted small"><i class="bi bi-arrow-repeat me-1"></i>Tổng bản ghi UPDATE</div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card kpi-card shadow-sm h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="kpi-title">Xóa bỏ</div>
+                <div class="kpi-icon-box icon-danger"><i class="bi bi-trash3-fill"></i></div>
+            </div>
+            <h3 class="kpi-value text-danger"><?= number_format($stats['deletions']) ?></h3>
+            <div class="mt-2 text-muted small"><i class="bi bi-x-circle me-1"></i>Tổng bản ghi DELETE</div>
+        </div>
+    </div>
+</div>
+
+<!-- QUICK STATS ROW -->
+<div class="row g-4 mb-4">
+    <div class="col-12 col-sm-6">
+        <div class="card kpi-card shadow-sm h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="kpi-title">Nhân viên năng nổ nhất</div>
+                <div class="kpi-icon-box icon-warning"><i class="bi bi-person-fill-up"></i></div>
+            </div>
+            <h5 class="fw-bold text-warning mb-0">
+                <i class="bi bi-person-badge me-2"></i><?= htmlspecialchars($stats['top_user']) ?>
+            </h5>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6">
+        <div class="card kpi-card shadow-sm h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="kpi-title">Phân hệ dùng nhiều nhất</div>
+                <div class="kpi-icon-box icon-primary"><i class="bi bi-cpu-fill"></i></div>
+            </div>
+            <h5 class="fw-bold text-primary mb-0">
+                <i class="bi bi-layers me-2"></i><?= htmlspecialchars(strtoupper($stats['top_module'])) ?>
+            </h5>
+        </div>
+    </div>
+</div>
 
     <?php if (isset($success)): ?>
       <div class="alert alert-success alert-dismissible shadow-sm fade show" role="alert"><i class="bi bi-check-circle"></i> <?= htmlspecialchars($success) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
@@ -184,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_logs'])) {
         </div>
     </div>
 </div>
-</div>
+
 
 <!-- Modal Dọn dẹp Log -->
 <div class="modal fade" id="cleanupModal" tabindex="-1">

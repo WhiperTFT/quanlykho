@@ -278,107 +278,114 @@ if (!$gmailError && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 ?>
 
-<div class="container-fluid mt-3">
-  <div class="row mb-2">
-    <div class="col-md-8">
-      <h4 class="mb-0">
-        <i class="fa fa-pencil"></i>
-        <?php
-          if     ($mode === 'reply')   echo 'Compose (Reply) / Soạn email (Trả lời)';
-          elseif ($mode === 'forward') echo 'Compose (Forward) / Soạn email (Chuyển tiếp)';
-          else                         echo 'Compose / Soạn email';
-        ?>
-      </h4>
+<div class="page-header">
+  <div>
+    <h1 class="h3 fw-bold mb-1">
+      <i class="bi bi-pencil-square me-2 text-primary"></i>
+      <?php
+        if     ($mode === 'reply')   echo 'Trả lời Email';
+        elseif ($mode === 'forward') echo 'Chuyển tiếp Email';
+        else                         echo 'Soạn Email Mới';
+      ?>
+    </h1>
+    <p class="text-muted mb-0 small">Soạn và gửi email qua tài khoản Gmail được liên kết</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="email_inbox.php" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>Về hộp thư
+    </a>
+  </div>
+</div>
+
+<?php if ($gmailError): ?>
+  <div class="alert alert-danger alert-modern">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Lỗi Gmail:</strong> <?= htmlspecialchars($gmailError, ENT_QUOTES, 'UTF-8') ?>
+  </div>
+<?php else: ?>
+  <?php if ($success): ?>
+    <div class="alert alert-success alert-modern">
+      <i class="bi bi-check-circle-fill me-2"></i>
+      <?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?>
     </div>
-    <div class="col-md-4 text-md-right mt-2 mt-md-0">
-      <a href="email_inbox.php" class="btn btn-secondary btn-sm">
-        <i class="fa fa-arrow-left"></i> Back to Inbox / Về hộp thư
-      </a>
+  <?php endif; ?>
+  <?php if ($error): ?>
+    <div class="alert alert-danger alert-modern">
+      <i class="bi bi-x-circle-fill me-2"></i>
+      <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?>
+    </div>
+  <?php endif; ?>
+
+  <div class="content-card shadow-sm">
+    <div class="content-card-header">
+      <span><i class="bi bi-envelope-plus me-2 text-primary"></i>Nội dung email</span>
+    </div>
+    <div class="content-card-body p-4">
+      <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="mode" value="<?= htmlspecialchars($mode, ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="orig_message_id" value="<?= htmlspecialchars($origIdForForward, ENT_QUOTES, 'UTF-8') ?>">
+
+        <div class="mb-3">
+          <label for="to" class="form-label fw-semibold"><i class="bi bi-send me-1 text-muted"></i>Đến (To):</label>
+          <input list="emailSuggestions"
+                 type="text"
+                 class="form-control"
+                 id="to"
+                 name="to"
+                 value="<?= htmlspecialchars($to, ENT_QUOTES, 'UTF-8') ?>"
+                 placeholder="example@domain.com"
+                 required>
+        </div>
+
+        <div class="mb-3">
+          <label for="cc" class="form-label fw-semibold"><i class="bi bi-people me-1 text-muted"></i>CC (Đồng gửi):</label>
+          <input list="emailSuggestions"
+                 type="text"
+                 class="form-control"
+                 id="cc"
+                 name="cc"
+                 value="<?= htmlspecialchars($cc, ENT_QUOTES, 'UTF-8') ?>"
+                 placeholder="cc@example.com (không bắt buộc)">
+        </div>
+
+        <datalist id="emailSuggestions">
+          <?php foreach ($suggestedEmails as $email): ?>
+            <option value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?>"></option>
+          <?php endforeach; ?>
+        </datalist>
+
+        <div class="mb-3">
+          <label for="subject" class="form-label fw-semibold"><i class="bi bi-card-heading me-1 text-muted"></i>Tiêu đề:</label>
+          <input type="text" class="form-control" id="subject" name="subject"
+                 value="<?= htmlspecialchars($subject, ENT_QUOTES, 'UTF-8') ?>"
+                 placeholder="Nhập tiêu đề email..." required>
+        </div>
+
+        <div class="mb-3">
+          <label for="body" class="form-label fw-semibold"><i class="bi bi-text-left me-1 text-muted"></i>Nội dung:</label>
+          <textarea class="form-control" id="body" name="body" rows="12"
+                    placeholder="Nhập nội dung email tại đây..."><?= htmlspecialchars($body, ENT_QUOTES, 'UTF-8') ?></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label for="attachments" class="form-label fw-semibold"><i class="bi bi-paperclip me-1 text-muted"></i>File đính kèm:</label>
+          <input type="file" class="form-control" id="attachments" name="attachments[]" multiple>
+          <small class="text-muted">Có thể chọn nhiều file cùng lúc.</small>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-send-fill me-1"></i>Gửi Email
+          </button>
+          <a href="email_inbox.php" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle me-1"></i>Hủy
+          </a>
+        </div>
+      </form>
     </div>
   </div>
 
-  <?php if ($gmailError): ?>
-    <div class="alert alert-danger mt-2">
-      Gmail error / Lỗi Gmail: <?= htmlspecialchars($gmailError, ENT_QUOTES, 'UTF-8') ?>
-    </div>
-  <?php else: ?>
-    <?php if ($success): ?>
-      <div class="alert alert-success mt-2">
-        <?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?>
-      </div>
-    <?php endif; ?>
-    <?php if ($error): ?>
-      <div class="alert alert-danger mt-2">
-        <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?>
-      </div>
-    <?php endif; ?>
-
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <form method="post" enctype="multipart/form-data">
-          <input type="hidden" name="mode" value="<?= htmlspecialchars($mode, ENT_QUOTES, 'UTF-8') ?>">
-          <input type="hidden" name="orig_message_id" value="<?= htmlspecialchars($origIdForForward, ENT_QUOTES, 'UTF-8') ?>">
-
-          <div class="form-group">
-            <label for="to">To / Đến:</label>
-            <input list="emailSuggestions"
-                   type="text"
-                   class="form-control form-control-sm"
-                   id="to"
-                   name="to"
-                   value="<?= htmlspecialchars($to, ENT_QUOTES, 'UTF-8') ?>"
-                   placeholder="example@domain.com">
-          </div>
-
-          <div class="form-group">
-            <label for="cc">Cc / Đồng gửi:</label>
-            <input list="emailSuggestions"
-                   type="text"
-                   class="form-control form-control-sm"
-                   id="cc"
-                   name="cc"
-                   value="<?= htmlspecialchars($cc, ENT_QUOTES, 'UTF-8') ?>"
-                   placeholder="cc@example.com (optional)">
-          </div>
-
-          <datalist id="emailSuggestions">
-            <?php foreach ($suggestedEmails as $email): ?>
-              <option value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?>"></option>
-            <?php endforeach; ?>
-          </datalist>
-
-          <div class="form-group">
-            <label for="subject">Subject / Tiêu đề:</label>
-            <input type="text" class="form-control form-control-sm" id="subject" name="subject"
-                   value="<?= htmlspecialchars($subject, ENT_QUOTES, 'UTF-8') ?>">
-          </div>
-
-          <div class="form-group">
-            <label for="body">Body / Nội dung:</label>
-            <textarea class="form-control" id="body" name="body" rows="10"
-                      placeholder="Type your message here / Nhập nội dung email tại đây"><?= htmlspecialchars($body, ENT_QUOTES, 'UTF-8') ?></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="attachments">Attachments / File đính kèm:</label>
-            <input type="file" class="form-control-file" id="attachments" name="attachments[]" multiple>
-            <small class="form-text text-muted">
-              You can select multiple files. / Có thể chọn nhiều file cùng lúc.
-            </small>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-sm">
-            <i class="fa fa-send"></i> Send / Gửi
-          </button>
-          <a href="email_inbox.php" class="btn btn-light btn-sm">
-            <i class="fa fa-times"></i> Cancel / Hủy
-          </a>
-        </form>
-      </div>
-    </div>
-
-  <?php endif; ?>
-</div>
+<?php endif; ?>
 
 <?php
 require_once __DIR__ . '/includes/footer.php';

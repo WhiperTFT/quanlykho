@@ -229,15 +229,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // --- Hiển thị giao diện HTML ---
 ?>
 
-    <div class="container mt-4 mb-5 main-content">
-        <h1><?= $lang['user_management_title'] ?? 'Quản lý Người dùng' ?></h1>
+    <div class="container-fluid px-4 mt-4 mb-5">
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 fw-bold mb-1"><i class="bi bi-people-fill me-2 text-primary"></i><?= $lang['user_management_title'] ?? 'Quản lý Người dùng' ?></h1>
+                <p class="text-muted mb-0 small">Quản lý tài khoản, phân quyền và kích hoạt người dùng</p>
+            </div>
+            <?php if (has_permission('users_add')): ?>
+            <div class="page-header-actions">
+                <a href="?action=add" class="btn btn-primary">
+                    <i class="bi bi-person-plus-fill me-1"></i> <?= $lang['add_new_user'] ?? 'Thêm Người dùng Mới' ?>
+                </a>
+            </div>
+            <?php endif; ?>
+        </div>
 
         <?php if ($message): ?>
-            <div class="alert <?php echo (strpos($message, 'Lỗi') !== false || strpos($message, 'không có quyền') !== false) ? 'alert-danger' : 'alert-success'; ?> alert-dismissible fade show" role="alert">
+            <div class="alert <?php echo (strpos($message, 'Lỗi') !== false || strpos($message, 'không có quyền') !== false) ? 'alert-danger' : 'alert-success'; ?> alert-dismissible fade show alert-modern" role="alert">
                  <?php if (strpos($message, 'Lỗi') !== false || strpos($message, 'không có quyền') !== false): ?>
-                    <i class="fas fa-times-circle"></i>
+                    <i class="bi bi-x-circle-fill me-2"></i>
                  <?php else: ?>
-                    <i class="fas fa-check-circle"></i>
+                    <i class="bi bi-check-circle-fill me-2"></i>
                  <?php endif; ?>
                 <?php echo htmlspecialchars($message); ?>
                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -246,26 +258,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <?php if ($action == 'list'): ?>
             
-            <?php
-            // Hiển thị nút "Thêm Người dùng Mới" chỉ nếu có quyền 'users_add' (chỉ admin)
-            if (has_permission('users_add')) {
-                echo '<p><a href="?action=add" class="btn btn-success mb-3"><i class="fas fa-user-plus"></i> ' . ($lang['add_new_user'] ?? 'Thêm Người dùng Mới') . '</a></p>';
-            }
-            ?>
-            <h5><?= $lang['user_list_title'] ?? 'Danh sách Người dùng' ?></h5>
+            <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="table-primary">
+                <table class="table table-hover align-middle mb-0" id="user-list-table">
+                    <thead class="table-light">
                         <tr>
-                            <th>ID</th>
+                            <th class="ps-4">ID</th>
                             <th>Username</th>
                             <th>Email</th>
                             <th>Tên hiển thị</th>
                             <th>Role</th>
                             <th>Kích hoạt</th>
                             <th>Ngày tạo</th>
-                            <th>Ngày cập nhật gần nhất</th>
-                            <th>Hành động</th>
+                            <th class="text-end pe-4">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -278,45 +284,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         if ($users) {
                             foreach($users as $row) {
                                 echo "<tr>";
-                                echo "<td>" . htmlspecialchars($row["id"]) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["username"]) . "</td>";
+                                echo "<td class='ps-4'>" . htmlspecialchars($row["id"]) . "</td>";
+                                echo "<td class='fw-semibold'>" . htmlspecialchars($row["username"]) . "</td>";
                                 echo "<td>" . htmlspecialchars($row["email"]) . "</td>";
                                 echo "<td>" . htmlspecialchars($row["full_name"]) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["role"]) . "</td>";
-                                echo "<td>" . ($row["is_active"] ? ($lang['yes'] ?? 'Có') : ($lang['no'] ?? 'Không')) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["created_at"]) . "</td>";
-                                echo "<td>" . htmlspecialchars($row["updated_at"]) . "</td>";
-                                echo "<td class='action-links'>";
-                                // --- KIỂM TRA QUYỀN HIỂN THỊ NÚT SỬA: Chỉ ADMIN hoặc Sửa CHÍNH MÌNH ---
-                                 $can_view_edit_button = $is_admin_user || ($current_user_id && $row['id'] === $current_user_id);
-                                 if ($can_view_edit_button) {
-                                    echo "<a href='?action=edit&id=" . htmlspecialchars($row["id"]) . "' class='btn btn-sm btn-primary me-1'><i class='fas fa-edit'></i> " . ($lang['edit'] ?? 'Sửa') . "</a>";
-                                 }
-                                // --- KIỂM TRA QUYỀN HIỂN THỊ NÚT XÓA: Chỉ ADMIN VÀ không phải chính mình ---
-                                if (has_permission('users_delete') && ($current_user_id && $row['id'] !== $current_user_id)) { // has_permission('users_delete') ngầm định chỉ admin
-                                     echo "<form method='POST' action='' class='d-inline' onsubmit='return confirm(\"" . ($lang['confirm_delete_user'] ?? 'Bạn có chắc chắn muốn xóa người dùng') . " \\\"" . addslashes($row['username']) . "\\\" không?\");'>";
+                                echo "<td><span class='badge bg-light text-dark border'>" . htmlspecialchars($row["role"]) . "</span></td>";
+                                echo "<td>" . ($row["is_active"] ? "<span class='badge bg-success-subtle text-success'><i class='bi bi-check-circle me-1'></i>" . ($lang['yes'] ?? 'Có') . "</span>" : "<span class='badge bg-secondary-subtle text-secondary'>" . ($lang['no'] ?? 'Không') . "</span>") . "</td>";
+                                echo "<td class='small text-muted'>" . htmlspecialchars($row["created_at"]) . "</td>";
+                                echo "<td class='text-end pe-4 action-links'>";
+                                $can_view_edit_button = $is_admin_user || ($current_user_id && $row['id'] === $current_user_id);
+                                if ($can_view_edit_button) {
+                                    echo "<a href='?action=edit&id=" . htmlspecialchars($row["id"]) . "' class='btn btn-sm btn-icon btn-outline-primary me-1'><i class='bi bi-pencil-square'></i></a>";
+                                }
+                                if (has_permission('users_delete') && ($current_user_id && $row['id'] !== $current_user_id)) {
+                                    echo "<form method='POST' action='' class='d-inline' onsubmit='return confirm(\"" . ($lang['confirm_delete_user'] ?? 'Bạn có chắc chắn muốn xóa người dùng') . " \\\"" . addslashes($row['username']) . "\\\" không?\");'>";
                                     echo "<input type='hidden' name='user_id' value='" . htmlspecialchars($row['id']) . "'>";
-                                    echo "<button type='submit' name='delete_user' class='btn btn-sm btn-danger'><i class='fas fa-trash-alt'></i> " . ($lang['delete'] ?? 'Xóa') . "</button>";
+                                    echo "<button type='submit' name='delete_user' class='btn btn-sm btn-icon btn-outline-danger'><i class='bi bi-trash3'></i></button>";
                                     echo "</form>";
                                 }
-                                 // Hiển thị "Không có quyền" nếu không có nút nào được hiển thị
-                                 if (!$can_view_edit_button && !(has_permission('users_delete') && ($current_user_id && $row['id'] !== $current_user_id))) {
-                                      echo $lang['no_permission'] ?? "Không có quyền";
-                                 }
                                 echo "</td>";
                                 echo "</tr>";
                             }
                         } else {
-                            echo "<tr><td colspan='9'>" . ($lang['no_users_found'] ?? 'Không có người dùng nào.') . "</td></tr>";
+                            echo "<tr><td colspan='8' class='text-center py-4 text-muted'>" . ($lang['no_users_found'] ?? 'Không có người dùng nào.') . "</td></tr>";
                         }
                         ?>
                     </tbody>
                 </table>
             </div>
+            </div>
+            </div>
 
 
         <?php elseif ($action == 'add'): ?>
-            <h2><?= $lang['add_new_user'] ?? 'Thêm Người dùng Mới' ?></h2>
+            <h2 class="h4 fw-bold mb-4"><?= $lang['add_new_user'] ?? 'Thêm Người dùng Mới' ?></h2>
             <?php
             // Chỉ hiển thị form thêm nếu có quyền 'users_add' (chỉ admin)
             if (has_permission('users_add')):
@@ -382,8 +383,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-success me-2"><i class="fas fa-save"></i> <?= $lang['save'] ?? 'Lưu' ?></button>
-                    <a href="?action=list" class="btn btn-secondary"><i class="fas fa-times"></i> <?= $lang['cancel'] ?? 'Hủy' ?></a>
+                    <button type="submit" class="btn btn-success me-2"><i class="bi bi-floppy me-1"></i> <?= $lang['save'] ?? 'Lưu' ?></button>
+                    <a href="?action=list" class="btn btn-secondary"><i class="bi bi-x-circle me-1"></i> <?= $lang['cancel'] ?? 'Hủy' ?></a>
                 </form>
             <?php else: ?>
                  <p class="alert alert-danger"><i class="fas fa-times-circle"></i> <?= $lang['error_permission_denied'] ?? 'Bạn không có quyền truy cập chức năng này.' ?></p>
@@ -416,7 +417,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Chỉ cần có quyền xem/sửa form là được phép sửa các trường này
                 $can_edit_other_fields = $can_view_edit_form; // Luôn đúng nếu form hiển thị
             ?>
-            <h2><?= $lang['edit_user'] ?? 'Sửa Thông tin Người dùng' ?>: <?php echo htmlspecialchars($user['username']); ?></h2>
+            <h2 class="h4 fw-bold mb-4"><?= $lang['edit_user'] ?? 'Sửa Thông tin Người dùng' ?>: <?php echo htmlspecialchars($user['username']); ?></h2>
             <form method="POST" action="">
                 <input type="hidden" name="edit_user" value="1">
                 <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($user['id']); ?>">
@@ -485,13 +486,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 <?php
                 // Hiển thị nút Lưu/Cập nhật chỉ khi được phép sửa bất kỳ trường nào
-                // Tức là, có thể sửa các trường thông tin cơ bản (username, email,...) HOẶC sửa role/active/permissions
+                // Tức là, có thể sửa các trường thông tin cơ bản (username, email,...) HOÀC sửa role/active/permissions
                 // Logic đơn giản hơn: Chỉ hiển thị nút này nếu form được phép hiển thị (có quyền xem/sửa form)
                 if ($can_view_edit_form):
                 ?>
-                    <button type="submit" class="btn btn-success me-2"><i class="fas fa-save"></i> <?= $lang['update'] ?? 'Cập nhật' ?></button>
+                    <button type="submit" class="btn btn-success me-2"><i class="bi bi-floppy me-1"></i> <?= $lang['update'] ?? 'Cập nhật' ?></button>
                 <?php endif; ?>
-                 <a href="?action=list" class="btn btn-secondary"><i class="fas fa-times"></i> <?= $lang['cancel'] ?? 'Hủy' ?></a>
+                 <a href="?action=list" class="btn btn-secondary"><i class="bi bi-x-circle me-1"></i> <?= $lang['cancel'] ?? 'Hủy' ?></a>
             </form>
             <?php elseif (!$user): ?>
                 <p class="alert alert-danger"><i class="fas fa-times-circle"></i> <?= $lang['user_not_found'] ?? 'Không tìm thấy người dùng.' ?></p>

@@ -1,0 +1,23 @@
+[QUEUE_PROCESSOR][2026-04-10 09:29:50] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2026-04-10 09:29:50] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2026-04-10 09:29:50] Processing log ID: 209 for type: order
+[QUEUE_PROCESSOR][2026-04-10 09:29:50] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2026-04-10 09:29:50] Found log ID 209 with status: pending
+[QUEUE_PROCESSOR][2026-04-10 09:29:50] Status updated to 'sending' for log ID 209.
+[QUEUE_PROCESSOR][2026-04-10 09:29:53] Token đã được làm mới và lưu lại.
+[QUEUE_PROCESSOR][2026-04-10 09:29:54] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-10042026-001.pdf
+[QUEUE_PROCESSOR][2026-04-10 09:29:54] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-10042026-001.pdf
+[QUEUE_PROCESSOR][2026-04-10 09:29:56] Email sent successfully for Log ID: 209.
+[QUEUE_PROCESSOR][2026-04-10 09:29:56] Final status updated to 'sent' for log ID 209.
+[QUEUE_PROCESSOR][2026-04-10 09:29:56] Script finished for Log ID: 209
+[QUEUE_PROCESSOR][2026-04-10 09:41:01] [STARTUP] Script process_email_queue.php started. PHP Version: 8.2.12
+[QUEUE_PROCESSOR][2026-04-10 09:41:01] [DEBUG] Database connected successfully.
+[QUEUE_PROCESSOR][2026-04-10 09:41:01] Processing log ID: 210 for type: order
+[QUEUE_PROCESSOR][2026-04-10 09:41:01] Target log table determined: email_logs
+[QUEUE_PROCESSOR][2026-04-10 09:41:01] Found log ID 210 with status: pending
+[QUEUE_PROCESSOR][2026-04-10 09:41:01] Status updated to 'sending' for log ID 210.
+[QUEUE_PROCESSOR][2026-04-10 09:41:01] [DEBUG] Attachment web_path (after clean): pdf/PO-STV-10042026-002.pdf
+[QUEUE_PROCESSOR][2026-04-10 09:41:01] [DEBUG] Resolved file_path: C:\xampp\htdocs\quanlykho\pdf\PO-STV-10042026-002.pdf
+[QUEUE_PROCESSOR][2026-04-10 09:41:04] Email sent successfully for Log ID: 210.
+[QUEUE_PROCESSOR][2026-04-10 09:41:04] Final status updated to 'sent' for log ID 210.
+[QUEUE_PROCESSOR][2026-04-10 09:41:04] Script finished for Log ID: 210

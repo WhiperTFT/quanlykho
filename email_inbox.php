@@ -109,92 +109,94 @@ try {
 }
 ?>
 
-<div class="container-fluid mt-3">
-
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
-    <h4 class="mb-2 mb-md-0">
-      <i class="fa fa-envelope"></i>
-      Gmail Inbox / Hộp thư đến
-    </h4>
-
-    <div class="d-flex flex-wrap align-items-center">
-      <form class="form-inline mr-2 mb-2 mb-md-0" method="get">
-        <input type="text"
-               class="form-control form-control-sm mr-2"
-               name="q"
-               placeholder="Search / Tìm kiếm..."
-               value="<?= htmlspecialchars($searchQuery ?? '', ENT_QUOTES, 'UTF-8') ?>">
-        <button class="btn btn-outline-secondary btn-sm" type="submit">
-          <i class="fa fa-search"></i>
-        </button>
-      </form>
-
-      <a href="email_compose.php" class="btn btn-primary btn-sm mb-2 mb-md-0">
-        <i class="fa fa-pencil"></i> New Email / Soạn mới
-      </a>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="h3 fw-bold mb-1"><i class="bi bi-envelope-fill me-2 text-primary"></i>Hộp thư đến (Gmail Inbox)</h1>
+    <p class="text-muted mb-0 small">Xem và quản lý email từ tài khoản Gmail được liên kết</p>
   </div>
+  <div class="page-header-actions">
+    <form class="d-flex gap-2" method="get">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" class="form-control border-start-0" name="q"
+               placeholder="Tìm kiếm email..."
+               value="<?= htmlspecialchars($searchQuery ?? '', ENT_QUOTES, 'UTF-8') ?>">
+      </div>
+      <button class="btn btn-outline-secondary btn-sm" type="submit">
+        <i class="bi bi-search me-1"></i>Tìm
+      </button>
+    </form>
+    <a href="email_compose.php" class="btn btn-primary btn-sm">
+      <i class="bi bi-pencil-square me-1"></i>Soạn email mới
+    </a>
+  </div>
+</div>
 
-  <?php if ($gmailError): ?>
-    <div class="alert alert-danger mt-2">
-      Gmail error / Lỗi kết nối Gmail: <?= htmlspecialchars($gmailError, ENT_QUOTES, 'UTF-8') ?>
+<?php if ($gmailError): ?>
+  <div class="alert alert-danger alert-modern mt-2">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Lỗi kết nối Gmail:</strong> <?= htmlspecialchars($gmailError, ENT_QUOTES, 'UTF-8') ?>
+  </div>
+<?php else: ?>
+  <div class="content-card shadow-sm">
+    <div class="content-card-header">
+      <span><i class="bi bi-list-ul me-2 text-primary"></i>Danh sách email</span>
+      <span class="badge bg-light text-dark border"><?= count($messages) ?> email</span>
     </div>
-  <?php else: ?>
-    <div class="card shadow-sm">
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-sm mb-0" style="font-size: 0.85rem;">
-            <thead class="thead-light">
+    <div class="content-card-body-flush">
+      <div class="table-responsive">
+        <table class="table table-hover table-custom mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="min-width:220px;">Người gửi</th>
+              <th style="min-width:260px;">Tiêu đề</th>
+              <th style="width:140px;">Ngày nhận</th>
+              <th style="width:220px;" class="text-center">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+          <?php if (empty($messages)): ?>
+            <tr><td colspan="4" class="text-center py-5 text-muted">
+              <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>Không có email nào.
+            </td></tr>
+          <?php else: ?>
+            <?php foreach ($messages as $m): ?>
               <tr>
-                <th style="min-width: 220px;">From / Từ</th>
-                <th style="min-width: 260px;">Subject / Tiêu đề</th>
-                <th style="width: 140px;">Date / Ngày</th>
-                <th style="width: 220px;">Actions / Hành động</th>
+                <td style="white-space:normal;" class="fw-semibold">
+                  <i class="bi bi-person-circle me-1 text-muted"></i>
+                  <?= nl2br(htmlspecialchars($m['from'], ENT_QUOTES, 'UTF-8')) ?>
+                </td>
+                <td style="white-space:normal;">
+                  <?= nl2br(htmlspecialchars($m['subject'], ENT_QUOTES, 'UTF-8')) ?>
+                </td>
+                <td class="text-muted small">
+                  <i class="bi bi-clock me-1"></i>
+                  <?= htmlspecialchars($m['date'], ENT_QUOTES, 'UTF-8') ?>
+                </td>
+                <td class="text-center text-nowrap">
+                  <?php
+                  $id     = urlencode($m['id']);
+                  $thread = urlencode($m['threadId']);
+                  ?>
+                  <a class="btn btn-sm btn-outline-secondary" href="email_view.php?id=<?= $id ?>&thread=<?= $thread ?>" title="Xem">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <a class="btn btn-sm btn-outline-primary" href="email_compose.php?reply_to=<?= $id ?>" title="Trả lời">
+                    <i class="bi bi-reply-fill"></i>
+                  </a>
+                  <a class="btn btn-sm btn-outline-info" href="email_compose.php?forward=<?= $id ?>" title="Chuyển tiếp">
+                    <i class="bi bi-forward-fill"></i>
+                  </a>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-            <?php if (empty($messages)): ?>
-              <tr><td colspan="4" class="text-center">No emails / Không có email nào.</td></tr>
-            <?php else: ?>
-              <?php foreach ($messages as $m): ?>
-                <tr>
-                  <td style="white-space: normal;">
-                    <?= nl2br(htmlspecialchars($m['from'], ENT_QUOTES, 'UTF-8')) ?>
-                  </td>
-                  <td style="white-space: normal;">
-                    <?= nl2br(htmlspecialchars($m['subject'], ENT_QUOTES, 'UTF-8')) ?>
-                  </td>
-                  <td>
-                    <?= htmlspecialchars($m['date'], ENT_QUOTES, 'UTF-8') ?>
-                  </td>
-                  <td>
-                    <?php
-                    $id      = urlencode($m['id']);
-                    $thread  = urlencode($m['threadId']);
-                    ?>
-                    <a class="btn btn-sm btn-outline-secondary mb-1"
-                       href="email_view.php?id=<?= $id ?>&thread=<?= $thread ?>">
-                       View / Xem
-                    </a>
-                    <a class="btn btn-sm btn-outline-primary mb-1"
-                       href="email_compose.php?reply_to=<?= $id ?>">
-                       Reply / Trả lời
-                    </a>
-                    <a class="btn btn-sm btn-outline-info mb-1"
-                       href="email_compose.php?forward=<?= $id ?>">
-                       Forward / Chuyển tiếp
-                    </a>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            <?php endif; ?>
-            </tbody>
-          </table>
-        </div>
+            <?php endforeach; ?>
+          <?php endif; ?>
+          </tbody>
+        </table>
       </div>
     </div>
-  <?php endif; ?>
-</div>
+  </div>
+<?php endif; ?>
 
 <?php
 require_once __DIR__ . '/includes/footer.php';

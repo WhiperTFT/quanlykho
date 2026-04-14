@@ -29,7 +29,7 @@ if ($isLoggedIn) {
 $current_lang_code = $_SESSION['lang_code'] ?? 'vi';
 ?>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm main-navbar">
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm main-navbar">
     <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
             <i class="bi bi-box-seam-fill me-2 fs-4"></i>

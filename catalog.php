@@ -133,8 +133,8 @@ $flatChildren = $allCatStmt->fetchAll(PDO::FETCH_ASSOC);
 :root {
   --bg-sidebar: #fdfdfd;
   --border-color: #dee2e6;
-  --active-bg: #e7f1ff;
-  --active-color: #0d6efd;
+  --active-bg: #eef0fd;
+  --active-color: #4361ee;
 }
 .catalog-container { height: calc(100vh - 140px); background: #fff; border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
 .col-pane { height: 100%; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }

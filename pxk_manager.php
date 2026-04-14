@@ -79,95 +79,84 @@ $page_title = $lang['pxk_manager'] ?? 'Quản lý Phiếu Xuất Kho';
   }
 </style>
 
-<div class="container-fluid py-3">
-  
-  <!-- Header & Toolbar -->
-  <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
-    <div>
-      <h4 class="mb-0 fw-bold"><?= htmlspecialchars($page_title) ?></h4>
-    </div>
-    
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-      <!-- Search & Filter Left -->
-      <div class="d-flex align-items-center gap-2 bg-white px-2 py-1 rounded shadow-sm border">
-        <div class="search-group position-relative">
-          <i class="bi bi-search"></i>
-          <input type="text" id="filter-keyword" class="form-control form-control-sm border-0 bg-light" style="width:250px;" placeholder="Tìm số PXK, biên nhận...">
-          <button type="button" class="btn btn-sm btn-link text-muted px-2 position-absolute end-0 top-50 translate-middle-y clear-search" id="btn-clear-search" style="display:none;" aria-label="Xóa">
-            <i class="bi bi-x-circle-fill"></i>
-          </button>
-        </div>
-      </div>
-      
-      <!-- Right Actions -->
-      <button id="btn-reload" class="btn btn-light shadow-sm border" title="Tải lại danh sách">
-        <i class="bi bi-arrow-repeat"></i>
-      </button>
-
-      <div class="dropdown">
-        <button class="btn btn-light shadow-sm border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Tiện ích máy in">
-          <i class="bi bi-printer me-1"></i> Máy in
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow">
-          <li><a class="dropdown-item" href="#" id="btnSelectPrinter"><i class="bi bi-gear me-2 text-secondary"></i> Chọn máy in...</a></li>
-          <li><a class="dropdown-item" href="#" id="btnPrintCleanup"><i class="bi bi-broom me-2 text-danger"></i> Dọn hàng đợi</a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" href="#" id="btn-print-diag"><i class="bi bi-activity me-2 text-info"></i> Chẩn đoán máy in</a></li>
-        </ul>
-      </div>
-
-      <button id="btn-new" class="btn btn-primary shadow-sm fw-medium">
-        <i class="bi bi-plus-lg me-1"></i> Thêm PXK (F2)
-      </button>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="h3 fw-bold mb-1"><i class="bi bi-file-earmark-arrow-up me-2 text-primary"></i><?= htmlspecialchars($page_title) ?></h1>
+    <p class="text-muted mb-0 small">Quản lý phiếu xuất kho và theo dõi in ấn</p>
   </div>
-
-  <!-- Danh sách bản ghi -->
-  <div class="card shadow-sm border-0">
-    <div class="card-header bg-white py-2 border-bottom d-flex align-items-center justify-content-between">
-      <div class="d-flex align-items-center gap-2">
-        <i class="bi bi-list-columns-reverse text-primary"></i>
-        <h6 class="mb-0 fw-bold">Danh sách bản ghi</h6>
-        <span class="badge bg-primary-subtle text-primary border rounded-pill px-2" id="totalCount">0</span>
-      </div>
-      <div class="d-flex align-items-center gap-2">
-        <label for="pageSizeSelect" class="form-label mb-0 small text-muted text-nowrap" style="display:none;">Hiển thị:</label>
-        <select id="pageSizeSelect" class="form-select form-select-sm border-0 bg-light shadow-sm" style="width:auto; cursor:pointer;" title="Số dòng hiển thị">
-          <option value="10">10 dòng</option>
-          <option value="25">25 dòng</option>
-          <option value="50">50 dòng</option>
-          <option value="100">100 dòng</option>
-          <option value="0">Tất cả</option>
-        </select>
-      </div>
+  <div class="page-header-actions d-flex align-items-center gap-2">
+    <!-- Search & Filter -->
+    <div class="search-group position-relative">
+      <i class="bi bi-search"></i>
+      <input type="text" id="filter-keyword" class="form-control form-control-sm border-0 bg-light" style="width:250px; padding-left:36px;" placeholder="Tìm số PXK, biên nhận...">
+      <button type="button" class="btn btn-sm btn-link text-muted px-2 position-absolute end-0 top-50 translate-middle-y clear-search" id="btn-clear-search" style="display:none;" aria-label="Xóa">
+        <i class="bi bi-x-circle-fill"></i>
+      </button>
     </div>
-    <div class="card-body p-0 erp-table-container">
-      <table id="pxkTable" class="table table-hover erp-table table-sm align-middle mb-0">
-        <thead>
-          <tr>
-            <th style="width:60px;" class="text-center">ID</th>
-            <th style="width:140px;">Số PXK</th>
-            <th style="width:100px;">Ngày</th>
-            <th>Tên đơn vị nhận</th>
-            <th style="width:150px;">Tài xế</th>
-            <th style="width:70px;" class="text-center">Đã in</th>
-            <th style="width:150px;">Tệp PDF / In</th>
-            <th style="width:90px;" class="text-center col-action">Hành động</th>
-          </tr>
-        </thead>
-        <tbody id="pxkTableBody">
-          <!-- JS Render -->
-        </tbody>
-      </table>
+    <!-- Right Actions -->
+    <button id="btn-reload" class="btn btn-outline-secondary btn-sm" title="Tải lại danh sách">
+      <i class="bi bi-arrow-repeat"></i>
+    </button>
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Tiện ích máy in">
+        <i class="bi bi-printer me-1"></i> Máy in
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow">
+        <li><a class="dropdown-item" href="#" id="btnSelectPrinter"><i class="bi bi-gear me-2 text-secondary"></i> Chọn máy in...</a></li>
+        <li><a class="dropdown-item" href="#" id="btnPrintCleanup"><i class="bi bi-broom me-2 text-danger"></i> Dọn hàng đợi</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="#" id="btn-print-diag"><i class="bi bi-activity me-2 text-info"></i> Chẩn đoán máy in</a></li>
+      </ul>
     </div>
-    <div class="card-footer bg-light py-2">
-      <div id="pxkPagination" class="d-flex justify-content-between align-items-center w-100">
-        <small id="pagingInfo" class="text-muted"></small>
-        <ul id="pager" class="pagination pagination-sm mb-0"></ul>
-      </div>
-    </div>
+    <button id="btn-new" class="btn btn-primary fw-medium">
+      <i class="bi bi-plus-lg me-1"></i> Thêm PXK (F2)
+    </button>
   </div>
 </div>
+
+<!-- Danh sách bản ghi -->
+<div class="content-card shadow-sm">
+  <div class="content-card-header">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-list-columns-reverse text-primary"></i>
+      <span class="fw-bold">Danh sách bản ghi</span>
+      <span class="badge bg-primary-subtle text-primary border rounded-pill px-2" id="totalCount">0</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <select id="pageSizeSelect" class="form-select form-select-sm border-0 bg-light" style="width:auto; cursor:pointer;" title="Số dòng hiển thị">
+        <option value="10">10 dòng</option>
+        <option value="25">25 dòng</option>
+        <option value="50">50 dòng</option>
+        <option value="100">100 dòng</option>
+        <option value="0">Tất cả</option>
+      </select>
+    </div>
+  </div>
+  <div class="content-card-body-flush">
+    <table id="pxkTable" class="table table-hover table-custom align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width:60px;" class="text-center">ID</th>
+          <th style="width:140px;">Số PXK</th>
+          <th style="width:100px;">Ngày</th>
+          <th>Tên đơn vị nhận</th>
+          <th style="width:150px;">Tài xế</th>
+          <th style="width:70px;" class="text-center">Đã in</th>
+          <th style="width:150px;">Tệp PDF / In</th>
+          <th style="width:90px;" class="text-center col-action">Hành động</th>
+        </tr>
+      </thead>
+      <tbody id="pxkTableBody">
+        <!-- JS Render -->
+      </tbody>
+    </table>
+  </div>
+  <div class="p-3 border-top d-flex justify-content-between align-items-center">
+    <small id="pagingInfo" class="text-muted"></small>
+    <ul id="pager" class="pagination pagination-sm mb-0"></ul>
+  </div>
+</div>
+
 
 <!-- ==============================================
      MODAL FORM BẢN RỘNG (THAY THẾ OFFCANVAS)

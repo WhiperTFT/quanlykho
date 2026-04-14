@@ -39,11 +39,12 @@ $initial_quotes = [];
     </div>
 </div>
 
-    <div class="card shadow-sm mb-4" id="quote-form-card" style="display: none;">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0" id="quote-form-title"><?= $lang['create_new_quote'] ?? 'Create New Quote' ?></h5>
+    <div class="form-card mb-4" id="quote-form-card" style="display: none;">
+        <div class="form-card-header">
+            <i class="bi bi-file-earmark-text"></i>
+            <span id="quote-form-title"><?= $lang['create_new_quote'] ?? 'Create New Quote' ?></span>
         </div>
-        <div class="card-body p-4">
+        <div class="p-4">
             <form id="quote-form" novalidate>
                 <input type="hidden" name="quote_id" id="quote_id">
 
@@ -101,8 +102,6 @@ echo '<script>
         sales_quote: "process/sales_quote_handler.php",
         partner_search: "process/partners_handler.php",
         product_search: "process/product_handler.php"
-        // Thêm export_pdf_url nếu bạn muốn định nghĩa sẵn, hoặc tạo động trong JS
-        // export_pdf: "process/export_pdf.php" 
     };
 </script>';
 
@@ -125,7 +124,6 @@ $js_company_signature_path = 'uploads/sign.png'; // Giá trị mặc định fal
 if (isset($company_info) && is_array($company_info) && !empty($company_info['signature_path'])) {
     $js_company_signature_path = htmlspecialchars(ltrim($company_info['signature_path'], '/'));
 } else {
-
     if (!isset($company_info)) {
         error_log("Warning: \$company_info is not set when trying to get signature_path for JS in sales_quotes.php.");
     } elseif (empty($company_info['signature_path'])) {
@@ -142,7 +140,6 @@ if (isset($company_info) && is_array($company_info) && !empty($company_info['sig
     window.APP_CONTEXT = {
         type: 'quote', // Xác định loại tài liệu là 'quote'
         documentName: '<?= $lang['sales_quote_short'] ?? 'Báo giá' ?>', // Tên ngắn gọn của tài liệu
-
     };
     devLog('APP_CONTEXT for sales_quotes.php:', window.APP_CONTEXT);
 </script>

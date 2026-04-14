@@ -8,25 +8,33 @@ $page_title = 'Quản lý tồn kho';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<div class="container-fluid py-3">
-  <div class="d-flex align-items-center justify-content-between mb-3">
-    <h4 class="mb-0">Quản lý tồn kho</h4>
-    <div class="d-flex gap-2">
-      <input id="inv-search" type="text" class="form-control form-control-sm" placeholder="Tìm sản phẩm...">
-      <select id="status-filter" class="form-select form-select-sm">
-        <option value="">Trạng thái đơn mua (SO)</option>
-        <option value="ordered">ordered</option>
-        <option value="partially_received">partially_received</option>
-        <option value="fully_received">fully_received</option>
-      </select>
-      <button id="btn-export" class="btn btn-sm btn-outline-secondary">Xuất Excel</button>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="h3 fw-bold mb-1"><i class="bi bi-boxes me-2 text-primary"></i>Quản lý Tồn kho</h1>
+    <p class="text-muted mb-0 small">Theo dõi số lượng hàng hóa khả dụng và lịch sử xuất nhập</p>
   </div>
+  <div class="page-header-actions">
+    <input id="inv-search" type="text" class="form-control form-control-sm" style="width:220px;" placeholder="Tìm sản phẩm...">
+    <select id="status-filter" class="form-select form-select-sm" style="width:200px;">
+      <option value="">Trạng thái đơn mua (SO)</option>
+      <option value="ordered">ordered</option>
+      <option value="partially_received">partially_received</option>
+      <option value="fully_received">fully_received</option>
+    </select>
+    <button id="btn-export" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-file-earmark-excel me-1"></i>Xuất Excel
+    </button>
+  </div>
+</div>
 
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <table id="inv-table" class="table table-striped table-bordered w-100">
-  <thead>
+<div class="content-card shadow-sm">
+  <div class="content-card-header">
+    <span><i class="bi bi-table me-2 text-primary"></i>Bảng tồn kho khả dụng</span>
+  </div>
+  <div class="content-card-body-flush">
+    <div class="table-responsive">
+      <table id="inv-table" class="table table-hover table-custom w-100 mb-0">
+  <thead class="table-light">
     <tr>
       <th>Danh mục</th>
       <th>Tên sản phẩm</th>
@@ -42,15 +50,12 @@ require_once __DIR__ . '/includes/header.php';
   <tbody></tbody>
   <tfoot>
     <tr>
-      <!-- 3 cột đầu để trống -->
       <th colspan="3" class="text-end">Tổng:</th>
-      <!-- tổng ở 5 cột số tiếp theo -->
       <th class="text-end"></th>
       <th class="text-end"></th>
       <th class="text-end"></th>
       <th class="text-end"></th>
       <th class="text-end"></th>
-      <!-- cột nút -->
       <th></th>
     </tr>
   </tfoot>
