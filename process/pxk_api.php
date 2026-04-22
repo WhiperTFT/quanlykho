@@ -63,7 +63,9 @@ function to_dmy_text(?string $ymd): string {
 function get_company(PDO $pdo): array {
     $company = [
         'name_vi'     => '',
+        'name_en'     => '',
         'address_vi'  => '',
+        'address_en'  => '',
         'phone'       => '',
         'tax_id'      => '',
         'website'     => '',
@@ -71,7 +73,7 @@ function get_company(PDO $pdo): array {
         'logo_path'   => '',
     ];
     try {
-        $rs = $pdo->query("SELECT name_vi, address_vi, phone, tax_id, website, email, logo_path FROM company_info ORDER BY id ASC LIMIT 1");
+        $rs = $pdo->query("SELECT name_vi, name_en, address_vi, address_en, phone, tax_id, website, email, logo_path FROM company_info ORDER BY id ASC LIMIT 1");
         if ($row = $rs->fetch(PDO::FETCH_ASSOC)) {
             $company = array_merge($company, $row);
         }
@@ -697,11 +699,27 @@ case 'export_pdf': {
     if ($id <= 0) jexit(false, ['message'=>'Thiếu id'], 400);
 
     try {
-        // 3) Lấy dữ liệu phiếu
+        // 3) Input & Lang choice
+        $j = body_json();
+        $id = (int)($j['id'] ?? 0);
+        if ($id <= 0) jexit(false, ['message' => 'Thiếu id'], 400);
+
+        $pdf_lang = trim((string)($j['pdf_lang'] ?? 'vi')); // Mặc định VI
+        if (!in_array($pdf_lang, ['en', 'vi'])) $pdf_lang = 'vi';
+
+        // Load correct language file
+        $langFile = __DIR__ . '/../lang/' . $pdf_lang . '.php';
+        if (file_exists($langFile)) {
+            require $langFile; // Load biến $lang
+        } else {
+            require __DIR__ . '/../lang/vi.php'; // Fallback
+        }
+
+        // 4) Lấy dữ liệu phiếu
         $st = $pdo->prepare("SELECT * FROM pxk_slips WHERE id=? LIMIT 1");
         $st->execute([$id]);
         $pxk = $st->fetch(PDO::FETCH_ASSOC);
-        if (!$pxk) jexit(false, ['message'=>'Không tìm thấy PXK'], 404);
+        if (!$pxk) jexit(false, ['message' => $lang['product_not_found'] ?? 'Không tìm thấy PXK'], 404);
 
         $items = [];
         if (!empty($pxk['items_json'])) {
@@ -710,16 +728,8 @@ case 'export_pdf': {
         }
 
         // 4) Company & helper
-        if (!function_exists('get_company')) {
-            function get_company(PDO $pdo): array {
-                $company = ['name_vi'=>'','address_vi'=>'','phone'=>'','tax_id'=>'','website'=>'','email'=>'','logo_path'=>''];
-                try {
-                    $rs = $pdo->query("SELECT name_vi,address_vi,phone,tax_id,website,email,logo_path FROM company_info ORDER BY id ASC LIMIT 1");
-                    if ($row = $rs->fetch(PDO::FETCH_ASSOC)) $company = array_merge($company, $row);
-                } catch (Throwable $e) {}
-                return $company;
-            }
-        }
+        // Use the global function defined at the top
+        $c = get_company($pdo);
         if (!function_exists('resolve_logo_src')) {
             function resolve_logo_src(string $path): string {
                 $p = trim($path);
@@ -742,8 +752,11 @@ case 'export_pdf': {
             }
         }
         if (!function_exists('to_dmy_text')) {
-            function to_dmy_text(?string $ymd): string {
+            function to_dmy_text(?string $ymd, array $lang): string {
                 $ts = $ymd ? strtotime($ymd) : time();
+                if (($lang['language'] ?? '') === 'en') {
+                    return date('F j, Y', $ts);
+                }
                 return 'Ngày '.date('d',$ts).' tháng '.date('m',$ts).' năm '.date('Y',$ts);
             }
         }
@@ -770,7 +783,7 @@ case 'export_pdf': {
         // 6) Meta
         $logoSrc    = resolve_logo_src((string)$c['logo_path']);
         $pxk_number = $pxk['pxk_number'] ?? ('PXK-'.$id);
-        $date_text  = to_dmy_text($pxk['pxk_date'] ?? date('Y-m-d'));
+        $date_text  = to_dmy_text($pxk['pxk_date'] ?? date('Y-m-d'), $lang);
 
         // 7) Mật độ
         $rowCount = is_array($items) ? count($items) : 0;
@@ -796,13 +809,16 @@ case 'export_pdf': {
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<title>Phiếu xuất kho <?= h($pxk_number) ?></title>
+<title><?= ($lang['warehouse_dispatch_slip'] ?? 'Phiếu xuất kho') ?> <?= h($pxk_number) ?></title>
 <style><?= $css ?></style>
 </head>
 <body class="pdf-export density-<?= h($density) ?>">
 <div class="a4-container">
   <div class="mid-cutline"></div>
-  <?php $renderSlip = function() use ($c, $logoSrc, $pxk, $items, $pxk_number, $date_text, $contact_person, $partner_phone) { ?>
+  <?php $renderSlip = function() use ($c, $logoSrc, $pxk, $items, $pxk_number, $date_text, $contact_person, $partner_phone, $lang, $pdf_lang) { 
+      $compName = ($pdf_lang === 'en' && !empty($c['name_en'])) ? $c['name_en'] : $c['name_vi'];
+      $compAddr = ($pdf_lang === 'en' && !empty($c['address_en'])) ? $c['address_en'] : $c['address_vi'];
+  ?>
   <table style="width: 100%; border-collapse: collapse; vertical-align: top;">
     <tr>
       <td style="width: 80px; vertical-align: top;">
@@ -813,10 +829,10 @@ case 'export_pdf': {
         <?php endif; ?>
       </td>
       <td style="vertical-align: top; padding-left: 10px;">
-        <h1 class="company-name"><?= h($c['name_vi'] ?: '') ?></h1>
-        <p class="company-info"><b>Địa chỉ:</b> <?= h($c['address_vi'] ?: '') ?></p>
+        <h1 class="company-name"><?= h($compName ?: '') ?></h1>
+        <p class="company-info"><b><?= $lang['address'] ?? 'Địa chỉ' ?>:</b> <?= h($compAddr ?: '') ?></p>
         <p class="company-info">
-          <?php $a=[]; if(!empty($c['phone'])) $a[]='<b>ĐT:</b> '.h($c['phone']); if(!empty($c['tax_id'])) $a[]='<b>MST:</b> '.h($c['tax_id']); echo implode(' | ',$a); ?>
+          <?php $a=[]; if(!empty($c['phone'])) $a[]='<b>'.($lang['phone'] ?? 'ĐT').':</b> '.h($c['phone']); if(!empty($c['tax_id'])) $a[]='<b>'.($lang['tax_id'] ?? 'MST').':</b> '.h($c['tax_id']); echo implode(' | ',$a); ?>
         </p>
         <p class="company-info">
           <?php $b=[]; if(!empty($c['website'])) $b[]='<b>Web:</b> '.h($c['website']); if(!empty($c['email'])) $b[]='<b>Email:</b> '.h($c['email']); echo implode(' | ',$b); ?>
@@ -825,29 +841,29 @@ case 'export_pdf': {
     </tr>
   </table>
   <div class="divider"></div>
-  <h2 class="title">PHIẾU XUẤT KHO</h2>
+  <h2 class="title"><?= $lang['warehouse_dispatch_slip'] ?? 'PHIẾU XUẤT KHO' ?></h2>
   <div class="meta">
     <p class="line"><?= h($date_text) ?></p>
-    <p class="line"><strong>Số:</strong> <?= h($pxk_number) ?></p>
+    <p class="line"><strong><?= $lang['slip_number'] ?? 'Số' ?>:</strong> <?= h($pxk_number) ?></p>
   </div>
 
   <table class="info-rows" style="width: 100%;">
-    <tr><td style="width: 140px;"><b>Đơn vị nhận hàng:</b></td><td><?= h($pxk['partner_name'] ?? '') ?></td></tr>
-    <tr><td><b>Người liên hệ:</b></td><td><?= h($contact_person) ?></td></tr>
-    <tr><td><b>Số điện thoại:</b></td><td><?= h($partner_phone) ?></td></tr>
-    <tr><td><b>Địa chỉ:</b></td><td><?= h($pxk['partner_address'] ?? '') ?></td></tr>
-    <tr><td><b>Ghi chú:</b></td><td><?= h($pxk['notes'] ?? '') ?></td></tr>
+    <tr><td style="width: 140px;"><b><?= $lang['delivery_recipient'] ?? 'Đơn vị nhận hàng' ?>:</b></td><td><?= h($pxk['partner_name'] ?? '') ?></td></tr>
+    <tr><td><b><?= $lang['contact_person'] ?? 'Người liên hệ' ?>:</b></td><td><?= h($contact_person) ?></td></tr>
+    <tr><td><b><?= $lang['phone_number'] ?? 'Số điện thoại' ?>:</b></td><td><?= h($partner_phone) ?></td></tr>
+    <tr><td><b><?= $lang['delivery_address'] ?? 'Địa chỉ' ?>:</b></td><td><?= h($pxk['partner_address'] ?? '') ?></td></tr>
+    <tr><td><b><?= $lang['notes'] ?? 'Ghi chú' ?>:</b></td><td><?= h($pxk['notes'] ?? '') ?></td></tr>
   </table>
 
   <table class="items">
     <thead>
       <tr>
-        <th style="width:20px">STT</th>
-        <th style="width:120px">Danh mục</th>
-        <th>Tên sản phẩm</th>
-        <th style="width:40px">Đơn vị</th>
-        <th style="width:50px">Số lượng</th>
-        <th style="width:170px">Ghi chú</th>
+        <th style="width:20px"><?= $lang['stt'] ?? 'STT' ?></th>
+        <th style="width:120px"><?= $lang['category'] ?? 'Danh mục' ?></th>
+        <th><?= $lang['item_description'] ?? 'Tên sản phẩm' ?></th>
+        <th style="width:40px"><?= $lang['unit'] ?? 'Đơn vị' ?></th>
+        <th style="width:50px"><?= $lang['quantity'] ?? 'Số lượng' ?></th>
+        <th style="width:170px"><?= $lang['note'] ?? 'Ghi chú' ?></th>
       </tr>
     </thead>
     <tbody>
@@ -861,7 +877,7 @@ case 'export_pdf': {
           <td><?= h($it['note'] ?? '') ?></td>
         </tr>
       <?php endforeach; else: ?>
-        <tr><td colspan="6" class="center">Không có dữ liệu hàng hoá.</td></tr>
+        <tr><td colspan="6" class="center"><?= $lang['no_data'] ?? 'Không có dữ liệu hàng hoá.' ?></td></tr>
       <?php endif; ?>
     </tbody>
   </table>
@@ -869,16 +885,16 @@ case 'export_pdf': {
   <table class="signatures" style="width: 100%; table-layout: fixed; text-align: center; page-break-inside: avoid;">
     <tr>
       <td style="width: 33.33%; vertical-align: top;">
-        <div class="title">NGƯỜI LẬP PHIẾU</div>
-        <div class="note">(Ký, họ tên)</div>
+        <div class="title"><?= mb_strtoupper($lang['sender_signature'] ?? 'NGƯỜI LẬP PHIẾU') ?></div>
+        <div class="note">(<?= $lang['signature_hint'] ?? 'Ký, họ tên' ?>)</div>
       </td>
       <td style="width: 33.33%; vertical-align: top;">
-        <div class="title">NGƯỜI NHẬN HÀNG</div>
-        <div class="note">(Ký, họ tên)</div>
+        <div class="title"><?= mb_strtoupper($lang['recipient_signature'] ?? 'NGƯỜI NHẬN HÀNG') ?></div>
+        <div class="note">(<?= $lang['signature_hint'] ?? 'Ký, họ tên' ?>)</div>
       </td>
       <td style="width: 33.33%; vertical-align: top;">
-        <div class="title">THỦ KHO</div>
-        <div class="note">(Ký, họ tên)</div>
+        <div class="title"><?= mb_strtoupper($lang['warehouse_keeper'] ?? 'THỦ KHO') ?></div>
+        <div class="note">(<?= $lang['signature_hint'] ?? 'Ký, họ tên' ?>)</div>
       </td>
     </tr>
     <tr>

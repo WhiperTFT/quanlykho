@@ -76,7 +76,7 @@ $doc_date_input_name   = $current_config['date_input_name'];
 
 ?>
 <div class="text-center mb-4 mt-2">
-    <h2 class="document-title display-5 text-primary fw-bold" id="document-main-title">
+    <h2 class="document-title display-5 text-primary fw-bold" id="document-main-title" data-lang-key="<?= $documentTitleKey ?>">
         <?= htmlspecialchars($documentTitle) ?>
     </h2>
 </div>
@@ -96,25 +96,25 @@ $doc_date_input_name   = $current_config['date_input_name'];
                     </div>
                 </div>
                 <div class="mb-2">
-                    <small class="text-muted"><?= $lang['address'] ?? 'Address' ?>:</small>
+                    <small class="text-muted"><span data-lang-key="address"><?= $lang['address'] ?? 'Address' ?></span>:</small>
                     <p id="partner_address_display" class="form-control-plaintext pt-0 border-bottom mb-1">-</p>
                 </div>
                 <div class="row gx-2">
                     <div class="col-sm-6 mb-2">
-                        <small class="text-muted"><?= $lang['tax_id'] ?? 'Tax ID' ?>:</small>
+                        <small class="text-muted"><span data-lang-key="tax_id"><?= $lang['tax_id'] ?? 'Tax ID' ?></span>:</small>
                         <p id="partner_tax_id_display" class="form-control-plaintext pt-0 border-bottom mb-1">-</p>
                     </div>
                     <div class="col-sm-6 mb-2">
-                        <small class="text-muted"><?= $lang['phone'] ?? 'Phone' ?>:</small>
+                        <small class="text-muted"><span data-lang-key="phone"><?= $lang['phone'] ?? 'Phone' ?></span>:</small>
                         <p id="partner_phone_display" class="form-control-plaintext pt-0 border-bottom mb-1">-</p>
                     </div>
                 </div>
                 <div class="mb-2">
-                    <small class="text-muted"><?= $lang['contact_person'] ?? 'Contact Person' ?>:</small>
+                    <small class="text-muted"><span data-lang-key="contact_person"><?= $lang['contact_person'] ?? 'Contact Person' ?></span>:</small>
                     <p id="partner_contact_person_display" class="form-control-plaintext pt-0 border-bottom mb-1">-</p>
                 </div>
                 <div class="mb-0">
-                    <small class="text-muted"><?= $lang['email'] ?? 'Email' ?>:</small>
+                    <small class="text-muted"><span data-lang-key="email"><?= $lang['email'] ?? 'Email' ?></span>:</small>
                     <p id="partner_email_display" class="form-control-plaintext pt-0 border-bottom mb-0">-</p>
                 </div>
             </fieldset>
@@ -122,13 +122,13 @@ $doc_date_input_name   = $current_config['date_input_name'];
 
         <div class="col-md-5 text-md-end text-start">
             <div class="row g-3"> <div class="mb-3 fw-bold">
-                    <label for="<?= htmlspecialchars($doc_date_input_id) ?>" class="form-label required"><?= htmlspecialchars($doc_date_label_text) ?></label>
+                    <label for="<?= htmlspecialchars($doc_date_input_id) ?>" class="form-label required"><span data-lang-key="<?= $current_config['date_label_lang_key'] ?>"><?= htmlspecialchars($doc_date_label_text) ?></span></label>
                     <input type="text" class="form-control datepicker text-end" id="<?= htmlspecialchars($doc_date_input_id) ?>" name="<?= htmlspecialchars($doc_date_input_name) ?>" required placeholder="dd/mm/yyyy" autocomplete="off">
                     <div class="invalid-feedback"></div>
                 </div>
             </div>
             <div class="mb-3 fw-bold">
-                <label for="<?= htmlspecialchars($doc_number_input_id) ?>" class="form-label required"><?= htmlspecialchars($doc_number_label_text) ?></label>
+                <label for="<?= htmlspecialchars($doc_number_input_id) ?>" class="form-label required"><span data-lang-key="<?= $current_config['number_label_lang_key'] ?>"><?= htmlspecialchars($doc_number_label_text) ?></span></label>
                 <div class="input-group">
                     <button class="btn btn-outline-secondary" type="button" id="<?= htmlspecialchars($doc_generate_btn_id) ?>" title="<?= $lang['generate_number'] ?? 'Generate Number' ?>">
                         <i class="bi bi-arrow-clockwise"></i>
@@ -137,7 +137,7 @@ $doc_date_input_name   = $current_config['date_input_name'];
                 </div>
                 <div class="invalid-feedback" id="<?= htmlspecialchars($doc_number_input_id) ?>_feedback"></div> </div>
             <div class="mb-3 currency-align">
-                <label for="currency_select" class="form-label"><?= $lang['currency'] ?? 'Currency' ?></label>
+                <label for="currency_select" class="form-label"><span data-lang-key="currency"><?= $lang['currency'] ?? 'Currency' ?></span></label>
                 <select class="form-select text-end" id="currency_select" name="currency">
                     <option value="VND" selected><?= $lang['currency_vnd'] ?? 'VND (đ)' ?></option>
                     <option value="USD"><?= $lang['currency_usd'] ?? 'USD ($)' ?></option>

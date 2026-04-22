@@ -6,13 +6,13 @@ if (!isset($lang)) { $lang = []; }
     <table class="table table-hover table-striped table-sm table-mobile-cards" id="item-details-table">
         <thead class="table-light align-middle">
             <tr>
-                <th scope="col" class="text-center"><?= $lang['stt'] ?? 'STT' ?></th>
-                <th scope="col"><?= $lang['category'] ?? 'Danh mục' ?></th>
-                <th scope="col"><?= $lang['product_name'] ?? 'Tên sản phẩm' ?> <span class="text-danger">*</span></th>
-                <th scope="col" class="text-center"><?= $lang['unit'] ?? 'ĐVT' ?></th>
-                <th scope="col" class="text-center"><?= $lang['quantity'] ?? 'Số lượng' ?> <span class="text-danger">*</span></th>
-                <th scope="col" class="text-end"><?= $lang['unit_price'] ?? 'Đơn giá' ?> <span class="text-danger">*</span></th>
-                <th scope="col" class="text-end"><?= $lang['line_total'] ?? 'Thành tiền' ?></th>
+                <th scope="col" class="text-center" data-lang-key="stt"><?= $lang['stt'] ?? 'STT' ?></th>
+                <th scope="col" data-lang-key="category"><?= $lang['category'] ?? 'Danh mục' ?></th>
+                <th scope="col"><span data-lang-key="product_name"><?= $lang['product_name'] ?? 'Tên sản phẩm' ?></span> <span class="text-danger">*</span></th>
+                <th scope="col" class="text-center" data-lang-key="unit"><?= $lang['unit'] ?? 'ĐVT' ?></th>
+                <th scope="col" class="text-center"><span data-lang-key="quantity"><?= $lang['quantity'] ?? 'Số lượng' ?></span> <span class="text-danger">*</span></th>
+                <th scope="col" class="text-end"><span data-lang-key="unit_price"><?= $lang['unit_price'] ?? 'Đơn giá' ?></span> <span class="text-danger">*</span></th>
+                <th scope="col" class="text-end" data-lang-key="line_total"><?= $lang['line_total'] ?? 'Thành tiền' ?></th>
                 <th scope="col" class="text-center"></th>
             </tr>
         </thead>

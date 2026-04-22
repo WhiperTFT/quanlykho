@@ -92,23 +92,23 @@ if (!empty($logo_db_path)) {
             <?php endif; ?>
         </div>
         <div class="col-md-9 text-start company-info">
-            <h4 class="fw-bold mb-1" style="font-size: 1.3rem; color: #333;"><?= htmlspecialchars($companyNameToDisplay) ?></h4>
+            <h4 class="fw-bold mb-1" style="font-size: 1.3rem; color: #333;" data-lang-key="company_name"><?= htmlspecialchars($companyNameToDisplay) ?></h4>
             <?php if ($companyAddressToDisplay && $companyAddressToDisplay !== $defaultCompanyAddress): // Chỉ hiển thị nếu có địa chỉ thực sự ?>  
-            <p class="mb-1" style="font-size: 0.85rem;"><i class="bi bi-geo-alt-fill me-1"></i><?= nl2br(htmlspecialchars($companyAddressToDisplay)) ?></p>
+            <p class="mb-1" style="font-size: 0.85rem;"><i class="bi bi-geo-alt-fill me-1"></i><span data-lang-key="company_address"><?= nl2br(htmlspecialchars($companyAddressToDisplay)) ?></span></p>
             <?php endif; ?>
             <p class="mb-0" style="font-size: 0.85rem;">
                 <?php if (!empty($company_info['tax_id'])): ?>
-                    <span class="me-3"><i class="bi bi-file-earmark-text-fill me-1"></i><?= $lang['tax_id'] ?? 'Tax ID' ?>: <?= htmlspecialchars($company_info['tax_id']) ?></span>
+                    <span class="me-3"><i class="bi bi-file-earmark-text-fill me-1"></i><span data-lang-key="tax_id"><?= $lang['tax_id'] ?? 'Tax ID' ?></span>: <?= htmlspecialchars($company_info['tax_id']) ?></span>
                 <?php endif; ?>
                 <?php if (!empty($company_info['phone'])): ?>
-                    <span class="me-3"><i class="bi bi-telephone-fill me-1"></i><?= $lang['phone'] ?? 'Phone' ?>: <?= htmlspecialchars($company_info['phone']) ?></span>
+                    <span class="me-3"><i class="bi bi-telephone-fill me-1"></i><span data-lang-key="phone"><?= $lang['phone'] ?? 'Phone' ?></span>: <?= htmlspecialchars($company_info['phone']) ?></span>
                 <?php endif; ?>
                 <?php if (!empty($company_info['email'])): ?>
-                    <span><i class="bi bi-envelope-fill me-1"></i><?= $lang['email'] ?? 'Email' ?>: <?= htmlspecialchars($company_info['email']) ?></span>
+                    <span><i class="bi bi-envelope-fill me-1"></i><span data-lang-key="email"><?= $lang['email'] ?? 'Email' ?></span>: <?= htmlspecialchars($company_info['email']) ?></span>
                 <?php endif; ?>
             </p>
             <?php if (!empty($company_info['website'])): ?>
-                <p class="mb-0" style="font-size: 0.85rem;"><i class="bi bi-globe me-1"></i><?= $lang['website'] ?? 'Website' ?>: <a href="<?= htmlspecialchars($company_info['website']) ?>" target="_blank" class="text-decoration-none"><?= htmlspecialchars($company_info['website']) ?></a></p>
+                <p class="mb-0" style="font-size: 0.85rem;"><i class="bi bi-globe me-1"></i><span data-lang-key="website"><?= $lang['website'] ?? 'Website' ?></span>: <a href="<?= htmlspecialchars($company_info['website']) ?>" target="_blank" class="text-decoration-none"><?= htmlspecialchars($company_info['website']) ?></a></p>
             <?php endif; ?>
         </div>
     </div>

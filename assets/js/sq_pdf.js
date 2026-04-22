@@ -22,10 +22,14 @@ function downloadQuotePDF() {
     const elementsToHide = pdfContentArea.find('#add-item-row, #btn-generate-quote-number, .remove-item-row, #add-item-row-container, #save-signature-pos-size, #signature-feedback, #signature-upload, #toggle-signature, .action-cell-item, .tox-menubar, .tox-toolbar-container, .tox-statusbar , .tox-editor-header, #form-error-message, .invalid-feedback');
     elementsToHide.addClass('hide-on-pdf-export');
 
-    new Promise((resolve, reject) => {
-        html2canvas(elementToCapture, { scale: 0.8, useCORS: true, logging: false, backgroundColor: '#ffffff' }).then(resolve).catch(reject);
-    })
-        .then(canvas => {
+    const pdf_lang = document.getElementById('pdf_lang')?.value || 'vi';
+
+    PDFTranslator.translate('#pdf-export-content', pdf_lang).then(() => {
+        new Promise((resolve, reject) => {
+            html2canvas(elementToCapture, { scale: 0.8, useCORS: true, logging: false, backgroundColor: '#ffffff' }).then(resolve).catch(reject);
+        })
+            .then(canvas => {
+                PDFTranslator.restore();
             const imgData = canvas.toDataURL('image/png');
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });

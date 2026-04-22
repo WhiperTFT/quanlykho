@@ -11,11 +11,11 @@ function escapeHtml(s){return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'
 function escapeAttr(s){return (s||'').replace(/"/g,'&quot;');}
 function hasSwal(){ return (typeof Swal !== 'undefined' && Swal && typeof Swal.fire === 'function'); }
 function swalInfo(title, text='', icon='success'){ if(hasSwal()) Swal.fire(title, text, icon); else alert(title + (text?('\\n'+text):'')); }
-function swalError(title, text=''){ if(hasSwal()) Swal.fire(title, text, 'error'); else alert((title||'Lỗi') + (text?('\\n'+text):'')); }
+function swalError(title, text=''){ if(hasSwal()) Swal.fire(title, text, 'error'); else alert((title||JS_LANG.error) + (text?('\\n'+text):'')); }
 function swalConfirm(opts){
   if(hasSwal()){
     return Swal.fire(Object.assign({
-      icon:'warning', showCancelButton:true, confirmButtonText:'Xác nhận', cancelButtonText:'Hủy'
+      icon:'warning', showCancelButton:true, confirmButtonText: JS_LANG.confirm, cancelButtonText: JS_LANG.cancel
     }, opts));
   } else {
     const ok = confirm(opts && opts.title ? opts.title : 'Xác nhận?'); 
@@ -25,7 +25,7 @@ function swalConfirm(opts){
 function showLoadingToast(msg){
   if(!hasSwal()) { return { close: ()=>{} }; }
   Swal.fire({
-    toast:true, position:'top-end', icon:'info', title: msg || 'Đang xử lý...',
+    toast:true, position:'top-end', icon:'info', title: msg || JS_LANG.processing,
     showConfirmButton:false, allowOutsideClick:false, allowEscapeKey:false,
     didOpen: () => { Swal.showLoading(); }
   });
@@ -44,7 +44,7 @@ const PRINT_API_URL = 'process/print_api.php';
 const DEFAULT_COPIES = 1;
 
 // Khóa/mở nút trong lúc gửi lệnh
-function lockButton(btn, locking = true, textWhenLock = 'Đang xử lý...') {
+function lockButton(btn, locking = true, textWhenLock = JS_LANG.processing) {
   if (!btn) return;
   if (locking) {
     btn.dataset._orig = btn.innerHTML;
@@ -80,7 +80,7 @@ function pollPrintJob(jobId, onDone, onFail, timeoutMs=60000, intervalMs=2000) {
     } catch(_) {}
     if (Date.now() - start > timeoutMs) {
       clearInterval(t);
-      onFail && onFail({ status:'timeout', error_message:'Hết thời gian chờ' });
+      onFail && onFail({ status:'timeout', error_message: JS_LANG.timeout });
     }
   }, intervalMs);
 }
@@ -313,7 +313,7 @@ async function enqueuePrintJobByPath(fileWebPath, copies = DEFAULT_COPIES, print
 async function onPrintDiagClick(){
   try{
     const j = await fetch('process/print_api.php?action=diag').then(r=>r.json());
-    if(!j || !j.success){ swalError('Không đọc được chẩn đoán'); return; }
+    if(!j || !j.success){ swalError(JS_LANG.fetch_diag_error); return; }
     const hb = j.heartbeat;
     const stats = j.stats || {};
     const latest = (j.latest || []).map(x=>
@@ -330,10 +330,10 @@ async function onPrintDiagClick(){
       latest ? `Các lệnh gần nhất:\n${latest}` : 'Chưa có lệnh in gần đây.'
     ].join('\n\n');
 
-    swalInfo('Chẩn đoán in', msg, 'info');
+    swalInfo(JS_LANG.print_diag, msg, 'info');
     await sendUserLog('print_diag_view', 'Người dùng xem chẩn đoán in', 'info');
   }catch(_){
-    swalError('Không đọc được chẩn đoán');
+    swalError(JS_LANG.fetch_diag_error);
   }
 }
 
@@ -346,13 +346,13 @@ async function onPrintButtonClick(ev){
 
   const fileWebPath = btn.getAttribute('data-path') || '';
   if (!fileWebPath) {
-    swalError('Thiếu đường dẫn PDF để in');
+    swalError(JS_LANG.missing_pdf_path);
     btn.dataset.busy = '0';
     return;
   }
 
   try {
-    lockButton(btn, true, 'Đang gửi lệnh in...');
+    lockButton(btn, true, JS_LANG.processing);
     const r = await enqueuePrintJobByPath(fileWebPath, DEFAULT_COPIES);
 
     if (!r || !r.success) {
@@ -362,7 +362,7 @@ async function onPrintButtonClick(ev){
     }
 
     const jobId = r.job_id;
-    swalInfo('Đã gửi lệnh in', `Mã lệnh: #${jobId}\nTệp: ${fileWebPath}\nĐang chờ máy in xử lý...`, 'success');
+    swalInfo(JS_LANG.print_enqueue_done, `Mã lệnh: #${jobId}\nTệp: ${fileWebPath}\nĐang chờ máy in xử lý...`, 'success');
     await sendUserLog('pxk_print_enqueue', `Đã gửi lệnh in #${jobId}. Tệp: ${fileWebPath}`, 'info');
 
     // Cập nhật cột "Đã in" ngay lập tức mà không cần reload
@@ -377,7 +377,7 @@ async function onPrintButtonClick(ev){
       async (job) => {
         lockButton(btn, false);
         swalInfo(
-          'In thành công',
+          JS_LANG.print_success,
           `Tệp: ${fileWebPath}\nTrạng thái: Hoàn tất${job.finished_at ? `\nKết thúc: ${job.finished_at}` : ''}`,
           'success'
         );
@@ -400,7 +400,7 @@ async function onPrintButtonClick(ev){
           await sendUserLog('pxk_print_timeout', human, 'warn');
         } else {
           const em = job && job.error_message ? job.error_message : 'Không rõ nguyên nhân.';
-          swalError('In thất bại', `Tệp: ${fileWebPath}\nLý do: ${em}`);
+          swalError(JS_LANG.print_failed, `Tệp: ${fileWebPath}\nLý do: ${em}`);
           await sendUserLog('pxk_print_failed', `In thất bại #${jobId}. Tệp: ${fileWebPath}. Lý do: ${em}`, 'error');
         }
       },
@@ -411,7 +411,7 @@ async function onPrintButtonClick(ev){
   } catch (e) {
     lockButton(btn, false);
     const em = e && e.message ? e.message : 'Lỗi không xác định.';
-    swalError('Lỗi gửi lệnh in', `Tệp: ${fileWebPath}\nLý do: ${em}`);
+    swalError(JS_LANG.enqueue_error, `Tệp: ${fileWebPath}\nLý do: ${em}`);
     await sendUserLog('pxk_print_enqueue_error', `Lỗi gửi lệnh in. Tệp: ${fileWebPath}. Lý do: ${em}`, 'error');
   } finally {
     btn.dataset.busy = '0';
@@ -449,15 +449,15 @@ async function loadList() {
         const pdfBtns = row.pdf_web_path
           ? `<div class="d-flex gap-1" onclick="event.stopPropagation();">
                <a href="${escapeAttr(buildPdfHref(row.pdf_web_path))}" target="_blank"
-                  class="btn btn-sm btn-outline-secondary" title="Mở PDF">
+                  class="btn btn-sm btn-outline-secondary" title="${JS_LANG.open_pdf}">
                  <i class="bi bi-file-earmark-pdf"></i>
                </a>
                <button type="button" class="btn btn-sm btn-primary btn-print-server"
-                       data-path="${escapeAttr(row.pdf_web_path)}" title="Gửi lệnh in">
+                       data-path="${escapeAttr(row.pdf_web_path)}" title="${JS_LANG.enqueue_print}">
                  <i class="bi bi-printer"></i>
                </button>
              </div>`
-          : '<span class="text-muted small">Chưa có</span>';
+          : `<span class="text-muted small">${JS_LANG.not_available}</span>`;
 
         const tickIn = row.is_printed == 1 ? '<i class="bi bi-check-lg text-success fs-5"></i>' : '<span class="text-muted opacity-50">-</span>';
         tb.insertAdjacentHTML('beforeend', `
@@ -470,7 +470,7 @@ async function loadList() {
             <td class="text-center">${tickIn}</td>
             <td>${pdfBtns}</td>
             <td class="text-center col-action w-auto px-1">
-              <button class="btn btn-sm btn-light text-danger btn-del" title="Xóa"><i class="bi bi-trash"></i></button>
+              <button class="btn btn-sm btn-light text-danger btn-del" title="${JS_LANG.delete}"><i class="bi bi-trash"></i></button>
             </td>
           </tr>
         `);
@@ -495,10 +495,10 @@ async function loadList() {
           e.stopPropagation();
           const id = e.target.closest('tr').dataset.id;
           const rs = await swalConfirm({
-            title:'Bạn có chắc muốn xóa PXK này?',
-            text:'Dữ liệu sẽ không thể phục hồi!',
-            confirmButtonText:'Xóa',
-            cancelButtonText:'Hủy'
+            title: JS_LANG.confirm_delete_pxk,
+            text: JS_LANG.delete_warning,
+            confirmButtonText: JS_LANG.delete,
+            cancelButtonText: JS_LANG.cancel
           });
           if (!rs.isConfirmed) return;
           const r = await fetch('process/pxk_api.php?action=delete', {
@@ -506,7 +506,7 @@ async function loadList() {
             body: JSON.stringify({id})
           });
           const j = await r.json();
-          if (j && j.success) { loadList(); swalInfo('Đã xóa PXK!', '', 'success'); }
+          if (j && j.success) { loadList(); swalInfo(JS_LANG.pxk_deleted_success, '', 'success'); }
           else swalError('Xóa thất bại', j && j.message ? j.message : '');
         });
       });
@@ -525,7 +525,7 @@ function setBtnLoading($btn, isLoading, loadingText) {
     $btn.data('orig-html', $btn.html());
     $btn.prop('disabled', true).html(
       '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' +
-      (loadingText || 'Đang tải...')
+      (loadingText || JS_LANG.processing)
     );
   } else {
     $btn.prop('disabled', false);
@@ -644,7 +644,7 @@ $(function(){
         body: JSON.stringify({ older_minutes: older, pending_older_minutes: pold })
       }).then(r=>r.json());
       if (res && res.success) {
-        Swal.fire('Đã dọn', `printing → failed: ${res.printing_failed || 0}<br>pending → failed: ${res.pending_failed || 0}`, 'success');
+        Swal.fire(JS_LANG.cleanup_done, `${JS_LANG.printing_failed_count}: ${res.printing_failed || 0}<br>${JS_LANG.pending_failed_count}: ${res.pending_failed || 0}`, 'success');
       } else {
         Swal.fire('Lỗi', res && res.message ? res.message : 'Không dọn được.', 'error');
       }
@@ -661,12 +661,12 @@ function renderPagingInfo(){
   if(!info) return;
   const total = state.total || 0;
   const pp = parseInt(state.per_page,10);
-  if (total===0){ info.textContent = 'Hiển thị 0–0 trong tổng 0 bản ghi'; return; }
+  if (total===0){ info.textContent = JS_LANG.rows_paging_info.replace('%s','0').replace('%s','0').replace('%s','0'); return; }
   if (pp===0){ info.textContent = `Hiển thị 1–${total} trong tổng ${total} bản ghi`; return; }
 
   const start = ((state.page-1)*pp) + 1;
   const end = Math.min(state.page*pp, total);
-  info.textContent = `Hiển thị ${start}–${end} trong tổng ${total} bản ghi`;
+  info.textContent = JS_LANG.rows_paging_info.replace('%s',start).replace('%s',end).replace('%s',total);
 }
 
 function renderPaging(){
@@ -719,7 +719,7 @@ function renderPaging(){
 // ====== FORM ======
 function showFormNew() {
   editingId = null;
-  document.getElementById('formTitle').textContent = 'Thêm Phiếu Xuất Kho';
+  document.getElementById('formTitle').textContent = JS_LANG.add_pxk_modal_title;
   document.getElementById('pxkForm').reset();
   const dp = document.getElementById('pxk_date_display');
   if(dp) dp.value = todayDMY();
@@ -741,7 +741,7 @@ function itemRowTemplate(index) {
       <input type="hidden" class="category-snapshot">
     </td>
     <td>
-      <input type="text" class="form-control form-control-sm product-autocomplete fw-medium text-primary" placeholder="Nhập tên..." required autocomplete="off">
+      <input type="text" class="form-control form-control-sm product-autocomplete fw-medium text-primary" placeholder="${JS_LANG.product_placeholder}" required autocomplete="off">
       <input type="hidden" class="product-id">
     </td>
     <td>
@@ -752,9 +752,9 @@ function itemRowTemplate(index) {
       <input type="text" class="form-control form-control-sm text-end quantity fw-bold" placeholder="0" value="0" inputmode="decimal">
     </td>
     <td>
-      <input type="text" class="form-control form-control-sm item-note" placeholder="Ghi chú...">
+      <input type="text" class="form-control form-control-sm item-note" placeholder="${JS_LANG.note_placeholder}">
     </td>
-    <td class="text-center"><button type="button" class="btn btn-sm btn-link text-danger btn-remove opacity-50 px-0" title="Xóa"><i class="bi bi-x-circle"></i></button></td>
+    <td class="text-center"><button type="button" class="btn btn-sm btn-link text-danger btn-remove opacity-50 px-0" title="${JS_LANG.delete}"><i class="bi bi-x-circle"></i></button></td>
   </tr>`;
 }
 function renumberRows(){ [...document.querySelectorAll('#itemsBody tr')].forEach((tr,i)=> tr.querySelector('.stt').textContent=i+1 ); }
@@ -799,7 +799,7 @@ async function editPXK(id) {
     if (!j || !j.success || !j.row) { swalError('Không tải được PXK', j && j.message ? j.message : ''); return; }
     const row = j.row;
     editingId = row.id;
-    document.getElementById('formTitle').textContent = 'Sửa Phiếu Xuất #' + row.pxk_number;
+    document.getElementById('formTitle').textContent = JS_LANG.edit_pxk_modal_title + ' #' + row.pxk_number;
     if (typeof bsModal !== 'undefined' && bsModal) bsModal.show();
 
     document.getElementById('pxk_id').value = row.id;
@@ -861,22 +861,24 @@ function collectFormData() {
 
 async function savePXK(exportPdf=false) {
   const payload = collectFormData();
-  if (!payload.pxk_number) { swalError('Thiếu thông tin', 'Vui lòng nhập Số PXK'); return false; }
-  if (!payload.pxk_date) { swalError('Thiếu thông tin', 'Vui lòng chọn Ngày xuất'); return false; }
-  if (!payload.partner_name) { swalError('Thiếu thông tin', 'Vui lòng nhập Tên đơn vị nhận'); return false; }
-  if (!payload.items || payload.items.length===0) { swalError('Thiếu hàng hóa', 'Vui lòng nhập ít nhất 1 dòng hàng'); return false; }
+  if (!payload.pxk_number) { swalError(JS_LANG.missing_info, JS_LANG.enter_pxk_number); return false; }
+  if (!payload.pxk_date) { swalError(JS_LANG.missing_info, JS_LANG.select_dispatch_date); return false; }
+  if (!payload.partner_name) { swalError(JS_LANG.missing_info, JS_LANG.enter_partner_name); return false; }
+  if (!payload.items || payload.items.length===0) { swalError(JS_LANG.missing_info, JS_LANG.enter_at_least_one_item); return false; }
 
   try {
     const r = await fetch('process/pxk_api.php?action=save', {
       method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
     });
     const j = await r.json();
-    if (!j || !j.success) { swalError('Lưu PXK thất bại', (j && j.message) ? j.message : ''); return false; }
+    if (!j || !j.success) { swalError(JS_LANG.save_failed, (j && j.message) ? j.message : ''); return false; }
 
     if (exportPdf) {
       try {
+        const pdf_lang = document.getElementById('pdf_lang')?.value || 'vi';
         const r2 = await fetch('process/pxk_api.php?action=export_pdf', {
-          method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id: j.id })
+          method:'POST', headers:{'Content-Type':'application/json'}, 
+          body:JSON.stringify({ id: j.id, pdf_lang: pdf_lang })
         });
         const j2 = await r2.json();
         if (j2 && j2.success && j2.pdf_web_path) {
@@ -893,7 +895,7 @@ async function savePXK(exportPdf=false) {
     loadList();
     return true;
   } catch (err) {
-    swalError('Lỗi lưu PXK', err && err.message ? err.message : '');
+    swalError(JS_LANG.save_failed, err && err.message ? err.message : '');
     return false;
   }
 }
@@ -903,17 +905,17 @@ async function generateNumber() {
   if(!btn) return false;
   btn.disabled = true;
   const original = btn.innerHTML;
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang tạo...';
+  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> ${JS_LANG.processing}`;
   try {
     const r = await fetch('process/pxk_api.php?action=generate_number', { method:'POST' });
     const text = await r.text();
     let j=null; 
     try { j = JSON.parse(text); } catch(e) { console.error('parse JSON failed', e, text); }
-    if (!j || !j.success) throw new Error((j && j.message) || 'Không tạo được số PXK.');
+    if (!j || !j.success) throw new Error((j && j.message) || JS_LANG.auto_gen_error);
     document.getElementById('pxk_number').value = j.pxk_number || '';
     return true;
   } catch (e) {
-    swalError('Không tạo được số PXK', e && e.message ? e.message : '');
+    swalError(JS_LANG.auto_gen_error, e && e.message ? e.message : '');
     console.error('generate_number failed', e);
     return false;
   } finally {

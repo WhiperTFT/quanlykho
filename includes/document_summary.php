@@ -4,7 +4,7 @@ if (!isset($lang)) { $lang = []; }
 ?>
 <div class="row mt-4 document-summary-top">
     <div class="col-md-7 order-md-1 mb-3">
-         <label for="notes" class="form-label fw-bold"><?= $lang['notes'] ?? 'Notes' ?></label>
+         <label for="notes" class="form-label fw-bold"><span data-lang-key="notes"><?= $lang['notes'] ?? 'Notes' ?></span></label>
          <textarea class="form-control resizable-textarea" id="notes" name="notes" rows="5" placeholder="<?= $lang['notes_placeholder'] ?? 'Enter any notes here...' ?>"></textarea>
     </div>
     <div class="col-md-5 order-md-2 mb-3">
@@ -12,12 +12,12 @@ if (!isset($lang)) { $lang = []; }
             <div class="card-body p-3">
 
                 <div class="d-flex justify-content-between mb-2">
-                    <span><?= $lang['sub_total'] ?? 'Sub Total' ?>:</span>
+                    <span data-lang-key="sub_total"><?= $lang['sub_total'] ?? 'Sub Total' ?></span>:
                     <span id="summary-subtotal" class="fw-bold">0.00</span>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                <label for="summary-vat-rate" class="form-label mb-0 me-2"><?= $lang['vat_rate'] ?? 'VAT Rate (%)' ?>:</label>
+                <label for="summary-vat-rate" class="form-label mb-0 me-2"><span data-lang-key="vat_rate"><?= $lang['vat_rate'] ?? 'VAT Rate (%)' ?></span>:</label>
                 <div class="input-group input-group-sm" style="max-width: 110px;">
                 <input type="number" class="form-control text-end" id="summary-vat-rate" name="vat_rate" value="10" min="0" max="100" step="any" required>
                 <span class="input-group-text">%</span>
@@ -25,14 +25,14 @@ if (!isset($lang)) { $lang = []; }
                 </div>
 
                 <div class="d-flex justify-content-between mb-2">
-                    <span><?= $lang['vat_total'] ?? 'VAT Total' ?>:</span>
+                    <span data-lang-key="vat_total"><?= $lang['vat_total'] ?? 'VAT Total' ?></span>:
                     <span id="summary-vattotal" class="fw-bold">0.00</span>
                 </div>
 
                 <hr class="my-2">
 
                 <div class="d-flex justify-content-between fw-bold fs-5 text-danger">
-                    <span><?= $lang['grand_total'] ?? 'Grand Total'?>:</span>
+                    <span data-lang-key="grand_total"><?= $lang['grand_total'] ?? 'Grand Total'?></span>:
                     <span id="summary-grandtotal">0.00</span>
                 </div>
 
@@ -44,10 +44,10 @@ if (!isset($lang)) { $lang = []; }
     
     <div class="row mt-4">
         <div class="col-md-6 text-center">
-            <strong><?= $lang['seller'] ?? 'Seller' ?></strong>
+            <strong data-lang-key="seller"><?= $lang['seller'] ?? 'Seller' ?></strong>
         </div>
         <div class="col-md-6 text-center">
-            <strong><?= $lang['buyer'] ?? 'Buyer' ?></strong>
+            <strong data-lang-key="buyer"><?= $lang['buyer'] ?? 'Buyer' ?></strong>
         </div>
     </div>
     <div class="row mt-2" style="margin-bottom: 20px;"> <div class="col-md-6"></div>

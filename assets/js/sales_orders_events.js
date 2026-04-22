@@ -309,7 +309,7 @@ function setupEventListeners() {
                 console.error(">>> AJAX Error saving order:", xhr.status, xhr.responseText);
                 let errorMessage = LANG['server_error_saving_order'] || 'Lỗi máy chủ khi lưu đơn hàng.';
                 try {
-                    const res = JSON.parse(xhr.responseText);
+                    const res = xhr.responseText ? JSON.parse(xhr.responseText) : null;
                     if (res && res.message) {
                         errorMessage = res.message;
                         if (res.suggestion && $('#order_number').length) {
@@ -496,7 +496,7 @@ function setupEventListeners() {
                 console.error(">>> AJAX error sending data to create_email_log.php:", xhr.status, xhr.responseText);
                 let errorMessage = 'Lỗi máy chủ khi xử lý yêu cầu gửi email.';
                 try {
-                    const res = JSON.parse(xhr.responseText);
+                    const res = xhr.responseText ? JSON.parse(xhr.responseText) : null;
                     if (res && res.message) errorMessage = 'Lỗi: ' + res.message;
                     else errorMessage += ` (Status: ${xhr.status})`;
                 } catch (e) { console.error("Error parsing AJAX error responseText from create_email_log.php:", e, "Response Text:", xhr.responseText); errorMessage += ` (Status: ${xhr.status}) - Phản hồi không phải JSON.`; }
@@ -730,7 +730,7 @@ function setupEventListeners() {
                     error: function (xhr) {
                         console.error(">>> AJAX error deleting:", xhr.status, xhr.responseText);
                         let errMsg = LANG['server_error_deleting_order'] || 'Lỗi máy chủ khi xóa.';
-                        try { const res = JSON.parse(xhr.responseText); if (res && res.message) errMsg += '\nChi tiết: ' + res.message; else errMsg += '\nChi tiết: ' + xhr.responseText; }
+                        try { const res = xhr.responseText ? JSON.parse(xhr.responseText) : null; if (res && res.message) errMsg += '\nChi tiết: ' + res.message; else errMsg += '\nChi tiết: ' + xhr.responseText; }
                         catch (e) { errMsg += '\nChi tiết: ' + xhr.responseText; }
                         showUserMessage(errMsg, 'error');
                     }

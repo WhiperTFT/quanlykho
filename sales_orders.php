@@ -110,6 +110,13 @@ $initial_orders = [];
                     <button id="toggle-signature" class="btn btn-sm btn-outline-secondary mt-1 me-2" type="button">
                         <?= $lang['show_signature'] ?? 'Show Signature' ?>
                     </button>
+
+                    <div class="d-inline-block mt-1 me-2" style="width: 120px;">
+                        <select id="pdf_lang" class="form-select form-select-sm">
+                            <option value="vi" selected>Tiếng Việt</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
                     <div id="form-error-message" class="alert alert-danger mt-3 d-none" role="alert"></div>
                 </div>
             </form>
@@ -182,6 +189,7 @@ if (isset($company_info) && is_array($company_info) && !empty($company_info['sig
 <script src="assets/js/sales_orders_form.js"></script>
 <script src="assets/js/sales_orders_datatable.js"></script>
 <script src="assets/js/sales_orders_email.js"></script>
+<script src="assets/js/pdf_translator.js"></script>
 <script src="assets/js/sales_orders_pdf.js"></script>
 <script src="assets/js/sales_orders_events.js"></script>
 <script src="assets/js/sales_orders_main.js"></script>
