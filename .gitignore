@@ -7,6 +7,7 @@ config/*.crt
 config/*.pfx
 certs/
 secrets/
+logs/
 .env
 apache/conf/ssl.crt/
 pdf/
