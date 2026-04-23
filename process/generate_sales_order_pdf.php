@@ -5,31 +5,38 @@
 require_once '../vendor/autoload.php'; // Nạp thư viện mPDF
 require_once '../includes/init.php';   // Nạp file khởi tạo ($pdo, $lang, session...)
 
-// 2. Kiểm tra quyền truy cập (Ví dụ: người dùng phải đăng nhập)
-if (!is_logged_in()) { // Sử dụng hàm is_logged_in() từ init.php
+// 2. Kiểm tra quyền truy cập
+if (!is_logged_in()) {
     die($lang['access_denied'] ?? 'Access Denied.');
 }
 
 // 3. Lấy và xác thực ID đơn hàng từ URL
 if (!isset($_GET['id']) || !filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
-    die($lang['invalid_order_id'] ?? 'Invalid Order ID.');
+    echo htmlspecialchars($lang['invalid_order_id'] ?? 'Invalid Order ID.');
+    exit;
 }
 $order_id = (int)$_GET['id'];
 
 // 4. Truy vấn dữ liệu từ Database
 try {
-    // Lấy thông tin chung của đơn hàng và thông tin khách hàng (partner)
+    // Lấy thông tin chung của đơn hàng và thông tin nhà cung cấp
     $sql_order = "SELECT so.*,
-                         p.partner_name, p.address AS partner_address, p.phone AS partner_phone,
-                         p.email AS partner_email, p.tax_code AS partner_tax_code,
-                         u_creator.full_name AS created_by_name,
-                         u_updater.full_name AS updated_by_name
-                  FROM sales_orders so
-                  LEFT JOIN partners p ON so.partner_id = p.id
-                  LEFT JOIN users u_creator ON so.created_by = u_creator.id
-                  LEFT JOIN users u_updater ON so.updated_by = u_updater.id /* Giả sử có cột updated_by */
-                  WHERE so.id = :order_id";
-    $stmt_order = $pdo->prepare($sql_order); // Sử dụng $pdo
+                     p.partner_name AS supplier_name, p.address AS supplier_address, p.phone AS supplier_phone,
+                     p.email AS supplier_email, p.tax_code AS supplier_tax_code,
+                     COALESCE(so.supplier_info_snapshot, JSON_OBJECT(
+                         'partner_name', p.partner_name,
+                         'address', p.address,
+                         'phone', p.phone,
+                         'email', p.email,
+                         'tax_code', p.tax_code
+                     )) AS supplier_info_snapshot_data,
+                     COALESCE(so.company_info_snapshot, '{}') as company_info_snapshot_data,
+                     u_creator.full_name AS created_by_name
+              FROM sales_orders so
+              LEFT JOIN partners p ON so.supplier_id = p.id AND p.type = 'supplier'
+              LEFT JOIN users u_creator ON so.created_by = u_creator.id
+              WHERE so.id = :order_id";
+    $stmt_order = $pdo->prepare($sql_order);
     $stmt_order->bindParam(':order_id', $order_id, PDO::PARAM_INT);
     $stmt_order->execute();
     $order = $stmt_order->fetch(PDO::FETCH_ASSOC);
@@ -38,21 +45,39 @@ try {
         die(($lang['order_not_found'] ?? 'Order not found with ID:') . ' ' . $order_id);
     }
 
+    // Parse JSON snapshot nếu dữ liệu là chuỗi JSON
+    if (is_string($order['supplier_info_snapshot_data'])) {
+        $order['supplier_info_data'] = json_decode($order['supplier_info_snapshot_data'], true) ?: [];
+    } else {
+        $order['supplier_info_data'] = $order['supplier_info_snapshot_data'] ?: [];
+    }
+    if (is_string($order['company_info_snapshot_data'])) {
+        $order['company_info_data_parsed'] = json_decode($order['company_info_snapshot_data'], true) ?: [];
+    } else {
+        $order['company_info_data_parsed'] = $order['company_info_snapshot_data'] ?: [];
+    }
+
     // Lấy chi tiết các sản phẩm trong đơn hàng
-    $sql_details = "SELECT sod.*, pr.product_code, pr.product_name, u.unit_name
+    $sql_details = "SELECT sod.*,
+                           COALESCE(pr.product_code, '') AS product_code,
+                           sod.product_name_snapshot,
+                           COALESCE(u.unit_name, sod.unit_snapshot, '') AS unit_name
                     FROM sales_order_details sod
                     LEFT JOIN products pr ON sod.product_id = pr.id
-                    LEFT JOIN units u ON pr.unit_id = u.id /* Join Unit từ Product */
-                    WHERE sod.sales_order_id = :order_id";
-    $stmt_details = $pdo->prepare($sql_details); // Sử dụng $pdo
+                    LEFT JOIN units u ON pr.unit_id = u.id
+                    WHERE sod.order_id = :order_id";
+    $stmt_details = $pdo->prepare($sql_details);
     $stmt_details->bindParam(':order_id', $order_id, PDO::PARAM_INT);
     $stmt_details->execute();
     $order_details = $stmt_details->fetchAll(PDO::FETCH_ASSOC);
 
     // Lấy thông tin công ty
-    $sql_company = "SELECT * FROM company_info WHERE id = 1 LIMIT 1";
-    $stmt_company = $pdo->query($sql_company); // Sử dụng $pdo
-    $company_info = $stmt_company->fetch(PDO::FETCH_ASSOC);
+    $company_info_pdf = !empty($order['company_info_data_parsed']) ? $order['company_info_data_parsed'] : [];
+    if (empty($company_info_pdf)) {
+        $sql_company_live = "SELECT * FROM company_info WHERE id = 1 LIMIT 1";
+        $stmt_company_live = $pdo->query($sql_company_live);
+        $company_info_pdf = $stmt_company_live->fetch(PDO::FETCH_ASSOC);
+    }
 
 } catch (PDOException $e) {
     error_log("PDF Generation DB Error for Order ID {$order_id}: " . $e->getMessage());
@@ -66,88 +91,45 @@ ob_start();
 <html lang="<?= $_SESSION['lang'] ?? 'vi' ?>">
 <head>
     <meta charset="UTF-8">
-    <title><?= $lang['sales_order_title'] ?? 'Sales Order' ?> - <?= htmlspecialchars($order['order_code'] ?? $order_id) ?></title>
+    <title><?= $lang['sales_order_title'] ?? 'Purchase Order' ?> - <?= htmlspecialchars($order['order_number'] ?? $order_id) ?></title>
     <style>
-        /* Nhúng CSS từ file chính */
         <?php
-        $cssPath = __DIR__ . '/../assets/css/style.css'; // Đường dẫn tới file CSS chính
+        $cssPath = __DIR__ . '/../assets/css/style.css';
         if (file_exists($cssPath)) {
             echo file_get_contents($cssPath);
         }
         ?>
-
-        /* CSS cơ bản và các điều chỉnh riêng cho PDF */
-        body {
-            font-family: 'dejavusans', sans-serif; /* Font hỗ trợ tiếng Việt */
-            font-size: 10pt;
-            line-height: 1.4;
-            color: #333;
-        }
-        .pdf-container {
-            width: 100%;
-            padding: 0; /* Không cần padding lớn nếu dùng margin trang */
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-            font-size: 9pt;
-            page-break-inside: auto; /* Cho phép ngắt bảng giữa các trang */
-        }
-         tr {
-             page-break-inside: avoid; /* Cố gắng không ngắt dòng giữa chừng */
-             page-break-after: auto;
-         }
-         thead {
-             display: table-header-group; /* Lặp lại a a aheader trên mỗi trang */
-             background-color: #f2f2f2;
-         }
-        th, td {
-            border: 0.5pt solid #ccc; /* Border mảnh hơn */
-            padding: 5px 6px; /* Điều chỉnh padding */
-            text-align: left;
-            vertical-align: top;
-        }
-        th {
-            font-weight: bold;
-            white-space: nowrap; /* Không xuống dòng tiêu đề cột */
-        }
+        body { font-family: 'dejavusans', sans-serif; font-size: 10pt; line-height: 1.4; color: #333; }
+        .pdf-container { width: 100%; padding: 0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9pt; page-break-inside: auto; }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+        thead { display: table-header-group; background-color: #f2f2f2; }
+        th, td { border: 0.5pt solid #ccc; padding: 5px 6px; text-align: left; vertical-align: top; }
+        th { font-weight: bold; white-space: nowrap; }
         .text-right { text-align: right; }
         .text-center { text-align: center; }
         .text-bold { font-weight: bold; }
         h1 { font-size: 18pt; text-align: center; color: #000; margin-bottom: 15px; font-weight: bold; }
         h2 { font-size: 13pt; color: #222; margin-bottom: 8px; margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 3px; font-weight: bold;}
-        h3 { font-size: 11pt; font-weight: bold; margin-bottom: 5px; }
-        p { margin: 2px 0; }
-        hr { display: none; } /* Ẩn thẻ hr vì có thể gây ngắt trang không mong muốn */
-
         .header-section { margin-bottom: 15px; }
-        .header-section table { border: none; } /* Bỏ border cho table header */
+        .header-section table { border: none; }
         .header-section td { border: none; vertical-align: top; padding: 0 5px; }
         .company-logo img { max-width: 150px; max-height: 70px; margin-bottom: 5px;}
-
-        .customer-section { margin-bottom: 15px; }
+        .partner-section { margin-bottom: 15px; }
         .items-section table tbody td { height: auto; }
-
         .summary-section { margin-top: 15px; }
         .summary-section table { width: 50%; margin-left: 50%; border: none; }
         .summary-section td { border: none; padding: 3px 6px; }
         .summary-section .total-label { text-align: right; font-weight: bold; padding-right: 10px; white-space: nowrap; }
         .summary-section .total-value { text-align: right; }
         .summary-section .grand-total td { border-top: 1pt solid #555; padding-top: 5px; font-weight: bold; font-size: 11pt; }
-
         .notes-section { margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px; font-size: 9pt; }
-        .signature-section { margin-top: 40px; page-break-inside: avoid; } /* Tránh ngắt trang ở phần chữ ký */
+        .signature-section { margin-top: 40px; page-break-inside: avoid; }
         .signature-section table { width: 100%; border: none; text-align: center; }
         .signature-section td { border: none; width: 48%; padding: 0 1%; vertical-align: bottom;}
-        .signature-section p { margin-bottom: 60px; /* Khoảng trống để ký */}
+        .signature-section p { margin-bottom: 60px; }
         .signature-section .signature-line { border-bottom: 1px dotted #555; margin: 5px auto; width: 80%; }
-
-        /* Ẩn các phần tử không cần thiết */
-        .no-print, .btn, .action-buttons, .breadcrumb, #mainNavbar, #sidebar, .modal, form button { display: none !important; }
-        /* Có thể thêm class 'pdf-hide' vào các phần tử muốn ẩn trên PDF */
-        .pdf-hide { display: none !important; }
-
+        .no-print, .pdf-hide { display: none !important; }
     </style>
 </head>
 <body>
@@ -156,35 +138,35 @@ ob_start();
             <table>
                 <tr>
                     <td style="width: 60%;">
-                        <?php if ($company_info): ?>
-                            <?php if (!empty($company_info['logo']) && file_exists('../' . $company_info['logo'])): ?>
+                        <?php if ($company_info_pdf): ?>
+                            <?php if (!empty($company_info_pdf['logo']) && file_exists('../' . ltrim($company_info_pdf['logo'],'/'))): ?>
                                 <div class="company-logo">
-                                    <img src="<?= '../' . $company_info['logo'] ?>" alt="Logo">
+                                    <img src="<?= '../' . ltrim($company_info_pdf['logo'],'/') ?>" alt="Logo">
                                 </div>
                             <?php endif; ?>
-                            <h3 class="text-bold"><?= htmlspecialchars($company_info['company_name'] ?? '') ?></h3>
-                            <p><?= $lang['address'] ?? 'Address' ?>: <?= htmlspecialchars($company_info['address'] ?? '') ?></p>
-                            <p><?= $lang['phone'] ?? 'Phone' ?>: <?= htmlspecialchars($company_info['phone'] ?? '') ?> | <?= $lang['email'] ?? 'Email' ?>: <?= htmlspecialchars($company_info['email'] ?? '') ?></p>
-                            <p><?= $lang['tax_code'] ?? 'Tax Code' ?>: <?= htmlspecialchars($company_info['tax_code'] ?? '') ?></p>
+                            <h3 class="text-bold"><?= htmlspecialchars($company_info_pdf['company_name'] ?? '') ?></h3>
+                            <p><?= $lang['address'] ?? 'Address' ?>: <?= htmlspecialchars($company_info_pdf['address'] ?? '') ?></p>
+                            <p><?= $lang['phone'] ?? 'Phone' ?>: <?= htmlspecialchars($company_info_pdf['phone'] ?? '') ?> | <?= $lang['email'] ?? 'Email' ?>: <?= htmlspecialchars($company_info_pdf['email'] ?? '') ?></p>
+                            <p><?= $lang['tax_code'] ?? 'Tax Code' ?>: <?= htmlspecialchars($company_info_pdf['tax_code'] ?? '') ?></p>
                          <?php endif; ?>
                     </td>
                     <td style="width: 40%; text-align: right;">
-                        <h1><?= $lang['sales_order_title_pdf'] ?? 'SALES ORDER' ?></h1>
-                        <p><?= $lang['order_code'] ?? 'Order Code' ?>: <span class="text-bold"><?= htmlspecialchars($order['order_code'] ?? '') ?></span></p>
+                        <h1><?= $lang['sales_order_title_pdf'] ?? 'PURCHASE ORDER' ?></h1>
+                        <p><?= $lang['order_number_short'] ?? 'Order No.' ?>: <span class="text-bold"><?= htmlspecialchars($order['order_number'] ?? '') ?></span></p>
                         <p><?= $lang['order_date'] ?? 'Order Date' ?>: <?= !empty($order['order_date']) ? date("d/m/Y", strtotime($order['order_date'])) : '' ?></p>
-                         <p><?= $lang['status'] ?? 'Status' ?>: <?= htmlspecialchars($lang['status_' . $order['status']] ?? ucfirst($order['status'] ?? '')) ?></p>
+                        <p><?= $lang['status'] ?? 'Status' ?>: <?= htmlspecialchars($lang['status_' . $order['status']] ?? ucfirst($order['status'] ?? '')) ?></p>
                     </td>
                 </tr>
             </table>
         </div>
 
-
-        <div class="customer-section">
-            <h2><?= $lang['customer_info'] ?? 'Customer Information'; ?></h2>
-            <p><?= $lang['customer_name'] ?? 'Customer Name'; ?>: <span class="text-bold"><?= htmlspecialchars($order['partner_name'] ?? '') ?></span></p>
-            <p><?= $lang['address'] ?? 'Address'; ?>: <?= htmlspecialchars($order['partner_address'] ?? '') ?></p>
-            <p><?= $lang['phone'] ?? 'Phone'; ?>: <?= htmlspecialchars($order['partner_phone'] ?? '') ?> | <?= $lang['email'] ?? 'Email'; ?>: <?= htmlspecialchars($order['partner_email'] ?? '') ?></p>
-            <p><?= $lang['tax_code'] ?? 'Tax Code'; ?>: <?= htmlspecialchars($order['partner_tax_code'] ?? '') ?></p>
+        <div class="partner-section">
+            <h2><?= $lang['supplier_info'] ?? 'Supplier Information'; ?></h2>
+            <?php $supplier_data = $order['supplier_info_data']; ?>
+            <p><?= $lang['supplier_name'] ?? 'Supplier Name'; ?>: <span class="text-bold"><?= htmlspecialchars($supplier_data['partner_name'] ?? ($supplier_data['supplier_name'] ?? '')) ?></span></p>
+            <p><?= $lang['address'] ?? 'Address'; ?>: <?= htmlspecialchars($supplier_data['address'] ?? '') ?></p>
+            <p><?= $lang['phone'] ?? 'Phone'; ?>: <?= htmlspecialchars($supplier_data['phone'] ?? '') ?> | <?= $lang['email'] ?? 'Email'; ?>: <?= htmlspecialchars($supplier_data['email'] ?? '') ?></p>
+            <p><?= $lang['tax_code'] ?? 'Tax Code'; ?>: <?= htmlspecialchars($supplier_data['tax_code'] ?? '') ?></p>
         </div>
 
         <div class="items-section">
@@ -204,26 +186,20 @@ ob_start();
                 <tbody>
                     <?php
                     $stt = 1;
-                    $subtotal = 0; // Tính lại subtotal từ chi tiết
                     if (!empty($order_details)):
                         foreach ($order_details as $item):
                             $quantity = $item['quantity'] ?? 0;
                             $unit_price = $item['unit_price'] ?? 0;
                             $line_total = $quantity * $unit_price;
-                            $subtotal += $line_total;
                     ?>
                     <tr>
                         <td class="text-center"><?= $stt++; ?></td>
                         <td><?= htmlspecialchars($item['product_code'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($item['product_name'] ?? '') ?>
-                            <?php if(!empty($item['description'])): ?>
-                                <br><small><i><?= nl2br(htmlspecialchars($item['description'])) ?></i></small>
-                            <?php endif; ?>
-                        </td>
-                        <td class="text-center"><?= number_format($quantity, 2, ',', '.') // Hiển thị 2 số lẻ cho số lượng ?></td>
-                        <td class="text-center"><?= htmlspecialchars($item['unit_name'] ?? '') ?></td>
-                        <td class="text-right"><?= number_format($unit_price, 0, ',', '.') ?></td>
-                        <td class="text-right"><?= number_format($line_total, 0, ',', '.') ?></td>
+                        <td><?= htmlspecialchars($item['product_name_snapshot']) ?></td>
+                        <td class="text-center"><?= number_format($quantity, 2, ',', '.') ?></td>
+                        <td class="text-center"><?= htmlspecialchars($item['unit_name'] ?? ($item['unit_snapshot'] ?? '')) ?></td>
+                        <td class="text-right"><?= number_format($unit_price, ($order['currency'] === 'VND' ? 0 : 2), ',', '.') ?></td>
+                        <td class="text-right"><?= number_format($line_total, ($order['currency'] === 'VND' ? 0 : 2), ',', '.') ?></td>
                     </tr>
                     <?php
                         endforeach;
@@ -238,37 +214,23 @@ ob_start();
 
         <div class="summary-section">
              <?php
-                 // Lấy giá trị từ $order, tính toán nếu cần
-                 $discount_amount = $order['discount_amount'] ?? 0;
-                 // Tính subtotal sau CK dựa trên subtotal tính từ chi tiết và discount_amount từ order
-                 $subtotal_after_discount = $subtotal - $discount_amount;
-                 $vat_amount = $order['vat_amount'] ?? 0;
-                 $grand_total = $order['total_amount'] ?? ($subtotal_after_discount + $vat_amount); // Nên dùng total_amount từ $order
+                 $sub_total = $order['sub_total'] ?? 0;
+                 $vat_rate = $order['vat_rate'] ?? 0;
+                 $vat_total = $order['vat_total'] ?? 0;
+                 $grand_total = $order['grand_total'] ?? 0;
              ?>
              <table>
                  <tr>
                      <td class="total-label"><?= $lang['subtotal'] ?? 'Subtotal'; ?>:</td>
-                     <td class="total-value"><?= number_format($subtotal, 0, ',', '.'); ?></td>
+                     <td class="total-value"><?= number_format($sub_total, ($order['currency'] === 'VND' ? 0 : 2), ',', '.'); ?> <?= htmlspecialchars($order['currency']) ?></td>
                  </tr>
-                 <?php if (isset($order['discount_amount']) && $order['discount_amount'] > 0): ?>
                  <tr>
-                    <td class="total-label"><?= $lang['discount'] ?? 'Discount'; ?> (<?= number_format($order['discount_percentage'] ?? 0, 2) ?>%):</td>
-                    <td class="total-value"><?= number_format($discount_amount, 0, ',', '.'); ?></td>
-                </tr>
-                 <tr>
-                    <td class="total-label"><?= $lang['subtotal_after_discount'] ?? 'Subtotal After Discount'; ?>:</td>
-                    <td class="total-value"><?= number_format($subtotal_after_discount, 0, ',', '.'); ?></td>
-                </tr>
-                <?php endif; ?>
-                 <?php if (isset($order['vat_percentage'])): // Luôn hiển thị VAT, kể cả 0% ?>
-                 <tr>
-                     <td class="total-label"><?= $lang['vat'] ?? 'VAT'; ?> (<?= number_format($order['vat_percentage'] ?? 0, 2) ?>%):</td>
-                     <td class="total-value"><?= number_format($vat_amount, 0, ',', '.'); ?></td>
+                     <td class="total-label"><?= $lang['vat'] ?? 'VAT'; ?> (<?= number_format($vat_rate, 2) ?>%):</td>
+                     <td class="total-value"><?= number_format($vat_total, ($order['currency'] === 'VND' ? 0 : 2), ',', '.'); ?> <?= htmlspecialchars($order['currency']) ?></td>
                  </tr>
-                 <?php endif; ?>
                  <tr class="grand-total">
                      <td class="total-label"><?= $lang['grand_total'] ?? 'Grand Total'; ?>:</td>
-                     <td class="total-value"><?= number_format($grand_total, 0, ',', '.'); ?></td>
+                     <td class="total-value"><?= number_format($grand_total, ($order['currency'] === 'VND' ? 0 : 2), ',', '.'); ?> <?= htmlspecialchars($order['currency']) ?></td>
                  </tr>
              </table>
         </div>
@@ -283,14 +245,17 @@ ob_start();
              <table>
                  <tr>
                      <td>
-                         <p class="text-bold"><?= $lang['customer'] ?? 'Customer'; ?></p>
+                         <p class="text-bold"><?= $lang['supplier_signature'] ?? 'Supplier Representative'; ?></p>
                          <p>(<?= $lang['sign_and_name'] ?? 'Sign and write full name'; ?>)</p>
                          <div class="signature-line"></div>
                      </td>
                      <td>
-                         <p class="text-bold"><?= $lang['seller'] ?? 'Seller'; ?></p> <?php // Hoặc Đại diện công ty ?>
+                         <p class="text-bold"><?= $lang['buyer_signature'] ?? 'Buyer Representative'; ?></p>
                          <p>(<?= $lang['sign_and_name'] ?? 'Sign and write full name'; ?>)</p>
                           <div class="signature-line"></div>
+                          <?php if ($company_info_pdf && !empty($company_info_pdf['signature_path']) && file_exists('../' . ltrim($company_info_pdf['signature_path'], '/'))): ?>
+                            <img src="<?= '../' . ltrim($company_info_pdf['signature_path'],'/') ?>" alt="Company Signature" style="max-height: 60px; display: block; margin: -50px auto 0 auto; position: relative; z-index:1;">
+                          <?php endif; ?>
                      </td>
                  </tr>
              </table>
@@ -300,81 +265,36 @@ ob_start();
              <?php if (!empty($order['created_by_name'])): ?>
                  <?= $lang['created_by'] ?? 'Created By' ?>: <?= htmlspecialchars($order['created_by_name']) ?> (<?= !empty($order['created_at']) ? date("d/m/Y H:i", strtotime($order['created_at'])) : '' ?>)
              <?php endif; ?>
-             <?php if (!empty($order['updated_by_name'])): ?>
-                 | <?= $lang['last_updated_by'] ?? 'Updated By' ?>: <?= htmlspecialchars($order['updated_by_name']) ?> (<?= !empty($order['updated_at']) ? date("d/m/Y H:i", strtotime($order['updated_at'])) : '' ?>)
-             <?php endif; ?>
          </div>
-
-    </div></body>
+    </div>
+</body>
 </html>
 <?php
 $html = ob_get_clean();
 
-// 6. Khởi tạo và cấu hình mPDF
 try {
-    $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
-    $fontDirs = $defaultConfig['fontDir'];
-    $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
-    $fontData = $defaultFontConfig['fontdata'];
-
-    $tempDir = __DIR__ . '/../tmp/mpdf';
-    if (!is_dir($tempDir)) {
-        if (!mkdir($tempDir, 0775, true) && !is_dir($tempDir)) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', $tempDir));
-        }
-    }
-    if (!is_writable($tempDir)) {
-         throw new \RuntimeException(sprintf('Directory "%s" is not writable', $tempDir));
-    }
-
     $mpdf = new \Mpdf\Mpdf([
-        'mode' => 'utf-8',
-        'format' => 'A4',
-        'margin_left' => 10,
-        'margin_right' => 10,
-        'margin_top' => 25,  // Tăng margin top cho header
-        'margin_bottom' => 20, // Margin bottom cho footer
-        'margin_header' => 8,
-        'margin_footer' => 8,
-        'default_font_size' => 10,
-        'default_font' => 'dejavusans',
-        'tempDir' => $tempDir,
-        'fontDir' => array_merge($fontDirs, [ /* Thư mục font tùy chỉnh nếu có */ ]),
-        'fontdata' => $fontData + [ /* Font tùy chỉnh nếu có */ ],
-        'autoScriptToLang' => true,
-        'autoLangToFont' => true,
-        'useSubstitutions' => false, // Tắt thay thế nếu font đã đủ ký tự
-        'enableImports' => true, // Cho phép import CSS từ file
+        'mode' => 'utf-8', 'format' => 'A4',
+        'margin_left' => 10, 'margin_right' => 10, 'margin_top' => 25,
+        'margin_bottom' => 20, 'margin_header' => 8, 'margin_footer' => 8,
+        'default_font_size' => 10, 'default_font' => 'dejavusans'
     ]);
 
-    // Kích hoạt chế độ log lỗi chi tiết của mPDF (chỉ dùng khi debug)
-    // $mpdf->showImageErrors = true;
-    // $mpdf->debug = true;
-
-    // (Tùy chọn) Thêm Header/Footer
-    $companyName = $company_info['company_name'] ?? ($lang['appName'] ?? 'App');
-    $orderCode = $order['order_code'] ?? $order_id;
-    $headerText = $companyName . ' | ' . ($lang['sales_order_title'] ?? 'Sales Order') . ' ' . $orderCode . ' | Trang {PAGENO}/{nbpg}';
+    $companyNameForPdf = $company_info_pdf['company_name'] ?? ($lang['appName'] ?? 'App');
+    $orderNumberForPdf = $order['order_number'] ?? $order_id;
+    $headerText = $companyNameForPdf . ' | ' . ($lang['sales_order_title'] ?? 'Purchase Order') . ' ' . $orderNumberForPdf . ' | Page {PAGENO}/{nbpg}';
     $footerText = ($lang['print_date'] ?? 'Print Date:') . ' {DATE d/m/Y H:i}';
 
     $mpdf->SetHeader($headerText);
     $mpdf->SetFooter($footerText);
-    $mpdf->SetTitle($lang['sales_order_title'] ?? 'Sales Order' . ' - ' . $orderCode);
-    $mpdf->SetAuthor($companyName);
-
-    // Ghi HTML vào PDF
+    $mpdf->SetTitle(($lang['sales_order_title'] ?? 'Purchase Order') . ' - ' . $orderNumberForPdf);
     $mpdf->WriteHTML($html);
 
-    // 7. Xuất file PDF
-    $pdfFileName = ($lang['sales_order_short'] ?? 'SO') . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $orderCode) . '.pdf';
-    $mpdf->Output($pdfFileName, \Mpdf\Output\Destination::INLINE); // 'I' = INLINE
+    $pdfFileName = ($lang['sales_order_short'] ?? 'PO') . '-' . preg_replace('/[^A-Za-z0-9_\-]/', '', $orderNumberForPdf) . '.pdf';
+    $mpdf->Output($pdfFileName, \Mpdf\Output\Destination::INLINE);
     exit;
 
-} catch (\Mpdf\MpdfException $e) {
-    error_log("mPDF Error for Order ID {$order_id}: " . $e->getMessage());
-    echo ($lang['pdf_generation_error'] ?? 'PDF Generation Error:') . ' ' . $e->getMessage(); // Hiển thị lỗi cho người dùng (có thể chỉ khi đang debug)
 } catch (Exception $e) {
-     error_log("General Error in PDF Generation for Order ID {$order_id}: " . $e->getMessage());
-     echo ($lang['general_error'] ?? 'An unexpected error occurred:') . ' ' . $e->getMessage(); // Hiển thị lỗi chung
+    error_log("PDF Error for Order ID {$order_id}: " . $e->getMessage());
+    echo "PDF Generation Error: " . $e->getMessage();
 }
-?>

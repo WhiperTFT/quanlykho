@@ -111,12 +111,6 @@ $initial_orders = [];
                         <?= $lang['show_signature'] ?? 'Show Signature' ?>
                     </button>
 
-                    <div class="d-inline-block mt-1 me-2" style="width: 120px;">
-                        <select id="pdf_lang" class="form-select form-select-sm">
-                            <option value="vi" selected>Tiếng Việt</option>
-                            <option value="en">English</option>
-                        </select>
-                    </div>
                     <div id="form-error-message" class="alert alert-danger mt-3 d-none" role="alert"></div>
                 </div>
             </form>

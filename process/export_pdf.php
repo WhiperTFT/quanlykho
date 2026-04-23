@@ -97,12 +97,13 @@ try {
     }
 
     // Fetch thông tin tiêu đề tài liệu
+    $select_quote_id = ($document_type === 'order') ? ', h.quote_id' : '';
     $sql_header = "SELECT 
                         h.id, 
                         h.{$current_config['number_column']} AS document_specific_number, 
                         h.{$current_config['date_column']} AS document_specific_date, 
                         h.{$current_config['partner_fk_column']} AS partner_id, 
-                        h.notes, h.sub_total, h.vat_rate, h.vat_total, h.grand_total, h.currency 
+                        h.notes, h.sub_total, h.vat_rate, h.vat_total, h.grand_total, h.currency{$select_quote_id} 
                    FROM {$current_config['main_table']} h 
                    WHERE h.{$current_config['main_id_column']} = :id LIMIT 1";
     $stmt_header = $pdo->prepare($sql_header);
@@ -139,6 +140,14 @@ try {
     if (!$company_info_data) {
         $company_info_data = [];
         error_log("Warning in export_pdf.php: Company info (id=1) not found in database.");
+    }
+    
+    // Fetch Linked Quote Number if it's an order
+    $linked_quote_number = null;
+    if ($document_type === 'order' && !empty($document_header['quote_id'])) {
+        $stmt_lq = $pdo->prepare("SELECT quote_number FROM sales_quotes WHERE id = :qid");
+        $stmt_lq->execute([':qid' => $document_header['quote_id']]);
+        $linked_quote_number = $stmt_lq->fetchColumn();
     }
 
 } catch (PDOException $e) {

@@ -357,8 +357,8 @@ $(document).ready(function () {
     $('#itemsBody tr').each(function () {
       const $tr = $(this);
 
-      // Tìm theo class trước, thiếu thì fallback theo name
       const detail_id = ($tr.find('.detail-id').val() || $tr.find('[name$="[detail_id]"]').val() || '').trim() || null;
+      const quote_detail_id = ($tr.find('.quote-detail-id').val() || $tr.find('[name$="[quote_detail_id]"]').val() || '').trim() || null;
       const product_id = ($tr.find('.product-id').val() || $tr.find('[name$="[product_id]"]').val() || '').trim() || null;
       const product_name_snapshot = ($tr.find('.product-autocomplete').val() || $tr.find('[name$="[product_name_snapshot]"]').val() || '').trim();
       const category_snapshot = ($tr.find('.category-snapshot').val() || $tr.find('[name$="[category_snapshot]"]').val() || '').trim();
@@ -374,6 +374,7 @@ $(document).ready(function () {
       if ((product_name_snapshot || product_id) && quantity > 0) {
         items.push({
           detail_id: detail_id ? parseInt(detail_id, 10) : null,
+          quote_detail_id: quote_detail_id ? parseInt(quote_detail_id, 10) : null,
           product_id: product_id ? parseInt(product_id, 10) : null,
           product_name_snapshot,
           category_snapshot,
@@ -449,6 +450,7 @@ $(document).ready(function () {
             quoteData.items.forEach(function (it) {
               // Truyền thẳng vào addItemRow để nó tự parseServerNumber khi gán input
               addItemRow({
+                quote_detail_id: it.detail_id || null,
                 product_id: it.product_id || '',
                 product_name_snapshot: it.product_name_snapshot || '',
                 category_snapshot: it.category_snapshot || '',

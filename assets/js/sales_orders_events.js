@@ -111,6 +111,27 @@ function setupEventListeners() {
         calculateSummaryTotals();
     });
 
+    // --- Listener khi thay đổi Báo giá liên kết ---
+    $('#order_quote_id_form').on('change', function () {
+        const $select = $(this);
+        const quoteId = $select.val();
+        const $displayRow = $('#linked_quote_display_row');
+        const $displayText = $('#linked_quote_number_display');
+
+        if (quoteId) {
+            const selectedText = $select.find('option:selected').text();
+            // Lấy quote_number từ text (thường có dạng "QN123 - Customer Name")
+            const quoteNumber = selectedText.split(' - ')[0];
+            $displayText.text(quoteNumber);
+            $displayRow.show();
+            devLog(`Linked quote changed: ${quoteNumber} (ID: ${quoteId})`);
+        } else {
+            $displayText.text('-');
+            $displayRow.hide();
+            devLog("Linked quote cleared.");
+        }
+    });
+
     // --- Listener cho nút Xóa File PDF Mặc Định (Email Modal) ---
     $(document).on('click', '.btn-remove-default-attachment', function() { // Listener gắn vào document để chắc chắn hoạt động nếu modal được load động
         devLog("Removing default PDF attachment display.");

@@ -13,6 +13,7 @@ $columns = [];
 $tableId = '';
 if ($list_type === 'sales_order') {
     $columns = [
+        'select' => ['label' => '<input type="checkbox" class="form-check-input" id="select-all-orders">', 'filter_type' => 'none'],
         'order_number' => ['label' => $lang['order_number'] ?? 'Order No.', 'filter_type' => 'text', 'placeholder' => $lang['filter_by_number'] ?? 'Filter by Number...'],
         'order_date' => ['label' => $lang['order_date'] ?? 'Order Date', 'filter_type' => 'date', 'placeholder' => $lang['filter_by_date'] ?? 'Filter by Date...'],
         'supplier_name' => ['label' => $lang['supplier'] ?? 'Supplier', 'filter_type' => 'text', 'placeholder' => $lang['filter_by_supplier'] ?? 'Filter by Supplier...'],
@@ -20,8 +21,6 @@ if ($list_type === 'sales_order') {
         'grand_total' => ['label' => $lang['grand_total'] ?? 'Grand Total', 'filter_type' => 'none'],
         'customer_name' => ['label' => $lang['customer'] ?? 'Khách hàng', 'filter_type' => 'text', 'placeholder' => $lang['filter_by_customer'] ?? 'Filter by Customer...'],
         'expected_delivery_date' => ['label' => 'Ngày giao hàng', 'filter_type' => 'none'],
-        'driver_name' => ['label' => 'Tài xế', 'filter_type' => 'none'],
-        'tien_xe' => ['label' => 'Tiền xe', 'filter_type' => 'none'],
         'ghi_chu_order' => ['label' => 'Ghi chú', 'filter_type' => 'none'],
         'actions' => ['label' => $lang['actions'] ?? 'Hành động', 'filter_type' => 'none'],
     ];
@@ -96,7 +95,7 @@ for ($month = 1; $month <= 12; $month++) {
              placeholder="<?= htmlspecialchars(($lang['search_placeholder'] ?? 'Tìm Số ĐH, Ngày ĐH, NCC, Khách hàng, Tên SP…')) ?>">
     </div>
 
-    <div class="col-md-3 col-sm-6">
+    <div class="col-md-2 col-sm-4">
       <select class="form-select form-select-sm" id="deliveryStatusFilter" title="Lọc trạng thái giao">
         <option value=""><?= $lang['all'] ?? 'Tất cả' ?></option>
         <option value="not_delivered">Chưa giao</option>
@@ -109,6 +108,14 @@ for ($month = 1; $month <= 12; $month++) {
         <i class="bi bi-arrow-clockwise"></i> <?= $lang['reset_filters'] ?? 'Reset' ?>
       </button>
     </div>
+
+    <?php if ($list_type === 'sales_order'): ?>
+    <div class="col-auto ms-auto">
+      <button class="btn btn-sm btn-primary" id="btn-create-delivery-trip">
+        <i class="bi bi-truck me-1"></i> Tạo chuyến giao hàng
+      </button>
+    </div>
+    <?php endif; ?>
   </div>
 
   <!-- Bảng -->
@@ -118,7 +125,9 @@ for ($month = 1; $month <= 12; $month++) {
         <tr>
           <th class="col-details-control" style="width: 20px;"></th>
           <?php foreach ($columns as $key => $col_config): ?>
-            <th class="col-<?= htmlspecialchars($key) ?>"><?= htmlspecialchars($col_config['label']) ?></th>
+            <th class="col-<?= htmlspecialchars($key) ?>">
+              <?= ($key === 'select') ? $col_config['label'] : htmlspecialchars($col_config['label']) ?>
+            </th>
           <?php endforeach; ?>
         </tr>
       </thead>

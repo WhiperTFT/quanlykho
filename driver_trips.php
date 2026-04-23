@@ -37,66 +37,59 @@ if ($driver_id > 0) {
     // =======================
     // QUERY GỐC + MỞ RỘNG
     // =======================
+    // NEW LOGIC: Fetch Trips instead of single orders
     $sql = "
-    SELECT
-        so.id,
-        so.order_number,
-        so.order_date,
-        so.expected_delivery_date,
-        so.tien_xe,
-        so.ghi_chu,
-        s.name AS supplier_name,
-        c.name AS customer_name,
-        da.delivery_date
-     FROM sales_orders so
-     JOIN partners s ON so.supplier_id = s.id
-     LEFT JOIN sales_quotes sq ON so.quote_id = sq.id
-     LEFT JOIN partners c ON sq.customer_id = c.id
-     LEFT JOIN driver_adjustments da ON da.order_id = so.id
-     WHERE
-        so.driver_id = :driver_id
-        AND so.expected_delivery_date IS NOT NULL
+        SELECT t.*, d.ten as driver_name 
+        FROM dispatcher_trips t 
+        JOIN drivers d ON t.driver_id = d.id 
+        WHERE t.driver_id = :driver_id
     ";
 
-    $params = [':driver_id'=>$driver_id];
+    $params = [':driver_id' => $driver_id];
 
-    // ===== nếu dùng tìm kiếm nâng cao =====
     if ($advanced) {
-
         if ($adv_from && $adv_to) {
-            $sql .= " AND DATE(so.expected_delivery_date) BETWEEN :df AND :dt ";
-            $params[':df']=$adv_from;
-            $params[':dt']=$adv_to;
+            $sql .= " AND t.trip_date BETWEEN :df AND :dt ";
+            $params[':df'] = $adv_from;
+            $params[':dt'] = $adv_to;
         }
-
-        if ($adv_supplier !== '') {
-            $sql .= " AND s.name LIKE :sup ";
-            $params[':sup']="%$adv_supplier%";
-        }
-
-        if ($adv_customer !== '') {
-            $sql .= " AND c.name LIKE :cus ";
-            $params[':cus']="%$adv_customer%";
-        }
-
     } else {
-        // GIỮ NGUYÊN FILTER CŨ
-        $sql .= "
-        AND YEAR(so.expected_delivery_date)=:year
-        AND MONTH(so.expected_delivery_date)=:month";
-        $params[':year']=$year;
-        $params[':month']=$month;
+        $sql .= " AND YEAR(t.trip_date) = :year AND MONTH(t.trip_date) = :month";
+        $params[':year'] = $year;
+        $params[':month'] = $month;
     }
 
-    $sql .= " ORDER BY so.expected_delivery_date ASC";
-
+    $sql .= " ORDER BY t.trip_date ASC";
     $trip_stmt = $pdo->prepare($sql);
     $trip_stmt->execute($params);
     $trips = $trip_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    foreach ($trips as $trip) {
-        if ($trip['tien_xe'] > 0) {
-            $total_shipping_cost += $trip['tien_xe'];
+    // Fetch linked orders for all trips in the list
+    $all_trip_ids = array_column($trips, 'id');
+    $linked_orders = [];
+    if (!empty($all_trip_ids)) {
+        $in_query = implode(',', array_fill(0, count($all_trip_ids), '?'));
+        $orders_stmt = $pdo->prepare("
+            SELECT dto.trip_id, so.order_number, p_sup.name as supplier_name, p_cus.name as customer_name,
+                   (SELECT GROUP_CONCAT(CONCAT(sod.product_name_snapshot, ' (', sod.quantity, ' ', IFNULL(sod.unit_snapshot, ''), ')') SEPARATOR '; ') 
+                    FROM sales_order_details sod WHERE sod.order_id = so.id) as items_summary
+            FROM dispatcher_trip_orders dto
+            JOIN sales_orders so ON dto.order_id = so.id
+            JOIN partners p_sup ON so.supplier_id = p_sup.id
+            LEFT JOIN sales_quotes sq ON so.quote_id = sq.id
+            LEFT JOIN partners p_cus ON sq.customer_id = p_cus.id
+            WHERE dto.trip_id IN ($in_query)
+        ");
+        $orders_stmt->execute($all_trip_ids);
+        $raw_orders = $orders_stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($raw_orders as $ro) {
+            $linked_orders[$ro['trip_id']][] = $ro;
+        }
+    }
+
+    foreach ($trips as $t) {
+        if ($t['status'] !== 'cancelled') {
+            $total_shipping_cost += ($t['base_freight_cost'] + $t['extra_costs']);
         }
     }
 
@@ -152,7 +145,7 @@ include 'includes/header.php';
 <div class="content-card shadow-sm mb-4">
     <div class="content-card-header">
         <span><i class="bi bi-person-badge me-2 text-primary"></i>Bảng kê: <strong><?= htmlspecialchars($driver['ten']) ?></strong> &mdash; Tháng <?= $month ?>/<?= $year ?></span>
-        <button class="btn btn-sm btn-outline-secondary" id="toggle-zero-trips-btn">Hiện các chuyến đi giá trị 0</button>
+        <!-- Removed toggle-zero-trips-btn as all trips are now shown by default -->
     </div>
     <div class="content-card-body">
             <div class="table-responsive">
@@ -161,42 +154,56 @@ include 'includes/header.php';
                     <table class="table table-hover table-custom" id="driver-trips-table" cellspacing="0" style="width:100%;">
                         <thead class="table-light">
                             <tr>
-                                <th></th>
-                                <th>Ngày đặt</th>
-                                <th>Số đơn</th>
-                                <th>Nhà cung cấp</th>
-                                <th>Khách hàng</th>
-                                <th>Ngày giao</th>
-                                <th>Ghi chú</th>
-                                <th class="text-end">Tiền xe</th>
-                                <th>Chứng từ/Bản đồ</th>
+                                <th style="width: 30px;"></th>
+                                <th><?= $lang['trip_date'] ?></th>
+                                <th style="width: 45%;">Lộ trình (NCC >>> KH)</th>
+                                <th><?= $lang['notes'] ?></th>
+                                <th class="text-end">Tiền Xe</th>
+                                <th class="text-center">Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($trips as $trip): ?>
-                                <tr data-order-id="<?= $trip['id'] ?>">
-                                    <td></td>
-                                    <td data-order="<?= $trip['expected_delivery_date'] ?>">
-                                    <?= $trip['expected_delivery_date'] ? date('d/m/Y', strtotime($trip['expected_delivery_date'])) : '' ?>
+                                <tr class="<?= $trip['status'] === 'cancelled' ? 'table-danger opacity-50' : '' ?>" data-trip-id="<?= $trip['id'] ?>">
+                                    <td class="dt-control"></td>
+                                    <td data-order="<?= $trip['trip_date'] ?>">
+                                        <?= date('d/m/Y', strtotime($trip['trip_date'])) ?>
                                     </td>
-                                    <td><?= htmlspecialchars($trip['order_number']) ?></td>
-                                    <td><?= htmlspecialchars($trip['supplier_name']) ?></td>
-                                    <td><?= htmlspecialchars($trip['customer_name'] ?? 'N/A') ?></td>
                                     <td>
-                                        <?php if (is_logged_in()): ?>
-                                            <input type="text" class="form-control form-control-sm delivery-date-input" 
-                                                   value="<?= $trip['delivery_date'] ? date('d/m/Y', strtotime($trip['delivery_date'])) : '' ?>" 
-                                                   data-order-id="<?= $trip['id'] ?>">
-                                        <?php else: ?>
-                                            <?= $trip['delivery_date'] ? date('d/m/Y', strtotime($trip['delivery_date'])) : '<span class="text-muted">Chưa giao</span>' ?>
+                                        <?php if (isset($linked_orders[$trip['id']])): ?>
+                                            <div class="d-flex flex-column gap-2">
+                                                <?php 
+                                                foreach ($linked_orders[$trip['id']] as $lo):
+                                                ?>
+                                                <div class="border rounded p-2 bg-light small">
+                                                    <div class="fw-bold mb-1">
+                                                        <span class="text-dark"><?= htmlspecialchars($lo['supplier_name']) ?></span> 
+                                                        <i class="bi bi-arrow-right-circle-fill text-primary mx-1"></i> 
+                                                        <span class="text-dark"><?= htmlspecialchars($lo['customer_name'] ?: 'N/A') ?></span>
+                                                    </div>
+                                                    <div class="text-muted fst-italic">
+                                                        <i class="bi bi-box-seam me-1"></i> <?= htmlspecialchars($lo['items_summary'] ?: 'Không có hàng hóa') ?>
+                                                    </div>
+                                                </div>
+                                                <?php endforeach; ?>
+                                            </div>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= htmlspecialchars($trip['ghi_chu']) ?></td>
-                                    <td class="text-end trip-cost"><?= number_format($trip['tien_xe'], 0, ',', '.') ?></td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary manage-attachments-btn" data-order-id="<?= $trip['id'] ?>">
-                                            <i class="bi bi-folder"></i> Quản lý
-                                        </button>
+                                        <div class="small text-truncate" style="max-width: 150px;"><?= htmlspecialchars($trip['notes'] ?: '') ?></div>
+                                    </td>
+                                    <td class="text-end fw-bold">
+                                        <?= number_format($trip['base_freight_cost'] + $trip['extra_costs'], 0, ',', '.') ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="delivery_dispatcher.php?id=<?= $trip['id'] ?>" class="btn btn-outline-primary" title="<?= $lang['edit'] ?? 'Chỉnh sửa' ?>">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button class="btn btn-outline-secondary" onclick="window.open('process/generate_trip_pdf.php?id=<?= $trip['id'] ?>', '_blank')" title="<?= $lang['print'] ?? 'In' ?>">
+                                                <i class="bi bi-printer"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

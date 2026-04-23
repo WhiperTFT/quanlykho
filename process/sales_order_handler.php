@@ -149,6 +149,7 @@ try {
                     foreach ($items_input as $index => $item) {
                         $item_errors_detail = []; // Đổi tên để tránh trùng với $errors
                         $detailId = filter_var($item['detail_id'] ?? null, FILTER_VALIDATE_INT) ?: null;
+                        $quoteDetailId = filter_var($item['quote_detail_id'] ?? null, FILTER_VALIDATE_INT) ?: null;
                         $productId = filter_var($item['product_id'] ?? null, FILTER_VALIDATE_INT) ?: null;
                         $productName = trim($item['product_name_snapshot'] ?? '');
                         $quantity_raw = $item['quantity'] ?? '0';
@@ -166,6 +167,7 @@ try {
                         } else {
                             $validItems[] = [
                                 'detail_id' => $detailId,
+                                'quote_detail_id' => $quoteDetailId,
                                 'product_id' => $productId,
                                 'product_name_snapshot' => $productName,
                                 'category_snapshot' => trim($item['category_snapshot'] ?? ''),
@@ -232,9 +234,12 @@ try {
                 } else { // action === 'edit'
                     if (!$orderId) throw new InvalidArgumentException($lang['invalid_order_id_for_edit'] ?? 'Invalid order ID for edit.');
                     
-                    $stmt_status_check = $pdo->prepare("SELECT status FROM sales_orders WHERE id = :id");
+                    $stmt_status_check = $pdo->prepare("SELECT status, quote_id FROM sales_orders WHERE id = :id");
                     $stmt_status_check->execute([':id' => $orderId]);
-                    $currentDBStatus_edit = $stmt_status_check->fetchColumn();
+                    $order_row_edit = $stmt_status_check->fetch(PDO::FETCH_ASSOC);
+                    $currentDBStatus_edit = $order_row_edit['status'] ?? null;
+                    $old_quote_id = $order_row_edit['quote_id'] ?? null;
+
                     if (!$currentDBStatus_edit) throw new RuntimeException($lang['order_not_found_for_edit'] ?? 'Order not found for edit.');
                     if ($currentDBStatus_edit !== 'draft') {
                          throw new RuntimeException(sprintf($lang['cannot_edit_order_status_not_draft'] ?? 'Cannot edit order. Status is "%s", not "draft".', $currentDBStatus_edit), 403);
@@ -264,9 +269,9 @@ try {
                 $existingDbItemIds = $stmt_existing->fetchAll(PDO::FETCH_COLUMN);
                 $submittedItemDetailIds = [];
 
-                $sql_item_upd = "UPDATE sales_order_details SET product_id = :pid, product_name_snapshot=:pname, category_snapshot=:pcat, unit_snapshot=:punit, quantity=:pqty, unit_price=:price WHERE id = :detail_id AND order_id = :oid";
+                $sql_item_upd = "UPDATE sales_order_details SET product_id = :pid, product_name_snapshot=:pname, category_snapshot=:pcat, unit_snapshot=:punit, quantity=:pqty, unit_price=:price, quote_detail_id=:qdid WHERE id = :detail_id AND order_id = :oid";
                 $stmt_item_upd = $pdo->prepare($sql_item_upd);
-                $sql_item_ins = "INSERT INTO sales_order_details (order_id, product_id, product_name_snapshot, category_snapshot, unit_snapshot, quantity, unit_price) VALUES (:oid, :pid, :pname, :pcat, :punit, :pqty, :price)";
+                $sql_item_ins = "INSERT INTO sales_order_details (order_id, product_id, product_name_snapshot, category_snapshot, unit_snapshot, quantity, unit_price, quote_detail_id) VALUES (:oid, :pid, :pname, :pcat, :punit, :pqty, :price, :qdid)";
                 $stmt_item_ins = $pdo->prepare($sql_item_ins);
 
                 foreach ($validItems as $itemData) {
@@ -275,7 +280,8 @@ try {
                         ':oid' => $orderId, ':pid' => $itemData['product_id'],
                         ':pname' => $itemData['product_name_snapshot'],
                         ':pcat' => $itemData['category_snapshot'], ':punit' => $itemData['unit_snapshot'],
-                        ':pqty' => $itemData['quantity'], ':price' => $itemData['unit_price']
+                        ':pqty' => $itemData['quantity'], ':price' => $itemData['unit_price'],
+                        ':qdid' => $itemData['quote_detail_id']
                     ];
                     if ($detail_id_sync && in_array($detail_id_sync, $existingDbItemIds)) {
                         $item_params_sync[':detail_id'] = $detail_id_sync;
@@ -291,6 +297,28 @@ try {
                     $sql_item_del = "DELETE FROM sales_order_details WHERE id IN ($placeholders_del) AND order_id = ?";
                     $stmt_item_del = $pdo->prepare($sql_item_del);
                     $stmt_item_del->execute(array_merge($itemsToDelete, [$orderId]));
+                }
+                // Update ordered_quantity for NEW quote_id
+                if (!empty($quote_id)) {
+                    $sql_update_ordered_qty = "
+                        UPDATE sales_quote_details sqd
+                        SET ordered_quantity = (
+                            SELECT COALESCE(SUM(sod.quantity), 0)
+                            FROM sales_order_details sod
+                            JOIN sales_orders so ON sod.order_id = so.id
+                            WHERE sod.quote_detail_id = sqd.id
+                              AND so.status != 'cancelled'
+                        )
+                        WHERE sqd.quote_id = :qid
+                    ";
+                    $stmt_update_qty = $pdo->prepare($sql_update_ordered_qty);
+                    $stmt_update_qty->execute([':qid' => $quote_id]);
+                }
+                
+                // Update ordered_quantity for OLD quote_id if it was changed
+                if (!empty($old_quote_id) && $old_quote_id != $quote_id) {
+                    $stmt_update_old_qty = $pdo->prepare($sql_update_ordered_qty);
+                    $stmt_update_old_qty->execute([':qid' => $old_quote_id]);
                 }
                 $pdo->commit();
                 $response = ['success' => true, 'message' => $message, 'order_id' => $orderId];
@@ -340,35 +368,99 @@ try {
                 if (!$id) throw new InvalidArgumentException($lang['invalid_order_id_for_delete'] ?? 'Invalid order ID for deletion.');
                 
                 $pdo->beginTransaction();
-                $stmt_check = $pdo->prepare("SELECT status FROM sales_orders WHERE id = ?");
+                // Lấy thông tin quote_id trước khi xóa
+                $stmt_check = $pdo->prepare("SELECT status, quote_id FROM sales_orders WHERE id = ?");
                 $stmt_check->execute([$id]);
-                $status_del = $stmt_check->fetchColumn();
+                $order_data_del = $stmt_check->fetch(PDO::FETCH_ASSOC);
 
-                if (!$status_del) {
+                if (!$order_data_del) {
                     $pdo->rollBack();
                     throw new RuntimeException($lang['order_not_found'] ?? 'Order not found.', 404);
                 }
+
+                $status_del = $order_data_del['status'];
+                $quote_id_del = $order_data_del['quote_id'];
+
                 if ($status_del !== 'draft') {
                      $pdo->rollBack();
                      throw new RuntimeException(sprintf($lang['cannot_delete_order_status_not_draft'] ?? 'Cannot delete order. Status is "%s", not "draft".', $status_del), 403);
                 }
+
                 $stmt_del_items = $pdo->prepare("DELETE FROM sales_order_details WHERE order_id = ?");
                 $stmt_del_items->execute([$id]);
+
                 $stmt_del_order = $pdo->prepare("DELETE FROM sales_orders WHERE id = ? AND status = 'draft'");
                 $deleted_rows = $stmt_del_order->execute([$id]);
+
                 if ($deleted_rows) {
+                    // Cập nhật lại ordered_quantity cho Báo giá liên kết (nếu có)
+                    if (!empty($quote_id_del)) {
+                        $sql_update_ordered_qty = "
+                            UPDATE sales_quote_details sqd
+                            SET ordered_quantity = (
+                                SELECT COALESCE(SUM(sod.quantity), 0)
+                                FROM sales_order_details sod
+                                JOIN sales_orders so ON sod.order_id = so.id
+                                WHERE sod.quote_detail_id = sqd.id
+                                  AND so.status != 'cancelled'
+                            )
+                            WHERE sqd.quote_id = :qid
+                        ";
+                        $stmt_update_qty = $pdo->prepare($sql_update_ordered_qty);
+                        $stmt_update_qty->execute([':qid' => $quote_id_del]);
+                    }
+
                     $pdo->commit();
                     $response = ['success' => true, 'message' => $lang['order_deleted_success'] ?? 'Order deleted success.'];
                     write_user_log('DELETE', 'sales_order', "Xóa đơn hàng #$id", ['id' => $id], 'danger');
 
                     $http_status_code = 200;
                 } else {
-                    $pdo->rollBack(); // Dù đã check status, có thể có race condition hoặc id không đúng
+                    $pdo->rollBack(); 
                     throw new RuntimeException($lang['order_delete_failed_or_not_found'] ?? 'Failed to delete order or order not found/not in draft status.', 404);
                 }
                 break;
 
                 
+            case 'update_status':
+                $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+                $newStatus = trim($_POST['status'] ?? '');
+                
+                if (!$id || empty($newStatus)) {
+                    throw new InvalidArgumentException($lang['invalid_data'] ?? 'Dữ liệu không hợp lệ.');
+                }
+                
+                $pdo->beginTransaction();
+                
+                // Lấy quote_id trước khi update để tính toán lại ordered_quantity
+                $stmt_get = $pdo->prepare("SELECT quote_id FROM sales_orders WHERE id = ?");
+                $stmt_get->execute([$id]);
+                $quote_id = $stmt_get->fetchColumn();
+                
+                $stmt_upd = $pdo->prepare("UPDATE sales_orders SET status = ?, updated_at = NOW() WHERE id = ?");
+                $stmt_upd->execute([$newStatus, $id]);
+                
+                if (!empty($quote_id)) {
+                    $sql_update_ordered_qty = "
+                        UPDATE sales_quote_details sqd
+                        SET ordered_quantity = (
+                            SELECT COALESCE(SUM(sod.quantity), 0)
+                            FROM sales_order_details sod
+                            JOIN sales_orders so ON sod.order_id = so.id
+                            WHERE sod.quote_detail_id = sqd.id
+                              AND so.status != 'cancelled'
+                        )
+                        WHERE sqd.quote_id = :qid
+                    ";
+                    $stmt_update_qty = $pdo->prepare($sql_update_ordered_qty);
+                    $stmt_update_qty->execute([':qid' => $quote_id]);
+                }
+                
+                $pdo->commit();
+                $response = ['success' => true, 'message' => $lang['status_updated_success'] ?? 'Trạng thái đã được cập nhật thành công.'];
+                write_user_log('UPDATE_STATUS', 'sales_order', "Cập nhật trạng thái đơn hàng #$id thành $newStatus", ['id' => $id, 'status' => $newStatus], 'info');
+                $http_status_code = 200;
+                break;
 
             default:
                 $response = ['success' => false, 'message' => ($lang['invalid_action_specified_post'] ?? 'Invalid action specified for POST.') . " Action: " . htmlspecialchars($action)];

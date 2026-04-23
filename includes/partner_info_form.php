@@ -136,6 +136,12 @@ $doc_date_input_name   = $current_config['date_input_name'];
                     <input type="text" class="form-control text-end" id="<?= htmlspecialchars($doc_number_input_id) ?>" name="<?= htmlspecialchars($doc_number_input_name) ?>" required readonly>
                 </div>
                 <div class="invalid-feedback" id="<?= htmlspecialchars($doc_number_input_id) ?>_feedback"></div> </div>
+            <?php if ($document_context === 'purchase_order_title'): ?>
+            <div id="linked_quote_display_row" class="mb-3 fw-bold" style="display:none;">
+                <label class="form-label"><span data-lang-key="linked_sales_quote"><?= $lang['linked_sales_quote'] ?? 'Linked Quote' ?></span></label>
+                <div class="form-control-plaintext text-end border-bottom" id="linked_quote_number_display">-</div>
+            </div>
+            <?php endif; ?>
             <div class="mb-3 currency-align">
                 <label for="currency_select" class="form-label"><span data-lang-key="currency"><?= $lang['currency'] ?? 'Currency' ?></span></label>
                 <select class="form-select text-end" id="currency_select" name="currency">

@@ -209,6 +209,8 @@ function resetOrderForm(isEdit = false) {
     if (orderForm && orderForm.length) orderForm[0].reset();
     if (orderForm && orderForm.length) orderForm.find('input[type="hidden"]').val('');
     $('#order_quote_id_form').val('');
+    $('#linked_quote_number_display').text('-');
+    $('#linked_quote_display_row').hide();
 
     if (itemTableBody && itemTableBody.length) itemTableBody.empty();
     addItemRow(); // Thêm một dòng item trống
@@ -305,6 +307,7 @@ function addItemRow(data = {}) {
     });
 
     if (data.id) templateRow.find('td:first-child').append(`<input type="hidden" name="items[${newItemIndex}][detail_id]" value="${data.id}">`);
+    if (data.quote_detail_id) templateRow.find('td:first-child').append(`<input type="hidden" class="quote-detail-id" name="items[${newItemIndex}][quote_detail_id]" value="${data.quote_detail_id}">`);
     if (data.product_id) templateRow.find('.product-id').val(data.product_id);
     if (data.product_name_snapshot) templateRow.find('.product-autocomplete').val(data.product_name_snapshot);
     if (data.category_snapshot) { templateRow.find('.category-display').val(data.category_snapshot); templateRow.find('input[name$="[category_snapshot]"]').val(data.category_snapshot); }
@@ -348,7 +351,7 @@ function setOrderFormViewMode(isView, orderNumber = '') {
 
     if (isView) {
         orderForm.addClass('view-mode');
-        orderForm.find('input, select, textarea').not('#btn-cancel-order-form, #btn-download-so-pdf, #toggle-so-signature').prop('disabled', true);
+        orderForm.find('input, select, textarea').not('#btn-cancel-order-form, #btn-download-pdf, #toggle-signature').prop('disabled', true);
         orderForm.find('#add-item-row, .remove-item-row, #btn-generate-order-number').hide();
         if (typeof saveButton !== 'undefined' && saveButton.length) saveButton.hide();
     } else {
@@ -361,7 +364,7 @@ function setOrderFormViewMode(isView, orderNumber = '') {
         }
     }
     $('#btn-cancel-order-form').text(cancelBtnText);
-    $('#btn-download-so-pdf').prop('disabled', !orderNumber && isView);
+    $('#btn-download-pdf').prop('disabled', !orderNumber && isView);
 }
 
 /**
@@ -397,7 +400,7 @@ function loadOrderForEdit(orderId, callSource = "UnknownSO_Default") {
             if (typeof orderFormCard !== 'undefined' && orderFormCard.length) {
                 orderFormCard.addClass('opacity-50');
             }
-            $('#btn-save-order, #btn-cancel-order-form, #btn-download-so-pdf').prop('disabled', true);
+            $('#btn-save-order, #btn-cancel-order-form, #btn-download-pdf').prop('disabled', true);
         },
         success: function (response) {
             devLog(`SO Form: CALL #${currentCallNumber} - Order details received (Source: ${callSource}):`, response);
@@ -513,7 +516,7 @@ function loadOrderForEdit(orderId, callSource = "UnknownSO_Default") {
                 if (typeof calculateSummaryTotals === "function") { calculateSummaryTotals(); } 
                 else { console.error("SO Form: calculateSummaryTotals function is not defined.");}
                 
-                $('#btn-download-so-pdf').prop('disabled', !orderHeader.order_number);
+                $('#btn-download-pdf').prop('disabled', !orderHeader.order_number);
 
                 let currentSOFormIsViewMode = (orderHeader.status !== 'draft');
                 if (typeof setOrderFormViewMode === "function") {
@@ -552,7 +555,7 @@ function loadOrderForEdit(orderId, callSource = "UnknownSO_Default") {
                     if(typeof saveButton !== 'undefined' && saveButton.length) saveButton.prop('disabled', false);
                 }
             }
-            $('#btn-cancel-order-form, #btn-download-so-pdf').prop('disabled', false);
+            $('#btn-cancel-order-form, #btn-download-pdf').prop('disabled', false);
         }
     });
 

@@ -23,16 +23,15 @@ try {
     $deliveryStatus = $_POST['delivery_status'] ?? ''; // '', 'not_delivered', 'delivered'
 
     $column_map = [
-        1 => 'so.order_number',
-        2 => 'so.order_date',
-        3 => 'p.name',
-        4 => 'sq.quote_number',
-        5 => 'so.grand_total',
-        6 => 'c.name',
-        7 => 'd.ten',
+        2 => 'so.order_number',
+        3 => 'so.order_date',
+        4 => 'p.name',
+        5 => 'sq.quote_number',
+        6 => 'so.grand_total',
+        7 => 'c.name',
         8 => 'so.expected_delivery_date',
     ];
-    $order_column_index = $_POST['order'][0]['column'] ?? 1;
+    $order_column_index = $_POST['order'][0]['column'] ?? 2;
     $order_dir          = $_POST['order'][0]['dir'] ?? 'desc';
     $order_column_name  = $column_map[$order_column_index] ?? 'so.order_number';
 
@@ -45,7 +44,8 @@ try {
             sq.quote_number AS linked_quote_number,
             c.name AS customer_name,
             d.ten AS driver_name,
-            CONCAT('SĐT: ', d.sdt, ' | Biển số: ', d.bien_so_xe) as driver_details
+            CONCAT('SĐT: ', d.sdt, ' | Biển số: ', d.bien_so_xe) as driver_details,
+            (SELECT t.trip_number FROM dispatcher_trips t JOIN dispatcher_trip_orders dto ON t.id = dto.trip_id WHERE dto.order_id = so.id AND t.status != 'cancelled' LIMIT 1) as assigned_trip_number
     ";
     $sql_from = "
         FROM sales_orders so

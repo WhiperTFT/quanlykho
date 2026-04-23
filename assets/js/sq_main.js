@@ -185,7 +185,6 @@ $(document).ready(function () {
             const quoteNumber = $button.data('quote-number');
             devLog(`Quote ID: ${quoteId}, Quote Number: ${quoteNumber}`);
 
-            // Đảm bảo LANG và PROJECT_BASE_URL đã được định nghĩa (thường từ set_js_vars.php)
             if (typeof LANG === 'undefined' || typeof PROJECT_BASE_URL === 'undefined') {
                 console.error("LANG or PROJECT_BASE_URL is not defined. Cannot proceed.");
                 alert("Lỗi cấu hình: Biến ngôn ngữ hoặc đường dẫn gốc chưa được định nghĩa.");
@@ -193,74 +192,112 @@ $(document).ready(function () {
             }
 
             Swal.fire({
-                title: LANG['confirm_action_title'] || 'Xác nhận hành động',
-                text: LANG['confirm_create_order_from_quote_text'] || `Bạn có muốn tạo Đơn Đặt Hàng từ Báo giá ${quoteNumber} và chuyển trang không?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: LANG['yes_create_and_redirect'] || 'Có, tạo và chuyển',
-                cancelButtonText: LANG['no_cancel'] || 'Không, hủy'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: LANG['processing'] || 'Đang xử lý...',
-                        text: LANG['fetching_quote_details'] || 'Đang lấy chi tiết báo giá...',
-                        allowOutsideClick: false,
-                        didOpen: () => { Swal.showLoading(); }
-                    });
-                    $.ajax({
-                        url: PROJECT_BASE_URL + 'process/sales_quote_handler.php',
-                        type: 'POST',
-                        data: { action: 'get_details', id: quoteId },
-                        dataType: 'json',
-                        success: function(response) {
-                        Swal.close();
-                        if (response && response.success && response.data && response.data.items) {
-                            const quoteHeader = response.data.quote || {};
-                            const itemsFromServer = response.data.items;
+                title: LANG['processing'] || 'Đang xử lý...',
+                text: LANG['fetching_quote_details'] || 'Đang lấy chi tiết báo giá...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
 
-                            const extractedItems = itemsFromServer.map(item => ({
-                            product_id: item.product_id || null,
-                            product_name_snapshot: item.product_name_snapshot || '',
-                            category_snapshot: item.category_snapshot || '',
-                            unit_snapshot: item.unit_snapshot || '',
-                            // Ép số thuần từ server:
-                            quantity: parseServerNumber(item.quantity) || 0,
-                            unit_price: parseServerNumber(item.unit_price) || 0
-                            }));
+            $.ajax({
+                url: PROJECT_BASE_URL + 'process/sales_quote_handler.php',
+                type: 'POST',
+                data: { action: 'get_details', id: quoteId },
+                dataType: 'json',
+                success: function(response) {
+                    Swal.close();
+                    if (response && response.success && response.data && response.data.items) {
+                        const quoteHeader = response.data.quote || {};
+                        const itemsFromServer = response.data.items;
 
-                            const vatInt = Math.round(parseServerNumber(quoteHeader.vat_rate));
-                            const currencyCode = quoteHeader.currency || 'VND';
+                        let htmlContent = '<p style="text-align: left; font-size: 14px;">Vui lòng chọn sản phẩm và nhập số lượng muốn đặt:</p>';
+                        htmlContent += '<div class="table-responsive" style="max-height: 400px;"><table class="table table-bordered table-sm" style="font-size: 14px; text-align: left;">';
+                        htmlContent += '<thead class="thead-light"><tr><th style="width:40px; text-align:center;"><input type="checkbox" id="selectAllPoItems" checked></th><th>Sản phẩm</th><th>SL Báo giá</th><th>Đã đặt</th><th>SL Lên đơn này</th></tr></thead><tbody>';
+                        
+                        itemsFromServer.forEach((item, index) => {
+                            const qty = parseServerNumber(item.quantity) || 0;
+                            const ordered = parseServerNumber(item.ordered_quantity) || 0;
+                            const remaining = qty - ordered;
+                            const suggestedQty = remaining > 0 ? remaining : 0;
+                            
+                            htmlContent += `<tr>
+                                <td style="text-align:center;"><input type="checkbox" class="po-item-checkbox" data-index="${index}" ${suggestedQty > 0 ? 'checked' : ''}></td>
+                                <td style="white-space: normal; word-wrap: break-word; max-width: 250px;">${item.product_name_snapshot}</td>
+                                <td>${qty}</td>
+                                <td>${ordered}</td>
+                                <td><input type="number" class="form-control form-control-sm po-item-qty" data-index="${index}" value="${suggestedQty}" min="0" style="width: 80px;"></td>
+                            </tr>`;
+                        });
+                        htmlContent += '</tbody></table></div>';
 
-                            const quoteToOrderData = {
-                            quoteId: quoteId,
-                            quoteNumber: quoteNumber,
-                            vat_rate: vatInt,         // ✅ integer
-                            currency: currencyCode,   // ✅ VND/USD
-                            items: extractedItems     // ✅ số thuần
-                            };
+                        Swal.fire({
+                            title: `Tạo Đơn từ BG: ${quoteNumber}`,
+                            html: htmlContent,
+                            width: '800px',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: LANG['yes_create_and_redirect'] || 'Tạo Đơn Đặt Hàng',
+                            cancelButtonText: LANG['no_cancel'] || 'Hủy',
+                            didOpen: () => {
+                                $('#selectAllPoItems').on('change', function() {
+                                    $('.po-item-checkbox').prop('checked', this.checked);
+                                });
+                            },
+                            preConfirm: () => {
+                                const selectedItems = [];
+                                $('.po-item-checkbox:checked').each(function() {
+                                    const idx = $(this).data('index');
+                                    const qtyInput = $(`.po-item-qty[data-index="${idx}"]`).val();
+                                    const parsedQty = parseFloat(qtyInput) || 0;
+                                    
+                                    if (parsedQty > 0) {
+                                        const origItem = itemsFromServer[idx];
+                                        selectedItems.push({
+                                            detail_id: origItem.id || null, // Lưu quote_detail_id để mapping
+                                            product_id: origItem.product_id || null,
+                                            product_name_snapshot: origItem.product_name_snapshot || '',
+                                            category_snapshot: origItem.category_snapshot || '',
+                                            unit_snapshot: origItem.unit_snapshot || '',
+                                            quantity: parsedQty,
+                                            unit_price: parseServerNumber(origItem.unit_price) || 0
+                                        });
+                                    }
+                                });
+                                
+                                if (selectedItems.length === 0) {
+                                    Swal.showValidationMessage('Vui lòng chọn ít nhất 1 sản phẩm với số lượng > 0');
+                                    return false;
+                                }
+                                return selectedItems;
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                const selectedItems = result.value;
+                                const vatInt = Math.round(parseServerNumber(quoteHeader.vat_rate));
+                                const currencyCode = quoteHeader.currency || 'VND';
+
+                                const quoteToOrderData = {
+                                    quoteId: quoteId,
+                                    quoteNumber: quoteNumber,
+                                    vat_rate: vatInt,
+                                    currency: currencyCode,
+                                    items: selectedItems
+                                };
                                 localStorage.setItem('quoteToOrderData', JSON.stringify(quoteToOrderData));
                                 localStorage.setItem('triggerCreateOrderFromQuote', 'true');
                                 window.location.href = PROJECT_BASE_URL + 'sales_orders.php';
-                            } else {
-                                console.error("Error fetching quote details from server:", response.message);
-                                Swal.fire(LANG['error_title'] || 'Lỗi', (response.message || LANG['error_fetching_quote_details_text'] || 'Không thể lấy chi tiết báo giá.'), 'error');
-                                localStorage.removeItem('quoteToOrderData');
-                                localStorage.removeItem('triggerCreateOrderFromQuote');
                             }
-                        },
-                        error: function(xhr, status, error) {
-                            Swal.close();
-                            console.error("AJAX Error fetching quote details:", status, error, xhr.responseText);
-                            Swal.fire(LANG['error_title'] || 'Lỗi Máy Chủ', LANG['server_error_fetching_quote_details_text'] || 'Lỗi máy chủ khi lấy chi tiết báo giá.', 'error');
-                            localStorage.removeItem('quoteToOrderData');
-                            localStorage.removeItem('triggerCreateOrderFromQuote');
-                        }
-                    });
-                } else {
-                    localStorage.removeItem('quoteToOrderData');
-                    localStorage.removeItem('triggerCreateOrderFromQuote');
+                        });
+
+                    } else {
+                        console.error("Error fetching quote details from server:", response.message);
+                        Swal.fire(LANG['error_title'] || 'Lỗi', (response.message || LANG['error_fetching_quote_details_text'] || 'Không thể lấy chi tiết báo giá.'), 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.close();
+                    console.error("AJAX Error fetching quote details:", status, error, xhr.responseText);
+                    Swal.fire(LANG['error_title'] || 'Lỗi Máy Chủ', LANG['server_error_fetching_quote_details_text'] || 'Lỗi máy chủ khi lấy chi tiết báo giá.', 'error');
                 }
             });
         });

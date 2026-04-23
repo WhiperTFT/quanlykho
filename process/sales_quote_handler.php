@@ -79,7 +79,7 @@ try {
                             // Lấy chi tiết từ sales_quote_details
                             $stmtDetails = $pdo->prepare("
                                 SELECT id, quote_id, product_id, product_name_snapshot, 
-                                       category_snapshot, unit_snapshot, quantity, unit_price 
+                                       category_snapshot, unit_snapshot, quantity, unit_price, ordered_quantity 
                                 FROM sales_quote_details 
                                 WHERE quote_id = ? ORDER BY id ASC
                             ");
@@ -116,11 +116,13 @@ try {
                         } else {
                             $items_data_for_order = [];
                             $sql_details = "SELECT
+                                               sqd.id as detail_id,
                                                sqd.product_id,
                                                sqd.product_name_snapshot,
                                                sqd.category_snapshot,
                                                sqd.unit_snapshot,
                                                sqd.quantity,
+                                               sqd.ordered_quantity,
                                                sqd.unit_price,
                                                cat.id as category_id,
                                                u.id as unit_id
@@ -135,6 +137,7 @@ try {
 
                             foreach ($details_from_db as $item) {
                                 $items_data_for_order[] = [
+                                    'detail_id' => $item['detail_id'],
                                     'product_id' => $item['product_id'],
                                     'item_name' => $item['product_name_snapshot'],
                                     'category_id' => $item['category_id'],
@@ -142,6 +145,7 @@ try {
                                     'unit_id' => $item['unit_id'],
                                     'unit_snapshot' => $item['unit_snapshot'],
                                     'quantity' => $item['quantity'],
+                                    'ordered_quantity' => $item['ordered_quantity'],
                                     'unit_price' => $item['unit_price']
                                 ];
                             }

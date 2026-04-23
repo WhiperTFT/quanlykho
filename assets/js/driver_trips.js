@@ -1,35 +1,47 @@
 /* file assets/js/driver_trips.js */
-function formatDetails(orderId) {
+function formatDetails(tripId) {
     return new Promise((resolve, reject) => {
         $.ajax({
-            url: 'process/sales_order_handler.php',
+            url: 'process/delivery_handler.php',
             type: 'GET',
             dataType: 'json',
             data: {
-                action: 'get_details',
-                id: orderId
+                action: 'get_trip_items_details',
+                id: tripId
             },
             success: function(response) {
-                if (response.success && response.data && response.data.details && response.data.details.length > 0) {
-                    let items = response.data.details;
-                    let itemsHtml = '<div class="p-2 bg-light border rounded"><table class="table table-sm table-bordered" style="margin: 0;">';
-                    itemsHtml += '<thead class="table-secondary"><tr><th>Sản phẩm</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>';
+                if (response.success && response.items && response.items.length > 0) {
+                    let items = response.items;
+                    let itemsHtml = '<div class="p-3 bg-white border rounded shadow-sm m-2">';
                     
+                    // Products Table
+                    itemsHtml += '<h6 class="fw-bold mb-2 text-primary"><i class="bi bi-box-seam me-2"></i>Tổng hợp hàng hóa</h6>';
+                    itemsHtml += '<table class="table table-sm table-bordered mb-3">';
+                    itemsHtml += '<thead class="table-light"><tr><th>Mã SP</th><th>Tên sản phẩm</th><th>ĐVT</th><th class="text-center">Số lượng</th></tr></thead><tbody>';
                     items.forEach(item => {
-                        const formatCurrency = (num) => (num ? parseFloat(num).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : '0 đ');
                         const formatNumber = (num) => (num ? parseFloat(num).toLocaleString('vi-VN') : '0');
-                        const lineTotal = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
-
-                        itemsHtml += `
-                            <tr>
-                                <td>${item.product_name_snapshot || 'N/A'}</td>
-                                <td>${formatNumber(item.quantity)}</td>
-                                <td>${formatCurrency(item.unit_price)}</td>
-                                <td>${formatCurrency(lineTotal)}</td>
-                            </tr>`;
+                        itemsHtml += `<tr><td>${item.product_code}</td><td>${item.product_name}</td><td>${item.unit_name || ''}</td><td class="text-center fw-bold">${formatNumber(item.total_qty)}</td></tr>`;
                     });
+                    itemsHtml += '</tbody></table>';
 
-                    itemsHtml += '</tbody></table></div>';
+                    // Orders Section
+                    itemsHtml += '<h6 class="fw-bold mb-2 text-primary"><i class="bi bi-file-earmark-text me-2"></i>Danh sách đơn hàng & Chứng từ</h6>';
+                    itemsHtml += '<div class="row g-2">';
+                    response.orders.forEach(order => {
+                        itemsHtml += `
+                            <div class="col-md-6">
+                                <div class="p-2 border rounded d-flex justify-content-between align-items-center bg-light">
+                                    <div>
+                                        <div class="fw-bold small">${order.order_number}</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">${order.supplier_name} &rarr; ${order.customer_name || 'N/A'}</div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary manage-attachments-btn" data-order-id="${order.id}">
+                                        <i class="bi bi-camera me-1"></i> Chứng từ
+                                    </button>
+                                </div>
+                            </div>`;
+                    });
+                    itemsHtml += '</div></div>';
                     resolve(itemsHtml);
                 } else {
                     resolve('<div class="p-2 text-center">Không tìm thấy chi tiết sản phẩm cho đơn hàng này.</div>');
@@ -272,24 +284,12 @@ $(document).ready(function() {
 
     // --- LOGIC 2: KHỞI TẠO DATATABLES VÀ BỘ LỌC TÙY CHỈNH ---
     if ($('#driver-trips-table').length) {
-        let showZeroValueTrips = false;
+        // Removed custom search filter that hid zero-value trips
 
-        $.fn.dataTable.ext.search.push(
-            function(settings, data, dataIndex) {
-                if (settings.nTable.id !== 'driver-trips-table') {
-                    return true;
-                }
-                const shippingCost = parseFloat(data[7].replace(/\./g, '')) || 0;
-                return showZeroValueTrips || shippingCost !== 0;
-            }
-        );
 
         const table = $('#driver-trips-table').DataTable({
             "columns": [
                 { "className": 'dt-control', "orderable": false, "data": null, "defaultContent": '' },
-                null,
-                null,
-                null,
                 null,
                 null,
                 null,
@@ -312,10 +312,10 @@ $(document).ready(function() {
             if (tr.parents('tbody').length === 0) return;
 
             const row = table.row(tr);
-            const orderId = tr.data('order-id');
+            const tripId = tr.data('trip-id');
 
-            if (!orderId) {
-                console.error('LỖI: Không tìm thấy data-order-id trên thẻ <tr>. Hàng đang click:', tr);
+            if (!tripId) {
+                console.error('LỖI: Không tìm thấy data-trip-id trên thẻ <tr>. Hàng đang click:', tr);
                 return;
             }
 
@@ -324,7 +324,7 @@ $(document).ready(function() {
                 tr.removeClass('shown');
             } else {
                 tr.addClass('loading');
-                formatDetails(orderId).then(detailsHtml => {
+                formatDetails(tripId).then(detailsHtml => {
                     row.child(detailsHtml, 'details-row').show();
                     tr.removeClass('loading').addClass('shown');
                 }).catch(errorHtml => {
@@ -334,14 +334,8 @@ $(document).ready(function() {
             }
         });
 
-        // --- LOGIC 4: BẬT/TẮT HIỂN THỊ CÁC CHUYẾN ĐI GIÁ TRỊ 0 ---
-        $('#toggle-zero-trips-btn').on('click', function() {
-            showZeroValueTrips = !showZeroValueTrips;
-            const button = $(this);
-            button.text(showZeroValueTrips ? 'Ẩn các chuyến đi giá trị 0' : 'Hiện các chuyến đi giá trị 0');
-            table.draw();
-            updateFakeScrollbarWidth();
-        });
+        // Removed button toggle logic for zero-value trips
+
 
         // Khởi tạo thanh cuộn giả
         updateFakeScrollbarWidth();
