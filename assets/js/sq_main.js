@@ -208,26 +208,68 @@ $(document).ready(function () {
                     if (response && response.success && response.data && response.data.items) {
                         const quoteHeader = response.data.quote || {};
                         const itemsFromServer = response.data.items;
+                        // Sắp xếp items theo tên nhà cung cấp để dễ nhìn (Grouping)
+                        itemsFromServer.sort((a, b) => {
+                            const nameA = (a.supplier_name || "").toLowerCase();
+                            const nameB = (b.supplier_name || "").toLowerCase();
+                            return nameA.localeCompare(nameB);
+                        });
 
-                        let htmlContent = '<p style="text-align: left; font-size: 14px;">Vui lòng chọn sản phẩm và nhập số lượng muốn đặt:</p>';
-                        htmlContent += '<div class="table-responsive" style="max-height: 400px;"><table class="table table-bordered table-sm" style="font-size: 14px; text-align: left;">';
-                        htmlContent += '<thead class="thead-light"><tr><th style="width:40px; text-align:center;"><input type="checkbox" id="selectAllPoItems" checked></th><th>Sản phẩm</th><th>SL Báo giá</th><th>Đã đặt</th><th>SL Lên đơn này</th></tr></thead><tbody>';
+                        // Lấy danh sách NCC duy nhất từ items (Chỉ lấy NCC còn hàng chưa đặt hết)
+                        const uniqueSuppliers = [];
+                        const supplierMap = {};
+                        itemsFromServer.forEach(item => {
+                            const qty = parseServerNumber(item.quantity) || 0;
+                            const ordered = parseServerNumber(item.ordered_quantity) || 0;
+                            const remaining = qty - ordered;
+
+                            if (item.supplier_id && !supplierMap[item.supplier_id] && remaining > 0) {
+                                supplierMap[item.supplier_id] = item.supplier_name || `NCC ID: ${item.supplier_id}`;
+                                uniqueSuppliers.push({ id: item.supplier_id, name: supplierMap[item.supplier_id] });
+                            }
+                        });
+
+                        let htmlContent = '<div class="mb-3" style="text-align: left;">';
+                        htmlContent += '<label class="form-label small fw-bold">Lọc theo Nhà Cung Cấp:</label>';
+                        htmlContent += '<select id="swalSupplierFilter" class="form-select form-select-sm">';
+                        htmlContent += '<option value="">-- Tất cả Nhà Cung Cấp --</option>';
+                        uniqueSuppliers.forEach(s => {
+                            htmlContent += `<option value="${s.id}">${s.name}</option>`;
+                        });
+                        htmlContent += '</select></div>';
                         
+                        htmlContent += '<p style="text-align: left; font-size: 14px;">Vui lòng chọn sản phẩm và nhập số lượng muốn đặt:</p>';
+                        htmlContent += '<div class="table-responsive" style="max-height: 400px;"><table class="table table-bordered table-sm" style="font-size: 14px; text-align: left;" id="swalPoItemsTable">';
+                        htmlContent += '<thead class="thead-light"><tr><th style="width:40px; text-align:center;"><input type="checkbox" id="selectAllPoItems" checked></th><th>Sản phẩm</th><th>Nhà cung cấp</th><th>SL BG</th><th>Đã đặt</th><th>SL mới</th></tr></thead><tbody>';
+                        
+                        let visibleRowsCount = 0;
                         itemsFromServer.forEach((item, index) => {
                             const qty = parseServerNumber(item.quantity) || 0;
                             const ordered = parseServerNumber(item.ordered_quantity) || 0;
                             const remaining = qty - ordered;
                             const suggestedQty = remaining > 0 ? remaining : 0;
+                            const sName = item.supplier_name || '<span class="text-muted italic">Chưa gán</span>';
+                            const itemName = item.item_name || item.product_name_snapshot || 'Sản phẩm không tên';
                             
-                            htmlContent += `<tr>
+                            // Ẩn các sản phẩm đã được đặt đủ số lượng (Tránh tạo đơn trùng)
+                            const rowStyle = suggestedQty <= 0 ? 'display: none;' : '';
+                            if (suggestedQty > 0) visibleRowsCount++;
+
+                            htmlContent += `<tr class="po-item-row" data-supplier-id="${item.supplier_id || ''}" style="${rowStyle}">
                                 <td style="text-align:center;"><input type="checkbox" class="po-item-checkbox" data-index="${index}" ${suggestedQty > 0 ? 'checked' : ''}></td>
-                                <td style="white-space: normal; word-wrap: break-word; max-width: 250px;">${item.product_name_snapshot}</td>
+                                <td style="white-space: normal; word-wrap: break-word; max-width: 200px;">${itemName}</td>
+                                <td>${sName}</td>
                                 <td>${qty}</td>
                                 <td>${ordered}</td>
-                                <td><input type="number" class="form-control form-control-sm po-item-qty" data-index="${index}" value="${suggestedQty}" min="0" style="width: 80px;"></td>
+                                <td><input type="number" class="form-control form-control-sm po-item-qty" data-index="${index}" value="${suggestedQty}" min="0" style="width: 70px;"></td>
                             </tr>`;
                         });
-                        htmlContent += '</tbody></table></div>';
+                        
+                        if (visibleRowsCount === 0) {
+                            htmlContent = '<div class="alert alert-info text-start">Tất cả sản phẩm trong Báo giá này đã được tạo Đơn Đặt Hàng đủ số lượng. Không còn sản phẩm nào để tạo thêm Đơn mới.</div>';
+                        } else {
+                            htmlContent += '</tbody></table></div>';
+                        }
 
                         Swal.fire({
                             title: `Tạo Đơn từ BG: ${quoteNumber}`,
@@ -240,12 +282,50 @@ $(document).ready(function () {
                             cancelButtonText: LANG['no_cancel'] || 'Hủy',
                             didOpen: () => {
                                 $('#selectAllPoItems').on('change', function() {
-                                    $('.po-item-checkbox').prop('checked', this.checked);
+                                    $('.po-item-checkbox:visible').prop('checked', this.checked);
                                 });
+
+                                const $filter = $('#swalSupplierFilter');
+                                $filter.on('change', function() {
+                                    const supplierId = $(this).val();
+                                    if (supplierId === "") {
+                                        $('.po-item-row').show();
+                                    } else {
+                                        $('.po-item-row').hide();
+                                        const visibleRows = $(`.po-item-row[data-supplier-id="${supplierId}"]`);
+                                        visibleRows.show();
+                                        
+                                        // Tự động chọn các item của NCC này (thông minh hơn)
+                                        $('.po-item-checkbox').prop('checked', false); // Bỏ chọn hết trước
+                                        visibleRows.find('.po-item-checkbox').each(function() {
+                                            const idx = $(this).data('index');
+                                            const qtyInput = $(`.po-item-qty[data-index="${idx}"]`).val();
+                                            if (parseFloat(qtyInput) > 0) {
+                                                $(this).prop('checked', true);
+                                            }
+                                        });
+                                    }
+                                    // Cập nhật trạng thái checkbox "Chọn tất cả" dựa trên các item đang hiện
+                                    const visibleCheckboxes = $('.po-item-checkbox:visible');
+                                    const allVisibleChecked = visibleCheckboxes.length > 0 && visibleCheckboxes.filter(':not(:checked)').length === 0;
+                                    $('#selectAllPoItems').prop('checked', allVisibleChecked);
+                                });
+
+                                // TỰ ĐỘNG: Nếu chỉ có 1 NCC duy nhất trong list, chọn luôn NCC đó
+                                if (uniqueSuppliers.length === 1) {
+                                    $filter.val(uniqueSuppliers[0].id).trigger('change');
+                                    devLog("Auto-selected the only available supplier:", uniqueSuppliers[0].name);
+                                }
                             },
                             preConfirm: () => {
                                 const selectedItems = [];
-                                $('.po-item-checkbox:checked').each(function() {
+                                const selectedSupplierId = $('#swalSupplierFilter').val();
+                                let finalSupplierId = selectedSupplierId;
+                                let finalSupplierName = selectedSupplierId ? $('#swalSupplierFilter option:selected').text() : null;
+
+                                const selectedSuppliersInRows = new Set();
+
+                                $('.po-item-checkbox:checked:visible').each(function() {
                                     const idx = $(this).data('index');
                                     const qtyInput = $(`.po-item-qty[data-index="${idx}"]`).val();
                                     const parsedQty = parseFloat(qtyInput) || 0;
@@ -253,14 +333,20 @@ $(document).ready(function () {
                                     if (parsedQty > 0) {
                                         const origItem = itemsFromServer[idx];
                                         selectedItems.push({
-                                            detail_id: origItem.id || null, // Lưu quote_detail_id để mapping
+                                            detail_id: origItem.detail_id || origItem.id || null, 
                                             product_id: origItem.product_id || null,
-                                            product_name_snapshot: origItem.product_name_snapshot || '',
+                                            product_name_snapshot: origItem.item_name || origItem.product_name_snapshot || '',
                                             category_snapshot: origItem.category_snapshot || '',
                                             unit_snapshot: origItem.unit_snapshot || '',
                                             quantity: parsedQty,
-                                            unit_price: parseServerNumber(origItem.unit_price) || 0
+                                            unit_price: parseServerNumber(origItem.unit_price) || 0,
+                                            supplier_id: origItem.supplier_id,
+                                            supplier_name: origItem.supplier_name
                                         });
+
+                                        if (origItem.supplier_id) {
+                                            selectedSuppliersInRows.add(origItem.supplier_id);
+                                        }
                                     }
                                 });
                                 
@@ -268,11 +354,25 @@ $(document).ready(function () {
                                     Swal.showValidationMessage('Vui lòng chọn ít nhất 1 sản phẩm với số lượng > 0');
                                     return false;
                                 }
-                                return selectedItems;
+
+                                // THÔNG MINH: Nếu chưa chọn filter NCC nhưng tất cả item được chọn đều cùng 1 NCC
+                                if (!finalSupplierId && selectedSuppliersInRows.size === 1) {
+                                    const autoDetectedId = Array.from(selectedSuppliersInRows)[0];
+                                    finalSupplierId = autoDetectedId;
+                                    // Tìm tên NCC từ map
+                                    finalSupplierName = supplierMap[autoDetectedId] || `NCC ID: ${autoDetectedId}`;
+                                    devLog("Auto-detected single supplier from selection:", finalSupplierName);
+                                }
+
+                                return {
+                                    items: selectedItems,
+                                    supplierId: finalSupplierId,
+                                    supplierName: finalSupplierName
+                                };
                             }
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                const selectedItems = result.value;
+                                const selectedData = result.value;
                                 const vatInt = Math.round(parseServerNumber(quoteHeader.vat_rate));
                                 const currencyCode = quoteHeader.currency || 'VND';
 
@@ -281,7 +381,9 @@ $(document).ready(function () {
                                     quoteNumber: quoteNumber,
                                     vat_rate: vatInt,
                                     currency: currencyCode,
-                                    items: selectedItems
+                                    items: selectedData.items,
+                                    preSelectedSupplierId: selectedData.supplierId,
+                                    preSelectedSupplierName: selectedData.supplierName
                                 };
                                 localStorage.setItem('quoteToOrderData', JSON.stringify(quoteToOrderData));
                                 localStorage.setItem('triggerCreateOrderFromQuote', 'true');

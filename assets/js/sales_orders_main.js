@@ -433,6 +433,27 @@ $(document).ready(function () {
             devLog("Dropdown '#order_quote_id_form' not found.");
           }
 
+          // 1.5) Chọn Nhà Cung Cấp nếu có trong payload (Bổ sung cho 1 BG -> N PO)
+          if (quoteData.preSelectedSupplierId) {
+            devLog("Pre-selecting supplier:", quoteData.preSelectedSupplierId, quoteData.preSelectedSupplierName);
+            
+            // Dùng setTimeout để đảm bảo các plugin autocomplete/select2 đã khởi tạo xong nếu có
+            setTimeout(() => {
+                const $pId = $('#partner_id');
+                const $pAuto = $('#partner_autocomplete');
+                
+                if ($pId.length) $pId.val(quoteData.preSelectedSupplierId);
+                if ($pAuto.length) $pAuto.val(quoteData.preSelectedSupplierName || '');
+                
+                // Tìm và lấy thêm thông tin NCC nếu cần (qua AJAX)
+                if (typeof fetchPartnerInfo === 'function') {
+                    fetchPartnerInfo(quoteData.preSelectedSupplierId);
+                } else {
+                    devLog("fetchPartnerInfo not found, details might not be loaded.");
+                }
+            }, 100);
+          }
+
           // 2) Currency & VAT (ép integer) từ payload
           if (typeof currencySelect !== 'undefined' && currencySelect.length) {
             currencySelect.val(quoteData.currency || 'VND').trigger('change');

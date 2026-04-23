@@ -9,5 +9,8 @@ certs/
 secrets/
 logs/
 .env
+.agent/
+.vscode/
 apache/conf/ssl.crt/
 pdf/
+docs/

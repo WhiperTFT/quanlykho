@@ -49,6 +49,22 @@ try {
                 break; // End search case
 
 
+            case 'get_info':
+                $id = (int)($_GET['id'] ?? 0);
+                if ($id <= 0) {
+                    echo json_encode(['success' => false, 'message' => 'Invalid Partner ID']);
+                    exit;
+                }
+                $stmt = $pdo->prepare("SELECT id, name, address, tax_id, phone, email, contact_person FROM partners WHERE id = ?");
+                $stmt->execute([$id]);
+                $partner = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($partner) {
+                    echo json_encode(['success' => true, 'data' => $partner]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Partner not found']);
+                }
+                break;
+
             default:
                  if ($action !== null) { // Chỉ báo lỗi nếu action được cung cấp nhưng không hợp lệ
                      throw new InvalidArgumentException($lang['invalid_action'] ?? 'Invalid action specified.');

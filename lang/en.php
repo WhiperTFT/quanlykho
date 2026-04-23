@@ -94,6 +94,7 @@ $lang = [
     'error_processing_request' => 'Error processing request.',
     'confirm_delete_partner' => 'Are you sure you want to delete this partner?',
     'select_type' => '-- Select Type --',
+    'search_supplier' => 'Search Supplier...',
 
     // Units
     'purchase_order_title' => 'PURCHASE ORDER',

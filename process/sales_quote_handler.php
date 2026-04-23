@@ -78,10 +78,13 @@ try {
                         } else {
                             // Lấy chi tiết từ sales_quote_details
                             $stmtDetails = $pdo->prepare("
-                                SELECT id, quote_id, product_id, product_name_snapshot, 
-                                       category_snapshot, unit_snapshot, quantity, unit_price, ordered_quantity 
-                                FROM sales_quote_details 
-                                WHERE quote_id = ? ORDER BY id ASC
+                                SELECT sqd.id as detail_id, sqd.id, sqd.quote_id, sqd.product_id, 
+                                       sqd.product_name_snapshot as item_name, sqd.product_name_snapshot,
+                                       sqd.category_snapshot, sqd.unit_snapshot, sqd.quantity, sqd.unit_price, sqd.ordered_quantity,
+                                       sqd.supplier_id, p.name as supplier_name
+                                FROM sales_quote_details sqd
+                                LEFT JOIN partners p ON sqd.supplier_id = p.id
+                                WHERE sqd.quote_id = ? ORDER BY sqd.id ASC
                             ");
                             $stmtDetails->execute([$quoteId]);
                             $items = $stmtDetails->fetchAll(PDO::FETCH_ASSOC);
@@ -124,6 +127,7 @@ try {
                                                sqd.quantity,
                                                sqd.ordered_quantity,
                                                sqd.unit_price,
+                                               sqd.supplier_id,
                                                cat.id as category_id,
                                                u.id as unit_id
                                            FROM sales_quote_details sqd
@@ -146,7 +150,8 @@ try {
                                     'unit_snapshot' => $item['unit_snapshot'],
                                     'quantity' => $item['quantity'],
                                     'ordered_quantity' => $item['ordered_quantity'],
-                                    'unit_price' => $item['unit_price']
+                                    'unit_price' => $item['unit_price'],
+                                    'supplier_id' => $item['supplier_id']
                                 ];
                             }
                             $response = ['success' => true, 'details' => $items_data_for_order, 'message' => ($lang['quote_details_fetched'] ?? 'Quote details fetched.')];
@@ -232,6 +237,7 @@ try {
                                     'unit_snapshot' => trim($item['unit_snapshot'] ?? ($item['unit_id'] ?? '')), // Ưu tiên unit_snapshot
                                     'quantity' => $item_quantity,
                                     'unit_price' => $item_unitPrice,
+                                    'supplier_id' => filter_var($item['supplier_id'] ?? null, FILTER_VALIDATE_INT) ?: null,
                                 ];
                             }
                         }
@@ -287,14 +293,15 @@ try {
                         ]);
                         $newQuoteId = (int)$pdo->lastInsertId();
 
-                        $sql_item_insert = "INSERT INTO sales_quote_details (quote_id, product_id, product_name_snapshot, category_snapshot, unit_snapshot, quantity, unit_price) VALUES (:qid, :pid, :pname, :pcat, :punit, :pqty, :price)";
+                        $sql_item_insert = "INSERT INTO sales_quote_details (quote_id, product_id, product_name_snapshot, category_snapshot, unit_snapshot, quantity, unit_price, supplier_id) VALUES (:qid, :pid, :pname, :pcat, :punit, :pqty, :price, :sid)";
                         $stmt_item_insert = $pdo->prepare($sql_item_insert);
                         foreach ($validItems as $itemData) {
                             $stmt_item_insert->execute([
                                 ':qid' => $newQuoteId,
                                 ':pid' => $itemData['product_id'], ':pname' => $itemData['product_name_snapshot'],
                                 ':pcat' => $itemData['category_snapshot'], ':punit' => $itemData['unit_snapshot'],
-                                ':pqty' => $itemData['quantity'], ':price' => $itemData['unit_price']
+                                ':pqty' => $itemData['quantity'], ':price' => $itemData['unit_price'],
+                                ':sid' => $itemData['supplier_id']
                             ]);
                         }
                         $pdo->commit();
@@ -332,9 +339,9 @@ try {
                         $existingDbItemIds = $stmt_existing->fetchAll(PDO::FETCH_COLUMN);
                         $submittedItemDetailIds = [];
 
-                        $sql_item_upd = "UPDATE sales_quote_details SET product_id = :pid, product_name_snapshot=:pname, category_snapshot=:pcat, unit_snapshot=:punit, quantity=:pqty, unit_price=:pprice WHERE id = :detail_id AND quote_id = :qid";
+                        $sql_item_upd = "UPDATE sales_quote_details SET product_id = :pid, product_name_snapshot=:pname, category_snapshot=:pcat, unit_snapshot=:punit, quantity=:pqty, unit_price=:pprice, supplier_id=:sid WHERE id = :detail_id AND quote_id = :qid";
                         $stmt_item_upd = $pdo->prepare($sql_item_upd);
-                        $sql_item_ins = "INSERT INTO sales_quote_details (quote_id, product_id, product_name_snapshot, category_snapshot, unit_snapshot, quantity, unit_price) VALUES (:qid, :pid, :pname, :pcat, :punit, :pqty, :pprice)";
+                        $sql_item_ins = "INSERT INTO sales_quote_details (quote_id, product_id, product_name_snapshot, category_snapshot, unit_snapshot, quantity, unit_price, supplier_id) VALUES (:qid, :pid, :pname, :pcat, :punit, :pqty, :pprice, :sid)";
                         $stmt_item_ins = $pdo->prepare($sql_item_ins);
 
                         foreach ($validItems as $itemData) {
@@ -343,7 +350,8 @@ try {
                                 ':qid' => $quoteId, ':pid' => $itemData['product_id'],
                                 ':pname' => $itemData['product_name_snapshot'],
                                 ':pcat' => $itemData['category_snapshot'], ':punit' => $itemData['unit_snapshot'],
-                                ':pqty' => $itemData['quantity'], ':pprice' => $itemData['unit_price']
+                                ':pqty' => $itemData['quantity'], ':pprice' => $itemData['unit_price'],
+                                ':sid' => $itemData['supplier_id']
                             ];
                             if ($detail_id && in_array($detail_id, $existingDbItemIds)) {
                                 $item_params_sync[':detail_id'] = $detail_id;

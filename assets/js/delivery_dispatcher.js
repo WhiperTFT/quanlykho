@@ -235,8 +235,12 @@ $(document).ready(function() {
         $.get('process/delivery_handler.php', { action: 'get_available_orders' }, function(res) {
             if (res.success) {
                 let html = '';
-                // Filter out orders already assigned to this trip in the form
-                const filtered = res.orders.filter(o => !assignedOrders.find(ao => ao.id == o.id));
+                // Filter out orders already assigned to this trip in the form OR already assigned to another trip
+                const filtered = res.orders.filter(o => {
+                    const isAlreadyInForm = assignedOrders.find(ao => ao.id == o.id);
+                    const isAlreadyInAnotherTrip = !!o.assigned_trip_number;
+                    return !isAlreadyInForm && !isAlreadyInAnotherTrip;
+                });
                 
                 if (filtered.length === 0) {
                     html = `<tr><td colspan="6" class="text-center py-4 text-muted">${TRIP_LANG.noPendingOrders}</td></tr>`;
@@ -270,10 +274,8 @@ $(document).ready(function() {
     }
 
     function addSelectedOrders() {
-        let hasDuplicate = false;
         $('.order-checkbox:checked').each(function() {
             const $cb = $(this);
-            if ($cb.data('trip')) hasDuplicate = true;
             assignedOrders.push({
                 id: $cb.val(),
                 order_number: $cb.data('num'),
@@ -283,14 +285,6 @@ $(document).ready(function() {
                 status: $cb.data('status')
             });
         });
-        
-        if (hasDuplicate) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Lưu ý',
-                text: 'Một số đơn hàng đã được gán cho chuyến xe khác. Vui lòng kiểm tra lại nếu cần thiết.'
-            });
-        }
         
         $('#orderSelectorModal').modal('hide');
         renderAssignedOrders();

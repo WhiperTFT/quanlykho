@@ -203,6 +203,38 @@ function initializeProductAutocomplete(containerSelector) {
     devLog("Product Autocomplete initialization finished.");
 }
 
+/**
+ * Fetch partner (supplier/customer) info by ID and update the UI displays
+ * @param {number|string} partnerId 
+ */
+function fetchPartnerInfo(partnerId) {
+    if (!partnerId) return;
+    devLog("Fetching info for partner ID:", partnerId);
+    
+    $.ajax({
+        url: AJAX_URL.partner_search || 'process/partners_handler.php',
+        type: 'GET',
+        data: { action: 'get_info', id: partnerId },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.success && response.data) {
+                const partner = response.data;
+                $('#partner_address_display').text(partner.address || '-');
+                $('#partner_tax_id_display').text(partner.tax_id || '-');
+                $('#partner_phone_display').text(partner.phone || '-');
+                $('#partner_email_display').text(partner.email || '-');
+                $('#partner_contact_person_display').text(partner.contact_person || '-');
+                devLog("Partner info updated for ID:", partnerId);
+            } else {
+                console.error("Error fetching partner info:", response?.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("AJAX Error fetching partner info:", status, error);
+        }
+    });
+}
+
 // --- Hàm Reset Form Đơn Hàng ---
 function resetOrderForm(isEdit = false) {
     devLog("Resetting order form. Is Edit:", isEdit);

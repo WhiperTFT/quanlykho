@@ -252,49 +252,15 @@ html, body {
 #item-details-table {
     table-layout: auto;
 }
-#item-details-table th:nth-child(1),
-#item-details-table td:nth-child(1) {
-    width: 30px;
-}
-#item-details-table th:nth-child(2),
-#item-details-table td:nth-child(2) {
-    width: 160px !important;
-}
-#item-details-table th:nth-child(3),
-#item-details-table td:nth-child(3) {
-    width: auto;
-    min-width: 180px;
-}
-#item-details-table th:nth-child(4),
-#item-details-table td:nth-child(4) {
-    width: 80px;
-    min-width: 80px;
-    max-width: 100px;
-}
-#item-details-table th:nth-child(5),
-#item-details-table td:nth-child(5) {
-    width: 120px;
-    min-width: 100px;
-    max-width: 150px;
-}
-#item-details-table th:nth-child(6),
-#item-details-table td:nth-child(6) {
-    width: 120px;
-    min-width: 100px;
-    max-width: 150px;
-}
-#item-details-table th:nth-child(7),
-#item-details-table td:nth-child(7) {
-    width: 120px;
-    min-width: 100px;
-    max-width: 150px;
-}
-#item-details-table th:last-child,
-#item-details-table td.action-cell-item {
-    width: 1%;
-    min-width: 40px;
-    white-space: nowrap;
-}
+#item-details-table .col-stt { width: 40px; }
+#item-details-table .col-category { width: 140px; }
+#item-details-table .col-supplier { width: 220px; }
+#item-details-table .col-product-name { min-width: 350px !important; }
+#item-details-table .col-unit { width: 80px; }
+#item-details-table .col-quantity { width: 100px; }
+#item-details-table .col-price { width: 140px; }
+#item-details-table .col-total { width: 140px; }
+#item-details-table .col-actions { width: 40px; }
 
 /* ==========================================================================
    Document Summary Styles
@@ -706,17 +672,15 @@ html, body {
    Item Details Table (#item-details-table)
    ========================================================================== */
 #item-details-table { table-layout: auto; }
-#item-details-table th:nth-child(1), #item-details-table td:nth-child(1) { width: 30px; }
-#item-details-table th:nth-child(2), #item-details-table td:nth-child(2) { width: 160px !important; }
-#item-details-table th:nth-child(3), #item-details-table td:nth-child(3) { width: auto; min-width: 180px; }
-#item-details-table th:nth-child(4), #item-details-table td:nth-child(4) { width: 80px; min-width: 80px; max-width: 100px; }
-#item-details-table th:nth-child(5), #item-details-table td:nth-child(5),
-#item-details-table th:nth-child(6), #item-details-table td:nth-child(6),
-#item-details-table th:nth-child(7), #item-details-table td:nth-child(7) {
-    width: 120px; min-width: 100px; max-width: 150px;
-}
-#item-details-table th:last-child,
-#item-details-table td.action-cell-item { width: 1%; min-width: 40px; white-space: nowrap; }
+#item-details-table .col-stt { width: 40px; }
+#item-details-table .col-category { width: 140px; }
+#item-details-table .col-supplier { width: 220px; }
+#item-details-table .col-product-name { min-width: 350px !important; }
+#item-details-table .col-unit { width: 80px; }
+#item-details-table .col-quantity { width: 100px; }
+#item-details-table .col-price { width: 140px; }
+#item-details-table .col-total { width: 140px; }
+#item-details-table .col-actions { width: 40px; }
 
 /* ==========================================================================
    Document Summary

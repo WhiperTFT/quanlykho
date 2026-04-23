@@ -44,7 +44,7 @@ try {
             sq.id, sq.quote_number, sq.quote_date, sq.currency, sq.grand_total, sq.status,
             sq.ghi_chu,
             p.name AS customer_name,
-            s_order.order_number AS linked_order_number
+            GROUP_CONCAT(DISTINCT s_order.order_number SEPARATOR ', ') AS linked_order_number
     ";
     $sql_from = "
         FROM sales_quotes sq

@@ -6,23 +6,32 @@ if (!isset($lang)) { $lang = []; }
     <table class="table table-hover table-striped table-sm table-mobile-cards" id="item-details-table">
         <thead class="table-light align-middle">
             <tr>
-                <th scope="col" class="text-center" data-lang-key="stt"><?= $lang['stt'] ?? 'STT' ?></th>
-                <th scope="col" data-lang-key="category"><?= $lang['category'] ?? 'Danh mục' ?></th>
-                <th scope="col"><span data-lang-key="product_name"><?= $lang['product_name'] ?? 'Tên sản phẩm' ?></span> <span class="text-danger">*</span></th>
-                <th scope="col" class="text-center" data-lang-key="unit"><?= $lang['unit'] ?? 'ĐVT' ?></th>
-                <th scope="col" class="text-center"><span data-lang-key="quantity"><?= $lang['quantity'] ?? 'Số lượng' ?></span> <span class="text-danger">*</span></th>
-                <th scope="col" class="text-end"><span data-lang-key="unit_price"><?= $lang['unit_price'] ?? 'Đơn giá' ?></span> <span class="text-danger">*</span></th>
-                <th scope="col" class="text-end" data-lang-key="line_total"><?= $lang['line_total'] ?? 'Thành tiền' ?></th>
-                <th scope="col" class="text-center"></th>
+                <th scope="col" class="text-center col-stt" data-lang-key="stt"><?= $lang['stt'] ?? 'STT' ?></th>
+                <th scope="col" class="col-category" data-lang-key="category"><?= $lang['category'] ?? 'Danh mục' ?></th>
+                <?php if (strpos($_SERVER['PHP_SELF'], 'sales_quotes.php') !== false): ?>
+                <th scope="col" class="col-supplier" data-lang-key="supplier"><?= $lang['supplier'] ?? 'Nhà cung cấp' ?></th>
+                <?php endif; ?>
+                <th scope="col" class="col-product-name"><span data-lang-key="product_name"><?= $lang['product_name'] ?? 'Tên sản phẩm' ?></span> <span class="text-danger">*</span></th>
+                <th scope="col" class="text-center col-unit" data-lang-key="unit"><?= $lang['unit'] ?? 'ĐVT' ?></th>
+                <th scope="col" class="text-center col-quantity"><span data-lang-key="quantity"><?= $lang['quantity'] ?? 'Số lượng' ?></span> <span class="text-danger">*</span></th>
+                <th scope="col" class="text-end col-price"><span data-lang-key="unit_price"><?= $lang['unit_price'] ?? 'Đơn giá' ?></span> <span class="text-danger">*</span></th>
+                <th scope="col" class="text-end col-total" data-lang-key="line_total"><?= $lang['line_total'] ?? 'Thành tiền' ?></th>
+                <th scope="col" class="text-center col-actions"></th>
             </tr>
         </thead>
         <tbody id="item-details-body">
         </tbody>
         <tfoot>
             <tr class="item-row-template align-middle" style="display: none;">
-                 <td class="stt-col text-center" data-label="<?= $lang['stt'] ?? 'STT' ?>"></td>
-                 <td data-label="<?= $lang['category'] ?? 'Danh mục' ?>"><input type="text" class="form-control form-control-sm category-display bg-light" readonly tabindex="-1"></td>
-                 <td data-label="<?= $lang['product_name'] ?? 'Tên sản phẩm' ?>">
+                 <td class="stt-col text-center col-stt" data-label="<?= $lang['stt'] ?? 'STT' ?>"></td>
+                 <td class="col-category" data-label="<?= $lang['category'] ?? 'Danh mục' ?>"><input type="text" class="form-control form-control-sm category-display bg-light" readonly tabindex="-1"></td>
+                 <?php if (strpos($_SERVER['PHP_SELF'], 'sales_quotes.php') !== false): ?>
+                 <td class="col-supplier" data-label="<?= $lang['supplier'] ?? 'Nhà cung cấp' ?>">
+                     <input type="text" class="form-control form-control-sm supplier-autocomplete" placeholder="<?= $lang['search_supplier'] ?? 'Tìm NCC...' ?>">
+                     <input type="hidden" class="supplier-id" name="items[999][supplier_id]">
+                 </td>
+                 <?php endif; ?>
+                 <td class="col-product-name" data-label="<?= $lang['product_name'] ?? 'Tên sản phẩm' ?>">
                      <input type="text" class="form-control form-control-sm product-autocomplete" name="items[999][product_name_snapshot]" placeholder="<?= $lang['product_placeholder'] ?? 'Nhập tên sản phẩm...' ?>" required>
                      <input type="hidden" class="product-id" name="items[999][product_id]">
                      <input type="hidden" name="items[999][category_snapshot]">
@@ -54,7 +63,7 @@ if (!isset($lang)) { $lang = []; }
                   </td>
             </tr>
             <tr class="border-top">
-                <td colspan="8" class="text-end border-0 pt-3">
+                <td colspan="<?= (strpos($_SERVER['PHP_SELF'], 'sales_quotes.php') !== false) ? '9' : '8' ?>" class="text-end border-0 pt-3">
                     <button type="button" class="btn btn-sm btn-success" id="add-item-row">
                         <i class="bi bi-plus-lg"></i> <?= $lang['add_item_row'] ?? 'Thêm dòng' ?>
                     </button>

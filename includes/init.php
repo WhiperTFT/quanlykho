@@ -266,6 +266,20 @@ if (!function_exists('get_active_sales_quotes_for_linking')) {
     }
 }
 
+if (!function_exists('get_suppliers')) {
+    function get_suppliers(PDO $pdo): array {
+        if (!$pdo) return [];
+        try {
+            $stmt = $pdo->query("SELECT id, name FROM partners WHERE type = 'supplier' ORDER BY name ASC");
+            return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+        } catch (PDOException $e) {
+            error_log("Error fetching suppliers: " . $e->getMessage());
+            return [];
+        }
+    }
+}
+
+
 // ==========================
 // 🧾 10. LOGGING HÀNH ĐỘNG NGƯỜI DÙNG
 // ==========================

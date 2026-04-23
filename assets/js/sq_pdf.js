@@ -1,70 +1,71 @@
 // cleaned: console logs optimized, debug system applied
 // File: assets/js/sq_pdf.js
-
-// --- Hàm Xuất PDF Báo Giá ---
 function downloadQuotePDF() {
-    devLog("Generating Quote PDF for viewing and server-side saving...");
-    const elementToCapture = document.getElementById('pdf-export-content'); // ID chung
-    const downloadButton = $('#btn-download-pdf'); // ID chung
-    const buttonText = downloadButton.find('.export-text'); // class chung
-    const buttonSpinner = downloadButton.find('.spinner-border'); // class chung, kiểm tra lại nếu class spinner khác cho quote: .spinner-bquote
-    let filename = sanitizeFilename($('#quote_number').val()); // ID cho số báo giá
+    const pdfContentArea = $('#pdf-export-content');
+    const downloadButton = $('#btn-download-pdf');
+    const buttonText = downloadButton.find('.download-text');
+    const buttonSpinner = downloadButton.find('.spinner-border');
+    const quoteNumber = $('#quote_number').val() || 'BaoGia';
+    const pdf_lang = $('#pdf_language_selector').val() || 'vi';
 
-    if (!elementToCapture) { console.error("PDF export failed: #pdf-export-content not found."); showUserMessage(LANG['pdf_export_error_element'] || 'Không tìm thấy nội dung PDF.', 'error'); return; }
-    if (!filename) {
-        const quoteIdForFilename = $('#quote_id').val() || Date.now(); // ID cho báo giá
-        filename = 'sales_quote_' + quoteIdForFilename; // Tên file mặc định cho báo giá
-        devLog("Quote number empty, using default filename:", filename);
+    if (!pdfContentArea.length) {
+        showUserMessage(LANG['pdf_content_not_found'] || 'Không tìm thấy vùng nội dung PDF.', 'error');
+        return;
     }
 
-    downloadButton.prop('disabled', true); buttonText.hide(); buttonSpinner.removeClass('d-none');
-    const pdfContentArea = $(elementToCapture);
-    const elementsToHide = pdfContentArea.find('#add-item-row, #btn-generate-quote-number, .remove-item-row, #add-item-row-container, #save-signature-pos-size, #signature-feedback, #signature-upload, #toggle-signature, .action-cell-item, .tox-menubar, .tox-toolbar-container, .tox-statusbar , .tox-editor-header, #form-error-message, .invalid-feedback');
+    downloadButton.prop('disabled', true);
+    buttonText.hide();
+    buttonSpinner.removeClass('d-none');
+
+    const elementsToHide = pdfContentArea.find('#add-item-row, #btn-generate-quote-number, .remove-item-row, #add-item-row-container, #save-signature-pos-size, #signature-feedback, #signature-upload, #toggle-signature, .action-cell-item, .tox-menubar, .tox-toolbar-container, .tox-statusbar, .tox-editor-header, #form-error-message, .invalid-feedback');
     elementsToHide.addClass('hide-on-pdf-export');
 
-    const pdf_lang = document.getElementById('pdf_lang')?.value || 'vi';
-
     PDFTranslator.translate('#pdf-export-content', pdf_lang).then(() => {
-        new Promise((resolve, reject) => {
-            html2canvas(elementToCapture, { scale: 0.8, useCORS: true, logging: false, backgroundColor: '#ffffff' }).then(resolve).catch(reject);
-        })
-            .then(canvas => {
-                PDFTranslator.restore();
-            const imgData = canvas.toDataURL('image/png');
+        return html2canvas(pdfContentArea[0], {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+        }).then(canvas => {
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            const imgProps = pdf.getImageProperties(imgData);
-            const pdfW = pdf.internal.pageSize.getWidth(), pdfH = pdf.internal.pageSize.getHeight();
-            const margin = 10, availW = pdfW - 2 * margin, availH = pdfH - 2 * margin;
-            let imgW = imgProps.width, imgH = imgProps.height, ratio = imgW / imgH;
-            if (imgW > availW) { imgW = availW; imgH = imgW / ratio; }
-            if (imgH > availH) { imgH = availH; imgW = imgH * ratio; }
-            pdf.addImage(imgData, 'PNG', (pdfW - imgW) / 2, margin, imgW, imgH);
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgWidth = 210;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-            try {
-                const pdfBlob = pdf.output('blob'); const blobUrl = URL.createObjectURL(pdfBlob);
-                const newWin = window.open(blobUrl, '_blank');
-                if (!newWin) showUserMessage(LANG['popup_blocked_pdf'] || 'Trình duyệt chặn popup PDF.', 'warning');
-            } catch (e) { showUserMessage(LANG['pdf_open_error'] || 'Không thể mở PDF.', 'error'); }
+            doc.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
 
-            try {
-                const pdfBase64 = pdf.output('datauristring');
-                $.ajax({
-                    url: PROJECT_BASE_URL + 'includes/save_pdf.php', // Endpoint chung để lưu PDF
-                    type: 'POST', contentType: 'application/json',
-                    data: JSON.stringify({ filename: filename + '.pdf', pdf_data: pdfBase64, type: 'quote' }), // Thêm type
-                    dataType: 'json',
-                    success: (res) => {
-                        if (res.success) devLog('Quote PDF saved on server:', filename + '.pdf');
-                        else showUserMessage(LANG['pdf_saved_server_error'] || 'Lỗi lưu PDF trên server: ' + escapeHtml(res.message), 'error');
-                    },
-                    error: () => showUserMessage(LANG['server_error_saving_pdf'] || 'Lỗi server khi lưu PDF báo giá.', 'error')
-                });
-            } catch (e) { showUserMessage(LANG['pdf_save_request_error'] || 'Không thể gửi yêu cầu lưu PDF báo giá.', 'error'); }
-        })
-        .catch(() => showUserMessage(LANG['pdf_export_render_error'] || 'Lỗi tạo ảnh PDF báo giá.', 'error'))
-        .finally(() => {
-            elementsToHide.removeClass('hide-on-pdf-export');
-            downloadButton.prop('disabled', false); buttonText.show(); buttonSpinner.addClass('d-none');
+            const blob = doc.output('blob');
+            const formData = new FormData();
+            formData.append('pdf_blob', blob, `${quoteNumber}.pdf`);
+            formData.append('quote_id', $('#quote_id').val() || '');
+
+            return $.ajax({
+                url: `${PROJECT_BASE_URL}process/save_quote_pdf.php`,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        doc.save(`${quoteNumber}.pdf`);
+                        showUserMessage(LANG['pdf_saved_success'] || 'Lưu và tải PDF thành công!', 'success');
+                    } else {
+                        showUserMessage(LANG['pdf_save_error'] || 'Lỗi khi lưu PDF lên server: ' + (response.message || ''), 'error');
+                    }
+                },
+                error: () => showUserMessage(LANG['server_error_saving_pdf'] || 'Lỗi server khi lưu PDF báo giá.', 'error')
+            });
         });
+    })
+    .catch((err) => {
+        console.error("PDF Export Error:", err);
+        showUserMessage(LANG['pdf_export_render_error'] || 'Lỗi tạo PDF báo giá.', 'error');
+    })
+    .finally(() => {
+        elementsToHide.removeClass('hide-on-pdf-export');
+        downloadButton.prop('disabled', false);
+        buttonText.show();
+        buttonSpinner.addClass('d-none');
+    });
 }

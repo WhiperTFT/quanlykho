@@ -240,6 +240,7 @@ function setupEventListeners() {
             if (productNameValue && !isNaN(quantityValue) && quantityValue > 0 && !isNaN(unitPriceValue) && unitPriceValue >= 0) {
                 const item = {
                     detail_id: row.find('input[name$="[detail_id]"]').val() || null,
+                    quote_detail_id: row.find('.quote-detail-id').val() || null, // Lấy quote_detail_id để liên kết báo giá
                     product_id: row.find('.product-id').val() || null,
                     product_name_snapshot: productNameValue,
                     category_snapshot: row.find('input[name$="[category_snapshot]"]').val(),

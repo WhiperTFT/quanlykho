@@ -181,6 +181,53 @@ function initializeProductAutocomplete(containerSelector) {
     }
 }
 
+// --- Hàm Khởi Tạo Autocomplete Nhà Cung Cấp (Supplier) ---
+function initializeSupplierAutocomplete(containerSelector) {
+    devLog(`Initializing Supplier Autocomplete for quote: ${containerSelector}...`);
+    const targetElements = $(containerSelector).find('.supplier-autocomplete');
+    if (typeof $.ui !== 'undefined' && typeof $.ui.autocomplete !== 'undefined') {
+        targetElements.each(function () {
+            const inputElement = $(this);
+            if (!inputElement.data('ui-autocomplete')) {
+                inputElement.autocomplete({
+                    source: function (request, response) {
+                        $.ajax({
+                            url: AJAX_URL.partner_search,
+                            dataType: "json",
+                            data: { action: 'search', term: request.term, type: 'supplier' },
+                            success: function (data) {
+                                if (data.success && Array.isArray(data.data)) {
+                                    const mappedData = $.map(data.data, function (item) {
+                                        return {
+                                            label: item.name + (item.tax_id ? ` (MST: ${item.tax_id})` : ''),
+                                            value: item.name, id: item.id
+                                        };
+                                    });
+                                    response(mappedData);
+                                } else { response([]); }
+                            },
+                            error: function () { response([]); }
+                        });
+                    },
+                    minLength: 1,
+                    select: function (event, ui) {
+                        event.preventDefault();
+                        inputElement.val(ui.item.value);
+                        inputElement.closest('td').find('.supplier-id').val(ui.item.id);
+                        return false;
+                    },
+                    focus: function (event, ui) { event.preventDefault(); },
+                    change: function (event, ui) {
+                        if (!ui.item) {
+                            inputElement.closest('td').find('.supplier-id').val('');
+                        }
+                    }
+                });
+            }
+        });
+    }
+}
+
 // --- Hàm Reset Form Báo Giá ---
 function resetQuoteForm(isEdit = false) {
     devLog("Resetting quote form. Is Edit:", isEdit);
@@ -287,8 +334,14 @@ function addItemRow(data = {}) {
     if (data.category_snapshot) { templateRow.find('.category-display').val(data.category_snapshot); templateRow.find('input[name$="[category_snapshot]"]').val(data.category_snapshot); }
     if (data.unit_snapshot) { templateRow.find('.unit-display').val(data.unit_snapshot); templateRow.find('input[name$="[unit_snapshot]"]').val(data.unit_snapshot); }
     
+    // Fix: Load dữ liệu Nhà cung cấp (NCC) cho từng dòng sản phẩm
+    if (data.supplier_id) templateRow.find('.supplier-id').val(data.supplier_id);
+    if (data.supplier_name) templateRow.find('.supplier-autocomplete').val(data.supplier_name);
+
+    
     itemTableBody.append(templateRow);
     initializeProductAutocomplete(templateRow);
+    initializeSupplierAutocomplete(templateRow);
      if (window.NumberHelpers) {
    const qEl = templateRow.find('.quantity')[0];
    const pEl = templateRow.find('.unit-price')[0];

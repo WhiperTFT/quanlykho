@@ -173,7 +173,8 @@ function setupEventListeners() {
                         product_name_snapshot: prodNameVal,
                         category_snapshot: row.find('input[name$="[category_snapshot]"]').val(),
                         unit_snapshot: row.find('input[name$="[unit_snapshot]"]').val(),
-                        quantity: qtyVal, unit_price: priceVal
+                        quantity: qtyVal, unit_price: priceVal,
+                        supplier_id: row.find('.supplier-id').val() || null
                     });
                 }
             });

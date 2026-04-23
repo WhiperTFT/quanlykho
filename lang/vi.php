@@ -96,6 +96,7 @@ $lang = [
     'error_processing_request' => 'Lỗi xử lý yêu cầu.',
     'confirm_delete_partner' => 'Bạn có chắc chắn muốn xóa đối tác này không?',
     'select_type' => '-- Chọn loại --',
+    'search_supplier' => 'Tìm NCC...',
 
     // Đơn vị tính
     'order_number' => 'Số đơn hàng',
